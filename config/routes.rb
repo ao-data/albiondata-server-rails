@@ -13,6 +13,9 @@ Rails.application.routes.draw do
 
   namespace :api, defaults: {format: 'json'} do
     namespace :v2 do
+      match "stats/prices/:id", controller: "stats", action: "show_json", via: :get
+      match "stats/view/:id", controller: "stats", action: "show_table", via: :get
+
       resources :stats
     end
   end
