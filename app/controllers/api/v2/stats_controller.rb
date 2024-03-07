@@ -120,7 +120,8 @@ class API::V2::StatsController < API::V2::APIController
     filter = filter.select('concat(item_id, "_", location, "_", quality_level, "_", auction_type) as o_keey')
     filter = filter.select('concat(item_id, "_", location, "_", quality_level, "_", auction_type, "_", (UNIX_TIMESTAMP(updated_at) DIV 300 * 300)) as o_keey_binned')
     filter = filter.group('concat(item_id, "_", location, "_", quality_level, "_", auction_type, "_", (UNIX_TIMESTAMP(updated_at) DIV 300 * 300))')
-    filter_sql = "select max(o_keey_binned) as o_key_binned from (\n\n#{filter.to_sql}\n\n) as a group by o_keey"
+    # filter_sql = "\n\nselect max(o_keey_binned) as o_key_binned from (\n\n#{filter.to_sql}\n\n) as a group by o_keey\n\n"
+    filter_sql = "'#{filter.each.map{|f|f.o_keey_binned}.join("','")}'"
 
     orders = MarketOrder
     orders = orders.where(item_id: ids, updated_at: 1.days.ago.., quality_level: qualities, location: locations)
@@ -140,7 +141,6 @@ class API::V2::StatsController < API::V2::APIController
         results[order.o_keey].merge!({buy_price_min: order[:price], buy_price_min_date: order.updated_at_binned}) if order[:price] < results[order.o_keey][:buy_price_min]
         results[order.o_keey].merge!({buy_price_max: order[:price], buy_price_max_date: order.updated_at_binned}) if order[:price] > results[order.o_keey][:buy_price_max]
       end
-
     end
 
     location_strings = []
