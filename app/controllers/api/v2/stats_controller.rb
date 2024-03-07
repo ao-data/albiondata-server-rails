@@ -195,31 +195,21 @@ class API::V2::StatsController < API::V2::APIController
     qualities = get_qualities(params)
     results = prepare_emtpy_results(ids, locations, qualities)
 
-    # last_groups = {}
-    # orders = MarketOrder.where(item_id: ids, updated_at: 1.days.ago..)
-
+    # filter = MarketOrder
+    # filter = filter.where(item_id: ids, updated_at: 1.days.ago..)
+    # filter = filter.where(quality_level: qualities)
     # if use_names
-    #   orders = orders.where(location: locations.each.map{|c| city_to_location(c)})
+    #   filter = filter.where(location: locations.each.map{|c| city_to_location(c)})
     # else
-    #   orders = orders.where(location: locations)
+    #   filter = filter.where(location: locations)
     # end
-
-    filter = MarketOrder
-    filter = filter.where(item_id: ids, updated_at: 1.days.ago..)
-    filter = filter.where(quality_level: qualities)
-    if use_names
-      filter = filter.where(location: locations.each.map{|c| city_to_location(c)})
-    else
-      filter = filter.where(location: locations)
-    end
-    filter = filter.select('concat(item_id, "_", location, "_", quality_level) as o_keey')
-    filter = filter.select('concat(item_id, "_", location, "_", quality_level, "_", (UNIX_TIMESTAMP(updated_at) DIV 300 * 300)) as o_keey_binned')
-    filter = filter.group('concat(item_id, "_", location, "_", quality_level, "_", (UNIX_TIMESTAMP(updated_at) DIV 300 * 300))')
-    # orders = orders.select('FROM_UNIXTIME((UNIX_TIMESTAMP(updated_at) DIV 300 * 300), "%Y-%m-%dT%H:%i:%s") as updated_at_binned, (UNIX_TIMESTAMP(updated_at) DIV 300 * 300) as updated_at_binned_epoch')
-    # orders = orders.select('concat(item_id, "_", location, "_", quality_level) as o_keey')
-    # orders = orders.select(:item_id, :location, :auction_type, :quality_level, :price, :updated_at)
-    sql = "select max(o_keey_binned) as o_key_binned from (\n\n#{filter.to_sql}\n\n) as a group by o_keey"
-    puts "DateTime: #{DateTime.now}"
+    # filter = filter.select('concat(item_id, "_", location, "_", quality_level) as o_keey')
+    # filter = filter.select('concat(item_id, "_", location, "_", quality_level, "_", (UNIX_TIMESTAMP(updated_at) DIV 300 * 300)) as o_keey_binned')
+    # filter = filter.group('concat(item_id, "_", location, "_", quality_level, "_", (UNIX_TIMESTAMP(updated_at) DIV 300 * 300))')
+    # # orders = orders.select('FROM_UNIXTIME((UNIX_TIMESTAMP(updated_at) DIV 300 * 300), "%Y-%m-%dT%H:%i:%s") as updated_at_binned, (UNIX_TIMESTAMP(updated_at) DIV 300 * 300) as updated_at_binned_epoch')
+    # # orders = orders.select('concat(item_id, "_", location, "_", quality_level) as o_keey')
+    # # orders = orders.select(:item_id, :location, :auction_type, :quality_level, :price, :updated_at)
+    # sql = "select max(o_keey_binned) as o_key_binned from (\n\n#{filter.to_sql}\n\n) as a group by o_keey"
 
     orders = MarketOrder
     orders = orders.where(item_id: ids, updated_at: 1.days.ago..)
@@ -229,65 +219,43 @@ class API::V2::StatsController < API::V2::APIController
     else
       orders = orders.where(location: locations)
     end
-    orders = orders.select('*')
+    # orders = orders.select('*')
+    orders = orders.select(:auction_type, :price)
     orders = orders.select('concat(item_id, "_", location, "_", quality_level) as o_keey')
-    orders = orders.select('concat(item_id, "_", location, "_", quality_level, "_", (UNIX_TIMESTAMP(updated_at) DIV 300 * 300)) as o_keey_binned')
+    # orders = orders.select('concat(item_id, "_", location, "_", quality_level, "_", (UNIX_TIMESTAMP(updated_at) DIV 300 * 300)) as o_keey_binned')
     orders = orders.select('FROM_UNIXTIME((UNIX_TIMESTAMP(updated_at) DIV 300 * 300), "%Y-%m-%dT%H:%i:%s") as updated_at_binned')
 
     # orders = orders.where('concat(item_id, "_", location, "_", quality_level, "_", (UNIX_TIMESTAMP(updated_at) DIV 300 * 300)) in ("' + filter.each.map{ |r| r.o_keey_binned }.join('","') + '")')
-    orders = orders.where('concat(item_id, "_", location, "_", quality_level, "_", (UNIX_TIMESTAMP(updated_at) DIV 300 * 300)) in (' + sql + ')')
+    # orders = orders.where('concat(item_id, "_", location, "_", quality_level, "_", (UNIX_TIMESTAMP(updated_at) DIV 300 * 300)) in (' + sql + ')')
 
-    puts "DateTime: #{DateTime.now}"
-    count = 0
-    orders.each do |order|
-      puts "DateTime: #{DateTime.now}" if count == 0
 
-      # puts order.inspect
-      # break
-      count += 1
-      # pp order.inspect
-      # break
-    #   # if use_names
-    #   #   o_key = "#{order[:item_id]}_#{location_to_city(order[:location])}_#{order[:quality_level]}"
-    #   # else
-    #   #   o_key = "#{order[:item_id]}_#{order[:location]}_#{order[:quality_level]}"
-    #   # end
-      o_key = order.o_keey
-      this_group = order.updated_at_binned
-    #   # determine group block
-    #   # dt = order[:updated_at]
-    #   # this_group = DateTime.new(dt.year, dt.month, dt.day, dt.hour, dt.to_datetime.minute - (dt.to_datetime.minute % 5), 0).strftime('%Y-%m-%dT%H:%M:%S')
-    #   # last_groups[o_key] = DateTime.new(0001, 1, 1, 0, 0, 0) unless last_groups.key?(o_key)
-    #   this_group = order.updated_at_binned_epoch
-    #   last_groups[o_key] = DateTime.new(0001, 1, 1, 0, 0, 0).to_i unless last_groups.key?(o_key)
+    time = Benchmark.realtime do
+      orders.each do |order|
+        o_key = order.o_keey
+        this_group = order.updated_at_binned
 
-    #   # pp last_groups.count
-    #   # more recent time group block?
-    #   if this_group > last_groups[o_key]
-    #     last_groups[o_key] = this_group
+        if order[:auction_type] == 'offer'
+          results[o_key].merge!({sell_price_min: 999999999999, sell_price_min_date: nil, sell_price_max: 0, sell_price_max_date: nil })
+        elsif order[:auction_type] == 'request'
+          results[o_key].merge!({buy_price_min: 999999999999, buy_price_min_date: nil, buy_price_max: 0, buy_price_max_date: nil })
+        end
+      #   end
 
-      if order[:auction_type] == 'offer'
-        results[o_key].merge!({sell_price_min: 999999999999, sell_price_min_date: nil, sell_price_max: 0, sell_price_max_date: nil })
-      elsif order[:auction_type] == 'request'
-        results[o_key].merge!({buy_price_min: 999999999999, buy_price_min_date: nil, buy_price_max: 0, buy_price_max_date: nil })
+        if order[:auction_type] == 'offer'
+          # sell
+          results[o_key].merge!({sell_price_min: order[:price], sell_price_min_date: this_group}) if order[:price] < results[o_key][:sell_price_min]
+          results[o_key].merge!({sell_price_max: order[:price], sell_price_max_date: this_group}) if order[:price] > results[o_key][:sell_price_max]
+
+        elsif order[:auction_type] == 'request'
+          # buy
+          results[o_key].merge!({buy_price_min: order[:price], buy_price_min_date: this_group}) if order[:price] < results[o_key][:buy_price_min]
+          results[o_key].merge!({buy_price_max: order[:price], buy_price_max_date: this_group}) if order[:price] > results[o_key][:buy_price_max]
+        end
+
       end
-    #   end
-
-      if order[:auction_type] == 'offer'
-        # sell
-        results[o_key].merge!({sell_price_min: order[:price], sell_price_min_date: this_group}) if order[:price] < results[o_key][:sell_price_min]
-        results[o_key].merge!({sell_price_max: order[:price], sell_price_max_date: this_group}) if order[:price] > results[o_key][:sell_price_max]
-
-      elsif order[:auction_type] == 'request'
-        # buy
-        results[o_key].merge!({buy_price_min: order[:price], buy_price_min_date: this_group}) if order[:price] < results[o_key][:buy_price_min]
-        results[o_key].merge!({buy_price_max: order[:price], buy_price_max_date: this_group}) if order[:price] > results[o_key][:buy_price_max]
-      end
-
     end
 
-    puts "DateTime: #{DateTime.now}"
-    pp "Record Count: #{count}"
+    pp "time: #{time * 1000}"
 
     sorted_results = results
     # sorted_results = []
