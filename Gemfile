@@ -27,7 +27,7 @@ gem "stimulus-rails"
 gem "jbuilder"
 
 # Use Redis adapter to run Action Cable in production
-# gem "redis", ">= 4.0.1"
+gem "redis", ">= 4.0.1"
 
 # Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
 # gem "kredis"
@@ -52,7 +52,14 @@ group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ]
 
+  gem 'ffaker', '~> 2.21'
+  gem 'rspec-rails', '~> 6.1', '>= 6.1.1'
+  gem 'factory_bot_rails', '~> 6.4', '>= 6.4.3'
 
+  # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
+  gem "spring"
+
+  gem 'spring-commands-rspec', '~> 1.0', '>= 1.0.4'
 
 end
 
@@ -64,9 +71,6 @@ group :development do
 
   # Add speed badges [https://github.com/MiniProfiler/rack-mini-profiler]
   # gem "rack-mini-profiler"
-
-  # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
-  # gem "spring"
 end
 
 group :test do

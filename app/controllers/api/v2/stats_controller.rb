@@ -7,168 +7,43 @@ class API::V2::StatsController < API::V2::APIController
     render json: [url1, url2].to_json
   end
 
-  C2L = {
-    "SwampCross": 4,
-    "Thetford": 7,
-    "ThetfordPortal": 9,
-    "MorganasRest": 8,
-    "Lymhurst": 1002,
-    "LymhurstPortal": 1301,
-    "ForestCross": 1006,
-    "MerlynsRest": 1012,
-    "SteppeCross": 2002,
-    "Bridgewatch": 2004,
-    "BridgewatchPortal": 2301,
-    "HighlandCross": 3002,
-    "BlackMarket": 3003,
-    "Caerleon": 3005,
-    "Martlock": 3008,
-    "MartlockPortal": 3301,
-    "Caerleon2": 3013,
-    "FortSterling": 4002,
-    "FortSterlingPortal": 4301,
-    "MountainCross": 4006,
-    "ArthursRest": 4300,
-    # "Brecilien": 5003,
-  }
+  def show
 
-  L2C = {
-    "4": "SwampCross",
-    "7": "Thetford",
-    "9": "ThetfordPortal",
-    "8": "MorganasRest",
-    "1002": "Lymhurst",
-    "1031": "LymhurstPortal",
-    "1006": "ForestCross",
-    "1012": "MerlynsRest",
-    "2002": "SteppeCross",
-    "2004": "Bridgewatch",
-    "2301": "BridgewatchPortal",
-    "3002": "HighlandCross",
-    "3003": "BlackMarket",
-    "3005": "Caerleon",
-    "3008": "Martlock",
-    "3301": "MartlockPortal",
-    "3013": "Caerleon2",
-    "4002": "FortSterling",
-    "4301": "FortSterlingPortal",
-    "4006": "MountainCross",
-    "4300": "ArthursRest",
-    # "5003": "Brecilien"
-  }
+    s = MarketDataService.new(params)
+    sorted_results = s.get_stats
 
-  def location_to_city(location)
-    (L2C.key?(location.to_s.to_sym) ? L2C[location.to_s.to_sym] : location.to_s)
+    respond_to do |format|
+      # format.xml { render xml: JSON.parse(get_stats.to_json).to_xml(:root => :my_root) }
+      format.xml { render xml: show_xml(sorted_results) }
+      format.json { render json: sorted_results }
+    end
   end
 
-  def city_to_location(city)
-    (C2L.key?(city.to_sym) ? C2L[city.to_sym] : city.to_i)
-  end
+  def show_xml(sorted_results)
+    xml_results = []
+    sorted_results.each do |r|
+      xml_results << {
+        "ItemTypeID": r[:item_id],
+        "City": r[:city],
+        "QualityLevel": r[:quality],
+        "SellPriceMin": r[:sell_price_min],
+        "SellPriceMinDate": r[:sell_price_min_date],
+        "SellPriceMax": r[:sell_price_max],
+        "SellPriceMaxDate": r[:sell_price_max_date],
+        "BuyPriceMin": r[:buy_price_min],
+        "BuyPriceMinDate": r[:buy_price_min_date],
+        "BuyPriceMax": r[:buy_price_max],
+        "BuyPriceMaxDate": r[:buy_price_max_date],
 
-  def get_locations(params)
-    # parse any city name strings to location ids
-    locations = params[:locations].split(',').each.map{|l| city_to_location(l) } if params.key?(:locations)
-
-    # set default locations to search, if none are sent in the query string
-    locations = [3005,5003].each.map{|l| l.to_i } if locations.nil?
-
-    # now map all locations to city names, for result array/hash sorting purposes
-    # locations = locations.each.map{|l| location_to_city(l)}
-
-    locations
-  end
-
-  def get_qualities(params)
-      # parse any qualitiles
-      qualities = params[:qualities].split(',').each.map{|q| q.to_i} if params.key?(:qualities)
-
-      # set default qualities, if none are sent in the query string
-      qualities = [1] if qualities.nil?
-
-      qualities
-  end
-
-  def prepare_emtpy_results(ids, locations, qualities)
-    results = {}
-
-    ids.sort.each do |id|
-      locations.each do |location|
-        qualities.sort.each do |quality|
-          k = "#{id}_#{location}_#{quality}"
-
-          result = default_result
-          result[:item_id] = id
-          result[:city] = location
-          result[:quality] = quality
-          results[k] = result
-        end
-      end
+      }
     end
 
-    results
-  end
-
-  def get_stats
-    ids = params[:id].split(',')
-    locations = get_locations(params)
-    qualities = get_qualities(params)
-    results = prepare_emtpy_results(ids, locations, qualities)
-
-    filter = MarketOrder
-    filter = filter.where(item_id: ids, updated_at: 1.days.ago.., quality_level: qualities, location: locations)
-    filter = filter.select(:auction_type)
-    filter = filter.select('concat(item_id, "_", location, "_", quality_level, "_", auction_type) as o_keey')
-    filter = filter.select('concat(item_id, "_", location, "_", quality_level, "_", auction_type, "_", (UNIX_TIMESTAMP(updated_at) DIV 300 * 300)) as o_keey_binned')
-    filter = filter.group('concat(item_id, "_", location, "_", quality_level, "_", auction_type, "_", (UNIX_TIMESTAMP(updated_at) DIV 300 * 300))')
-    # filter_sql = "\n\nselect max(o_keey_binned) as o_key_binned from (\n\n#{filter.to_sql}\n\n) as a group by o_keey\n\n"
-    filter_sql = "'#{filter.each.map{|f|f.o_keey_binned}.join("','")}'"
-
-    orders = MarketOrder
-    orders = orders.where(item_id: ids, updated_at: 1.days.ago.., quality_level: qualities, location: locations)
-    orders = orders.select(:auction_type, :price)
-    orders = orders.select('concat(item_id, "_", location, "_", quality_level) as o_keey')
-    orders = orders.select('FROM_UNIXTIME((UNIX_TIMESTAMP(updated_at) DIV 300 * 300), "%Y-%m-%dT%H:%i:%s") as updated_at_binned')
-    orders = orders.where('concat(item_id, "_", location, "_", quality_level, "_", auction_type, "_", (UNIX_TIMESTAMP(updated_at) DIV 300 * 300)) in (' + filter_sql + ')')
-
-    orders.each do |order|
-      if order[:auction_type] == 'offer'
-        # sell
-        results[order.o_keey].merge!({sell_price_min: order[:price], sell_price_min_date: order.updated_at_binned}) if order[:price] < results[order.o_keey][:sell_price_min]
-        results[order.o_keey].merge!({sell_price_max: order[:price], sell_price_max_date: order.updated_at_binned}) if order[:price] > results[order.o_keey][:sell_price_max]
-
-      elsif order[:auction_type] == 'request'
-        # buy
-        results[order.o_keey].merge!({buy_price_min: order[:price], buy_price_min_date: order.updated_at_binned}) if order[:price] < results[order.o_keey][:buy_price_min]
-        results[order.o_keey].merge!({buy_price_max: order[:price], buy_price_max_date: order.updated_at_binned}) if order[:price] > results[order.o_keey][:buy_price_max]
-      end
-    end
-
-    location_strings = []
-    locations.each do |location|
-      location_strings << location_to_city(location)
-    end
-
-    sorted_results = []
-    default_date = DateTime.new(0001, 1, 1, 0, 0, 0).strftime('%Y-%m-%dT%H:%M:%S')
-    ids.sort.each do |id|
-      location_strings.sort.each do |location|
-        qualities.sort.each do |quality|
-          k = "#{id}_#{city_to_location(location)}_#{quality}"
-          result = results[k].merge!({city: location})
-          result.merge!({ sell_price_min_date: default_date, sell_price_min: 0 }) if result[:sell_price_min_date].nil?
-          result.merge!({ sell_price_max_date: default_date, sell_price_max: 0 }) if result[:sell_price_max_date].nil?
-          result.merge!({ buy_price_min_date: default_date, buy_price_min: 0 }) if result[:buy_price_min_date].nil?
-          result.merge!({ buy_price_max_date: default_date, buy_price_max: 0 }) if result[:buy_price_max_date].nil?
-          sorted_results << result
-        end
-      end
-    end
-
-    sorted_results
+    xml_results.to_xml(root: :ArrayOfMarketResponse, skip_types: true)
   end
 
   def show_table
-    sorted_results = get_stats
+    s = MarketDataService.new(params)
+    sorted_results = s.get_stats
 
     fields = [:item_id, :city, :quality, :sell_price_min, :sell_price_min_date, :sell_price_max,
               :sell_price_max_date, :buy_price_min, :buy_price_min_date, :buy_price_max, :buy_price_max_date]
@@ -199,25 +74,6 @@ class API::V2::StatsController < API::V2::APIController
     render html: html.html_safe
   end
 
-  def show_json
-    sorted_results = get_stats
-    render json: sorted_results
-  end
 
-  def default_result
-    {
-      item_id: nil,
-      city: nil,
-      quality: nil,
-      sell_price_min: 999999999999,
-      sell_price_min_date: nil,
-      sell_price_max: 0,
-      sell_price_max_date: nil,
-      buy_price_min: 999999999999,
-      buy_price_min_date: nil,
-      buy_price_max: 0,
-      buy_price_max_date: nil,
-    }
-  end
 
 end
