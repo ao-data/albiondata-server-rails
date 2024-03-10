@@ -12,6 +12,8 @@ default: &default
   password: <%= ENV['MYSQL_PWD'] %>
   database: <%= ENV['MYSQL_DB'] %>
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  encoding: utf8
+  # socket: /tmp/mysql.sock
 
 development:
   <<: *default
