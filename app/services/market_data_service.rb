@@ -173,6 +173,7 @@ class MarketDataService
   end
 
   def sort_results(ids, locations, qualities, results)
+    pp results
     location_strings = []
     locations.each do |location|
       location_strings << location_to_city(location)
@@ -182,6 +183,7 @@ class MarketDataService
     default_date = DateTime.new(0001, 1, 1, 0, 0, 0).strftime('%Y-%m-%dT%H:%M:%S')
     ids.sort.each do |id|
       location_strings.sort.each do |location|
+        pp location
         qualities.sort.each do |quality|
           k = "#{id}_#{city_to_location(location)}_#{quality}"
           result = results[k].merge!({city: location})
