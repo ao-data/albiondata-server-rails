@@ -13,10 +13,14 @@ Rails.application.routes.draw do
 
   namespace :api, defaults: {format: 'json'} do
     namespace :v2 do
-      match "stats/prices/:id", controller: "stats", action: "show", via: :get
-      match "stats/view/:id", controller: "stats", action: "show_table", via: :get
+      namespace :stats do
+        match "prices/:id", controller: "prices", action: "show", via: :get
+        match "view/:id", controller: "prices", action: "show_table", via: :get
 
-      resources :stats
+        match "gold", controller: "gold", action: "index", via: :get
+      end
+
+      # resources :stats
     end
   end
 
