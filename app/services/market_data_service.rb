@@ -1,14 +1,6 @@
 class MarketDataService
 
-  def initialize(params)
-    @params = params
-  end
-
-  def params
-    @params
-  end
-
-  C2L = {
+  CITY_TO_LOCATION = {
     "SwampCross": 4,
     "Thetford": 7,
     "ThetfordPortal": 9,
@@ -33,184 +25,108 @@ class MarketDataService
     # "Brecilien": 5003,
   }
 
-  L2C = {
-    "4": "SwampCross",
-    "7": "Thetford",
-    "9": "ThetfordPortal",
-    "8": "MorganasRest",
-    "1002": "Lymhurst",
-    "1031": "LymhurstPortal",
-    "1006": "ForestCross",
-    "1012": "MerlynsRest",
-    "2002": "SteppeCross",
-    "2004": "Bridgewatch",
-    "2301": "BridgewatchPortal",
-    "3002": "HighlandCross",
-    "3003": "BlackMarket",
-    "3005": "Caerleon",
-    "3008": "Martlock",
-    "3301": "MartlockPortal",
-    "3013": "Caerleon2",
-    "4002": "FortSterling",
-    "4301": "FortSterlingPortal",
-    "4006": "MountainCross",
-    "4300": "ArthursRest",
-    # "5003": "Brecilien"
-  }
+  LOCATION_TO_CITY = CITY_TO_LOCATION.invert.transform_keys(&:to_s)
 
   def location_to_city(location)
-    (L2C.key?(location.to_s.to_sym) ? L2C[location.to_s.to_sym] : location.to_s)
+    LOCATION_TO_CITY[location.to_s] || location.to_s
   end
 
   def city_to_location(city)
-    (C2L.key?(city.to_sym) ? C2L[city.to_sym] : city.to_i)
+    CITY_TO_LOCATION[city.to_sym] || city.to_i
   end
 
   def get_locations(params)
-    # parse any city name strings to location ids
-    locations = params[:locations].split(',').each.map{|l| city_to_location(l) } if params.key?(:locations)
-
-    # set default locations to search, if none are sent in the query string
-    locations = [3005,5003].each.map{|l| l.to_i } if locations.nil?
-
-    # now map all locations to city names, for result array/hash sorting purposes
-    # locations = locations.each.map{|l| location_to_city(l)}
-
-    locations
+    params[:locations]&.split(',')&.map { |l| city_to_location(l) } || [3005, 5003]
   end
 
   def get_qualities(params)
-      # parse any qualitiles
-      qualities = params[:qualities].split(',').each.map{|q| q.to_i} if params.key?(:qualities)
-
-      # set default qualities, if none are sent in the query string
-      qualities = [1] if qualities.nil?
-
-      qualities
+    params[:qualities]&.split(',')&.map(&:to_i) || [1]
   end
 
-  def prepare_emtpy_results(ids, locations, qualities)
-    results = {}
-
-    ids.sort.each do |id|
-      locations.each do |location|
-        qualities.sort.each do |quality|
-          k = "#{id}_#{location}_#{quality}"
-
-          result = default_result
-          result[:item_id] = id
-          result[:city] = location
-          result[:quality] = quality
-          results[k] = result
-        end
-      end
+  def prepare_empty_results(ids, locations, qualities)
+    ids.sort.product(locations, qualities.sort).each_with_object({}) do |(id, location, quality), results|
+      key = "#{id}_#{location}_#{quality}"
+      results[key] = default_result.merge(item_id: id, city: location, quality: quality)
     end
-
-    results
   end
 
-  def get_stats
-    ids = params[:id].split(',')
-    locations = get_locations(params)
-    qualities = get_qualities(params)
-    results = prepare_emtpy_results(ids, locations, qualities)
+  def get_stats(params)
+    # Split the provided parameters into separate variables
+    ids, locations, qualities = params[:id].upcase.split(','), get_locations(params), get_qualities(params)
 
-    # filter = MarketOrder
-    # filter = filter.where(item_id: ids, updated_at: 1.days.ago.., quality_level: qualities, location: locations)
-    # filter = filter.select(:auction_type)
-    # filter = filter.select('concat(item_id, "_", location, "_", quality_level, "_", auction_type) as o_keey')
-    # filter = filter.select('concat(item_id, "_", location, "_", quality_level, "_", auction_type, "_", (UNIX_TIMESTAMP(updated_at) DIV 300 * 300)) as o_keey_binned')
-    # filter = filter.group('concat(item_id, "_", location, "_", quality_level, "_", auction_type, "_", (UNIX_TIMESTAMP(updated_at) DIV 300 * 300))')
-    # # filter_sql = "\n\nselect max(o_keey_binned) as o_key_binned from (\n\n#{filter.to_sql}\n\n) as a group by o_keey\n\n"
-    # filter_sql = "'#{filter.each.map{|f|f.o_keey_binned}.join("','")}'"
+    # Prepare an empty results hash with default values
+    results = prepare_empty_results(ids, locations, qualities)
 
-    orders = MarketOrder
-    orders = orders.where(item_id: ids, updated_at: 1.days.ago.., quality_level: qualities, location: locations)
-    orders = orders.select(:auction_type, :price)
-    orders = orders.select('concat(item_id, "_", location, "_", quality_level) as o_keey')
-    orders = orders.select('concat(item_id, "_", location, "_", quality_level, "_", auction_type) as o_keey_at')
-    orders = orders.select('FROM_UNIXTIME((UNIX_TIMESTAMP(updated_at) DIV 300 * 300), "%Y-%m-%dT%H:%i:%s") as updated_at_binned')
-    orders = orders.order(updated_at_binned: :asc)
-    # orders = orders.where('concat(item_id, "_", location, "_", quality_level, "_", auction_type, "_", (UNIX_TIMESTAMP(updated_at) DIV 300 * 300)) in (' + filter_sql + ')')
+    # Query the MarketOrder model for orders matching the provided parameters
+    # Select necessary fields and order by the binned updated_at field
+    orders = MarketOrder.where(item_id: ids, updated_at: 1.days.ago.., quality_level: qualities, location: locations)
+       .select(:auction_type, :price,
+               'concat(item_id, "_", location, "_", quality_level) as o_keey',
+               'concat(item_id, "_", location, "_", quality_level, "_", auction_type) as o_keey_at',
+               'FROM_UNIXTIME((UNIX_TIMESTAMP(updated_at) DIV 300 * 300), "%Y-%m-%dT%H:%i:%s") as updated_at_binned'
+       ).order(updated_at_binned: :asc)
 
-    last_offer_binned = nil
-    last_request_binned = nil
+    # Iterate over each order
     MarketOrder.connection.select_rows(orders.to_sql).each do |order|
-      auction_type = order[0]
-      price = order[1]
-      o_keey = order[2]
-      o_keey_at = order[3]
-      updated_at_binned = order[4]
+      # Destructure the order into separate variables
+      auction_type, price, o_keey, o_keey_at, updated_at_binned = order
 
+      # If the auction type is 'offer'
       if auction_type == 'offer'
-        # sell
-
-        if last_offer_binned != updated_at_binned
-          last_offer_binned = updated_at_binned
-          results[o_keey].merge!({sell_price_min: 999999999, sell_price_min_date: updated_at_binned})
-          results[o_keey].merge!({sell_price_max: 0, sell_price_max_date: updated_at_binned})
+        # If the binned updated_at is not the same as the current sell_price_min_date
+        if updated_at_binned != results[o_keey][:sell_price_min_date]
+          # Update the sell_price_min, sell_price_min_date, sell_price_max, and sell_price_max_date fields
+          results[o_keey].merge!({sell_price_min: price, sell_price_min_date: updated_at_binned, sell_price_max: price, sell_price_max_date: updated_at_binned})
+        else
+          # Otherwise, update the sell_price_min and sell_price_max fields if necessary
+          results[o_keey][:sell_price_min] = price if price < results[o_keey][:sell_price_min]
+          results[o_keey][:sell_price_max] = price if price > results[o_keey][:sell_price_max]
         end
-
-        results[o_keey].merge!({sell_price_min: price, sell_price_min_date: updated_at_binned}) if price < results[o_keey][:sell_price_min]
-        results[o_keey].merge!({sell_price_max: price, sell_price_max_date: updated_at_binned}) if price > results[o_keey][:sell_price_max]
+      # If the auction type is 'request'
       elsif auction_type == 'request'
-        # buy
-
-        if last_request_binned != updated_at_binned
-          last_request_binned = updated_at_binned
-          results[o_keey].merge!({buy_price_min: 999999999, buy_price_min_date: updated_at_binned})
-          results[o_keey].merge!({buy_price_max: 0, buy_price_max_date: updated_at_binned})
+        # If the binned updated_at is not the same as the current buy_price_min_date
+        if updated_at_binned != results[o_keey][:buy_price_min_date]
+          # Update the buy_price_min, buy_price_min_date, buy_price_max, and buy_price_max_date fields
+          results[o_keey].merge!({buy_price_min: price, buy_price_min_date: updated_at_binned, buy_price_max: price, buy_price_max_date: updated_at_binned})
+        else
+          # Otherwise, update the buy_price_min and buy_price_max fields if necessary
+          results[o_keey][:buy_price_min] = price if price < results[o_keey][:buy_price_min]
+          results[o_keey][:buy_price_max] = price if price > results[o_keey][:buy_price_max]
         end
-
-        results[o_keey].merge!({buy_price_min: price, buy_price_min_date: updated_at_binned}) if price < results[o_keey][:buy_price_min]
-        results[o_keey].merge!({buy_price_max: price, buy_price_max_date: updated_at_binned}) if price > results[o_keey][:buy_price_max]
       end
     end
 
+    # Sort the results and return them
     sorted_results = sort_results(ids, locations, qualities, results)
 
     sorted_results
   end
 
-  def sort_results(ids, locations, qualities, results)
-    location_strings = []
-    locations.each do |location|
-      location_strings << location_to_city(location)
-    end
+def sort_results(ids, locations, qualities, results)
+  # Convert location ids to city names
+  location_strings = locations.map { |location| location_to_city(location) }
 
-    sorted_results = []
-    default_date = DateTime.new(0001, 1, 1, 0, 0, 0).strftime('%Y-%m-%dT%H:%M:%S')
-    ids.sort.each do |id|
-      location_strings.sort.each do |location|
-        qualities.sort.each do |quality|
-          k = "#{id}_#{city_to_location(location)}_#{quality}"
-          result = results[k].merge!({city: location})
-          result.merge!({ sell_price_min_date: default_date, sell_price_min: 0 }) if result[:sell_price_min_date].nil?
-          result.merge!({ sell_price_max_date: default_date, sell_price_max: 0 }) if result[:sell_price_max_date].nil?
-          result.merge!({ buy_price_min_date: default_date, buy_price_min: 0 }) if result[:buy_price_min_date].nil?
-          result.merge!({ buy_price_max_date: default_date, buy_price_max: 0 }) if result[:buy_price_max_date].nil?
-          sorted_results << result
-        end
-      end
-    end
+  # Define a default date
+  default_date = DateTime.new(0001, 1, 1, 0, 0, 0).strftime('%Y-%m-%dT%H:%M:%S')
+  # Define default values for the market data
+  default_values = { sell_price_min_date: default_date, sell_price_min: 0, sell_price_max_date: default_date, sell_price_max: 0, buy_price_min_date: default_date, buy_price_min: 0, buy_price_max_date: default_date, buy_price_max: 0 }
 
-    sorted_results
+  # Generate sorted results by iterating over all combinations of ids, location_strings, and qualities
+  sorted_results = ids.sort.product(location_strings.sort, qualities.sort).map do |id, location, quality|
+    # Generate a key for each combination
+    key = "#{id}_#{city_to_location(location)}_#{quality}"
+    # Merge the city into the result
+    result = results[key].merge(city: location)
+    # Merge the default values into the result, preserving existing values
+    result.merge(default_values) { |_key, oldval, _newval| oldval || _newval }
   end
 
-  def default_result
-    {
-      item_id: nil,
-      city: nil,
-      quality: nil,
-      sell_price_min: 999999999999,
-      sell_price_min_date: nil,
-      sell_price_max: 0,
-      sell_price_max_date: nil,
-      buy_price_min: 999999999999,
-      buy_price_min_date: nil,
-      buy_price_max: 0,
-      buy_price_max_date: nil,
-    }
-  end
+  # Return the sorted results
+  sorted_results
+end
+
+def default_result
+  %i[item_id city quality sell_price_min sell_price_min_date sell_price_max sell_price_max_date buy_price_min buy_price_min_date buy_price_max buy_price_max_date].index_with(nil)
+end
 
 end

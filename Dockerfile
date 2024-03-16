@@ -19,7 +19,8 @@ RUN apt-get update -qq && \
 
 # Install application gems
 COPY Gemfile Gemfile.lock ./
-RUN bundle install && \
+COPY vendor vendor/
+RUN bundle install --local && \
     bundle exec bootsnap precompile --gemfile
 
 # Copy application code

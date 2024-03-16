@@ -60,6 +60,7 @@ group :development, :test do
   gem "spring"
 
   gem 'spring-commands-rspec', '~> 1.0', '>= 1.0.4'
+  gem 'timecop', '~> 0.9.8'
 
 end
 
