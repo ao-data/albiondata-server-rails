@@ -112,7 +112,7 @@ def sort_results(ids, locations, qualities, results)
   default_values = { sell_price_min_date: default_date, sell_price_min: 0, sell_price_max_date: default_date, sell_price_max: 0, buy_price_min_date: default_date, buy_price_min: 0, buy_price_max_date: default_date, buy_price_max: 0 }
 
   # Generate sorted results by iterating over all combinations of ids, location_strings, and qualities
-  sorted_results = ids.sort.product(location_strings.sort, qualities.sort).map do |id, location, quality|
+  sorted_results = ids.sort.product(location_strings.map{|s| s.to_s}.sort, qualities.sort).map do |id, location, quality|
     # Generate a key for each combination
     key = "#{id}_#{city_to_location(location)}_#{quality}"
     # Merge the city into the result

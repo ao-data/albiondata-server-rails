@@ -10,6 +10,13 @@ RSpec.describe MarketDataService, :type => :service do
   end
 
   describe '#get_stats' do
+    it 'handles location ids that do not have string conversions' do
+      create(:market_order_new_offer_low)
+      result = subject.get_stats({id: 'T4_BAG', locations: '5003,3005', qualities: '1'})
+      expect(result[0][:city]).to eq('5003')
+      expect(result[1][:city]).to eq('Caerleon')
+    end
+
     it 'returns the correct number of results' do
       create(:market_order_new_offer_low)
       create(:market_order_old_offer_high)
@@ -104,8 +111,8 @@ RSpec.describe MarketDataService, :type => :service do
     context 'sorting' do
       it 'has locations in the correct order' do
         result = subject.get_stats({id: 'T4_BAG', locations: '3005,3008'})
-        expect(result[0][:city]).to eq(:Caerleon)
-        expect(result[1][:city]).to eq(:Martlock)
+        expect(result[0][:city]).to eq('Caerleon')
+        expect(result[1][:city]).to eq('Martlock')
       end
 
       it 'has item_id in the correct order' do
@@ -123,35 +130,35 @@ RSpec.describe MarketDataService, :type => :service do
       it 'has item_ids, locations and qualities in the correct order' do
         result = subject.get_stats({id: 'T4_BAG,T5_BAG', locations: '3005,3008', qualities: '1,2'})
         expect(result[0][:item_id]).to eq('T4_BAG')
-        expect(result[0][:city]).to eq(:Caerleon)
+        expect(result[0][:city]).to eq('Caerleon')
         expect(result[0][:quality]).to eq(1)
 
         expect(result[1][:item_id]).to eq('T4_BAG')
-        expect(result[1][:city]).to eq(:Caerleon)
+        expect(result[1][:city]).to eq('Caerleon')
         expect(result[1][:quality]).to eq(2)
 
         expect(result[2][:item_id]).to eq('T4_BAG')
-        expect(result[2][:city]).to eq(:Martlock)
+        expect(result[2][:city]).to eq('Martlock')
         expect(result[2][:quality]).to eq(1)
 
         expect(result[3][:item_id]).to eq('T4_BAG')
-        expect(result[3][:city]).to eq(:Martlock)
+        expect(result[3][:city]).to eq('Martlock')
         expect(result[3][:quality]).to eq(2)
 
         expect(result[4][:item_id]).to eq('T5_BAG')
-        expect(result[4][:city]).to eq(:Caerleon)
+        expect(result[4][:city]).to eq('Caerleon')
         expect(result[4][:quality]).to eq(1)
 
         expect(result[5][:item_id]).to eq('T5_BAG')
-        expect(result[5][:city]).to eq(:Caerleon)
+        expect(result[5][:city]).to eq('Caerleon')
         expect(result[5][:quality]).to eq(2)
 
         expect(result[6][:item_id]).to eq('T5_BAG')
-        expect(result[6][:city]).to eq(:Martlock)
+        expect(result[6][:city]).to eq('Martlock')
         expect(result[6][:quality]).to eq(1)
 
         expect(result[7][:item_id]).to eq('T5_BAG')
-        expect(result[7][:city]).to eq(:Martlock)
+        expect(result[7][:city]).to eq('Martlock')
         expect(result[7][:quality]).to eq(2)
       end
     end
