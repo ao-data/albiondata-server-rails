@@ -127,6 +127,9 @@ GEM
       raabro (~> 1.4)
     globalid (1.2.1)
       activesupport (>= 6.1)
+    httparty (0.21.0)
+      mini_mime (>= 1.0.0)
+      multi_xml (>= 0.5.2)
     i18n (1.14.1)
       concurrent-ruby (~> 1.0)
     importmap-rails (2.0.1)
@@ -153,6 +156,7 @@ GEM
     mini_mime (1.1.5)
     minitest (5.22.2)
     msgpack (1.7.2)
+    multi_xml (0.6.0)
     mutex_m (0.2.0)
     mysql2 (0.5.6)
     nats-pure (2.4.0)
@@ -326,6 +330,7 @@ DEPENDENCIES
   debug
   factory_bot_rails (~> 6.4, >= 6.4.3)
   ffaker (~> 2.21)
+  httparty (~> 0.21.0)
   importmap-rails
   jbuilder
   meta_request!

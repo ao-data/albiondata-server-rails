@@ -43,22 +43,24 @@ class NatsService
     end
 
     nats.subscribe('marketorders.ingest') do |msg|
+      puts "Receiving market order data from NATS"
       MarketOrderDedupeWorker.perform_async(msg.data)
     end
 
     nats.subscribe('goldprices.ingest') do |msg|
+      puts "Receiving gold price data from NATS"
       GoldDedupeWorker.perform_async(msg.data)
+    end
+
+    nats.subscribe('markethistories.ingest') do |msg|
+      puts "Receiving market history data from NATS"
+      MarketHistoryDedupeWorker.perform_async(msg.data)
     end
 
     while true
       sleep 0.5
     end
-    # nats.subscribe('markethistories.ingest') do |data|
-    #   puts data
-    #   puts ''
-    #   puts ''
-    #   # process_market_data_deduped(data)
-    # end
+
 
     # NATS.subscribe('markethistories.deduped') do |data|
     #   puts data

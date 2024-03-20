@@ -51,24 +51,57 @@ class MarketOrderProcessorService
       end
     end
 
-    # insert new records
-    new_records.each do |order|
-      begin
-        MarketOrder.create( albion_id: order["Id"],
-                            item_id: order["ItemTypeId"],
-                            quality_level: order["QualityLevel"],
-                            enchantment_level: order["EnchantmentLevel"],
-                            price: order["UnitPriceSilver"],
-                            initial_amount: order["Amount"],
-                            amount: order["Amount"],
-                            auction_type: order["AuctionType"],
-                            expires: order["Expires"],
-                            location: order["LocationId"] )
+    if true
+      meh = []
+      new_records.each do |order|
+        expires = DateTime.parse(order['Expires']).year
+        expires = DateTime.now + 1.month if expires.year > 2050
+        # next if DateTime.parse(order['Expires']).year > 2050
+
+        meh << {
+          albion_id: order["Id"],
+          item_id: order["ItemTypeId"],
+          quality_level: order["QualityLevel"],
+          enchantment_level: order["EnchantmentLevel"],
+          price: order["UnitPriceSilver"],
+          initial_amount: order["Amount"],
+          amount: order["Amount"],
+          auction_type: order["AuctionType"],
+          expires: expires,
+          location: order["LocationId"]
+        }
         @new_records += 1
-      rescue ActiveRecord::RecordNotUnique
-        @duplicate_records += 1
-      rescue ActiveRecord::StatementInvalid
-        @invalid_records += 1
+      end
+
+
+      MarketOrder.insert_all(meh)
+    end
+
+    if false
+      # insert new records
+      new_records.each do |order|
+        begin
+          next if DateTime.parse(order['Expires']).year > 2050
+          # pp order['Expires'].class.to_s
+
+          MarketOrder.create( albion_id: order["Id"],
+                              item_id: order["ItemTypeId"],
+                              quality_level: order["QualityLevel"],
+                              enchantment_level: order["EnchantmentLevel"],
+                              price: order["UnitPriceSilver"],
+                              initial_amount: order["Amount"],
+                              amount: order["Amount"],
+                              auction_type: order["AuctionType"],
+                              expires: order["Expires"],
+                              location: order["LocationId"] )
+          @new_records += 1
+        rescue ActiveRecord::RecordNotUnique
+          @duplicate_records += 1
+        rescue ActiveRecord::StatementInvalid
+          puts "ActiveRecord::StatementInvalid record found: #{order.to_json}"
+          puts order
+          @invalid_records += 1
+        end
       end
     end
 
@@ -98,7 +131,7 @@ class MarketOrderProcessorService
     end
 
     puts ''
-    puts "New records: #{@new_records}, Duplicate records: #{@duplicate_records}, Updated records: #{@updated_records}, Unupdated records: #{@unupdated_records}, Invalid records: #{@invalid_records}, Redis duplicates: #{@redis_duplicates}"
+    puts "MarketOrderProcessorService: New records: #{@new_records}, Duplicate records: #{@duplicate_records}, Updated records: #{@updated_records}, Unupdated records: #{@unupdated_records}, Invalid records: #{@invalid_records}, Redis duplicates: #{@redis_duplicates}"
     puts ''
   end
 end
