@@ -14,7 +14,7 @@ class MarketHistoryProcessorService
     #   ]
     # }
 
-    return if data['AlbionId'] == 0\
+    return if data['AlbionId'] == 0 # sometimes the client sends us 0 for the numeric item id, we trash this data
     item_id = REDIS.hget('ITEM_IDS', data['AlbionId'])
     raise StandardError.new('MarketHistoryProcessorService: Item ID not found in redis.') if item_id.nil?
 

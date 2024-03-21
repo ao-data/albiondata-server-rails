@@ -51,59 +51,28 @@ class MarketOrderProcessorService
       end
     end
 
-    if true
-      meh = []
-      new_records.each do |order|
-        expires = DateTime.parse(order['Expires']).year
-        expires = DateTime.now + 1.month if expires.year > 2050
-        # next if DateTime.parse(order['Expires']).year > 2050
+    # add new records
+    new_record_data = []
+    new_records.each do |order|
+      expires = DateTime.parse(order['Expires']).year
+      expires = DateTime.now + 1.month if expires.year > 2050 # black market expires "never expire", so we fake it
 
-        meh << {
-          albion_id: order["Id"],
-          item_id: order["ItemTypeId"],
-          quality_level: order["QualityLevel"],
-          enchantment_level: order["EnchantmentLevel"],
-          price: order["UnitPriceSilver"],
-          initial_amount: order["Amount"],
-          amount: order["Amount"],
-          auction_type: order["AuctionType"],
-          expires: expires,
-          location: order["LocationId"]
-        }
-        @new_records += 1
-      end
-
-
-      MarketOrder.insert_all(meh)
+      new_record_data << {
+        albion_id: order["Id"],
+        item_id: order["ItemTypeId"],
+        quality_level: order["QualityLevel"],
+        enchantment_level: order["EnchantmentLevel"],
+        price: order["UnitPriceSilver"],
+        initial_amount: order["Amount"],
+        amount: order["Amount"],
+        auction_type: order["AuctionType"],
+        expires: expires,
+        location: order["LocationId"]
+      }
+      @new_records += 1
     end
 
-    if false
-      # insert new records
-      new_records.each do |order|
-        begin
-          next if DateTime.parse(order['Expires']).year > 2050
-          # pp order['Expires'].class.to_s
-
-          MarketOrder.create( albion_id: order["Id"],
-                              item_id: order["ItemTypeId"],
-                              quality_level: order["QualityLevel"],
-                              enchantment_level: order["EnchantmentLevel"],
-                              price: order["UnitPriceSilver"],
-                              initial_amount: order["Amount"],
-                              amount: order["Amount"],
-                              auction_type: order["AuctionType"],
-                              expires: order["Expires"],
-                              location: order["LocationId"] )
-          @new_records += 1
-        rescue ActiveRecord::RecordNotUnique
-          @duplicate_records += 1
-        rescue ActiveRecord::StatementInvalid
-          puts "ActiveRecord::StatementInvalid record found: #{order.to_json}"
-          puts order
-          @invalid_records += 1
-        end
-      end
-    end
+    MarketOrder.insert_all(new_record_data)
 
     # update old records
     old_records.each do |order|

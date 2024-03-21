@@ -5,12 +5,8 @@ class MarketHistoryDedupeService
     if REDIS.get("HISTORY_RECORD_SHA256:#{sha256}").nil?
       REDIS.set("HISTORY_RECORD_SHA256:#{sha256}", '1', ex: 600)
 
-      # TODO: send data to nats
+      NatsService.send('markethistories.deduped', json_data)
       MarketHistoryProcessorWorker.perform_async(json_data)
-
-      puts "IS NOT DUPE"
-    else
-      puts "IS DUPE"
     end
   end
 end

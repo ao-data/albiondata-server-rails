@@ -2,9 +2,17 @@ require 'nats/client'
 
 class NatsService
 
+  def self.send(topic, data)
+    server = "nats://#{ENV['NATS_USER']}:#{ENV['NATS_PWD']}@#{ENV['NATS_HOST']}:#{ENV['NATS_PORT']}"
+    return if ENV['NATS_SEND_DISABLE'] == 'true'
+
+    nats = NATS.connect(server)
+    nats.publish(topic, data)
+    nats.close
+  end
 
   def listen
-    server = 'nats://public:thenewalbiondata@nats.albion-online-data.com:4222'
+    server = "nats://#{ENV['NATS_USER']}:#{ENV['NATS_PWD']}@#{ENV['NATS_HOST']}:#{ENV['NATS_PORT']}"
 
     nats = NATS.connect(server)
     puts "Connected to #{nats.connected_server}"
@@ -25,23 +33,6 @@ class NatsService
       puts "Connection to NATS closed"
     end
 
-    # nats.subscribe('marketorders.deduped') do |msg|
-    #   puts JSON.parse(msg.data)
-    #   # puts ''
-    #   # puts ''
-    #   # BulkMarketOrderUpdate.perform_async(data)
-    #   # process_market_data(data)
-    # end
-
-    nats.subscribe('marketorders.deduped.bulk') do |msg|
-      # puts JSON.parse(msg.data)
-      # puts '---------'
-      # puts ''
-      # puts ''
-      # BulkMarketOrderUpdate.perform_async(data)
-      # process_market_data(data)
-    end
-
     nats.subscribe('marketorders.ingest') do |msg|
       puts "Receiving market order data from NATS"
       MarketOrderDedupeWorker.perform_async(msg.data)
@@ -60,19 +51,5 @@ class NatsService
     while true
       sleep 0.5
     end
-
-
-    # NATS.subscribe('markethistories.deduped') do |data|
-    #   puts data
-    #   # process_market_data_deduped(data)
-    # end
-
-    # NATS.subscribe('msg.*') do |data|
-    #   process_market_data_deduped(data)
-    # end
-
-    # NATS.subscribe('marketorders.deduped') do |data|
-    #   process_market_data_deduped(data)
-    # end
   end
 end
