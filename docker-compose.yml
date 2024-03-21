@@ -29,15 +29,23 @@ services:
       MYSQL_PWD: ${MYSQL_PWD}
       MYSQL_DB: ${MYSQL_DB}
       MYSQL_EXPORT_PATH: ${MYSQL_EXPORT_PATH}
+      NATS_HOST: ${NATS_HOST}
+      NATS_PORT: ${NATS_PORT}
+      NATS_USER: ${NATS_USER}
+      NATS_PWD: ${NATS_PWD}
+      NATS_SEND_DISABLE: ${NATS_SEND_DISABLE}
       SIDEKIQ_REDIS_HOST: ${SIDEKIQ_REDIS_HOST}
       SIDEKIQ_REDIS_PORT: ${SIDEKIQ_REDIS_PORT}
       SIDEKIQ_REDIS_DB: ${SIDEKIQ_REDIS_DB}
-      SIDEKIQ_THREADS: 1
+      SIDEKIQ_THREADS: 10
       SIDEKIQ_WEB_USER: ${SIDEKIQ_WEB_USER}
       SIDEKIQ_WEB_PASS: ${SIDEKIQ_WEB_PASS}
       RACK_SESSION_SECRET: ${RACK_SESSION_SECRET}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB: ${REDIS_DB}
     # command: './entrypoint.sh web'
-    entrypoint: sleep infinity
+    entrypoint: ./entrypoint.sh sleep
     ports:
       - 3000:3000
     depends_on:

@@ -41,8 +41,7 @@ class API::V2::Stats::PricesController < API::V2::APIController
   end
 
   def show_table
-    s = MarketDataService.new(params)
-    sorted_results = s.get_stats
+    sorted_results = MarketDataService.new.get_stats(params)
 
     fields = [:item_id, :city, :quality, :sell_price_min, :sell_price_min_date, :sell_price_max,
               :sell_price_max_date, :buy_price_min, :buy_price_min_date, :buy_price_max, :buy_price_max_date]

@@ -61,6 +61,10 @@ group :development, :test do
 
   gem 'spring-commands-rspec', '~> 1.0', '>= 1.0.4'
   gem 'timecop', '~> 0.9.8'
+  gem 'sidekiq', '~> 7.2', '>= 7.2.2'
+  gem 'sidekiq-cron', '~> 1.12'
+  gem 'nats-pure', '~> 2.2', '>= 2.2.1'
+  gem 'httparty', '~> 0.21.0'
 
 end
 
