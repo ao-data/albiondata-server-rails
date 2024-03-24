@@ -65,7 +65,7 @@ group :development, :test do
   gem 'sidekiq-cron', '~> 1.12'
   gem 'nats-pure', '~> 2.2', '>= 2.2.1'
   gem 'httparty', '~> 0.21.0'
-
+  gem 'simplecov-rcov', '~> 0.3.7'
 end
 
 gem 'meta_request', github: 'Nowaker/rails_panel', branch: 'add-support-to-rails-7.1'
