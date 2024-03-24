@@ -102,31 +102,30 @@ class MarketDataService
     sorted_results
   end
 
-def sort_results(ids, locations, qualities, results)
-  # Convert location ids to city names
-  location_strings = locations.map { |location| location_to_city(location) }
+  def sort_results(ids, locations, qualities, results)
+    # Convert location ids to city names
+    location_strings = locations.map { |location| location_to_city(location) }
 
-  # Define a default date
-  default_date = DateTime.new(0001, 1, 1, 0, 0, 0).strftime('%Y-%m-%dT%H:%M:%S')
-  # Define default values for the market data
-  default_values = { sell_price_min_date: default_date, sell_price_min: 0, sell_price_max_date: default_date, sell_price_max: 0, buy_price_min_date: default_date, buy_price_min: 0, buy_price_max_date: default_date, buy_price_max: 0 }
+    # Define a default date
+    default_date = DateTime.new(0001, 1, 1, 0, 0, 0).strftime('%Y-%m-%dT%H:%M:%S')
+    # Define default values for the market data
+    default_values = { sell_price_min_date: default_date, sell_price_min: 0, sell_price_max_date: default_date, sell_price_max: 0, buy_price_min_date: default_date, buy_price_min: 0, buy_price_max_date: default_date, buy_price_max: 0 }
 
-  # Generate sorted results by iterating over all combinations of ids, location_strings, and qualities
-  sorted_results = ids.sort.product(location_strings.map{|s| s.to_s}.sort, qualities.sort).map do |id, location, quality|
-    # Generate a key for each combination
-    key = "#{id}_#{city_to_location(location)}_#{quality}"
-    # Merge the city into the result
-    result = results[key].merge(city: location)
-    # Merge the default values into the result, preserving existing values
-    result.merge(default_values) { |_key, oldval, _newval| oldval || _newval }
+    # Generate sorted results by iterating over all combinations of ids, location_strings, and qualities
+    sorted_results = ids.sort.product(location_strings.map{|s| s.to_s}.sort, qualities.sort).map do |id, location, quality|
+      # Generate a key for each combination
+      key = "#{id}_#{city_to_location(location)}_#{quality}"
+      # Merge the city into the result
+      result = results[key].merge(city: location)
+      # Merge the default values into the result, preserving existing values
+      result.merge(default_values) { |_key, oldval, _newval| oldval || _newval }
+    end
+
+    # Return the sorted results
+    sorted_results
   end
 
-  # Return the sorted results
-  sorted_results
-end
-
-def default_result
-  %i[item_id city quality sell_price_min sell_price_min_date sell_price_max sell_price_max_date buy_price_min buy_price_min_date buy_price_max buy_price_max_date].index_with(nil)
-end
-
+  def default_result
+    %i[item_id city quality sell_price_min sell_price_min_date sell_price_max sell_price_max_date buy_price_min buy_price_min_date buy_price_max buy_price_max_date].index_with(nil)
+  end
 end

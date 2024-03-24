@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe MarketOrderDedupesubject, type: :subject do
+RSpec.describe MarketOrderDedupeService, type: :subject do
   let(:data) do
     {
       'Orders' => [
