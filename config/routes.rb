@@ -20,6 +20,7 @@ Rails.application.routes.draw do
       namespace :stats do
         match "prices/:id", controller: "prices", action: "show", via: :get
         match "view/:id", controller: "prices", action: "show_table", via: :get
+        match "history/:id", controller: "history", action: "show", via: :get
 
         match "gold", controller: "gold", action: "index", via: :get
       end
