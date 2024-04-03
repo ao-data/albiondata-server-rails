@@ -16,13 +16,13 @@ Rails.application.routes.draw do
   # root "posts#index"
 
   namespace :api, defaults: {format: 'json'} do
-    namespace :v2 do
-      namespace :stats do
-        match "prices/:id", controller: "prices", action: "show", via: :get
-        match "view/:id", controller: "prices", action: "show_table", via: :get
-        match "history/:id", controller: "history", action: "show", via: :get
+    namespace :v2, defaults: {format: 'json'} do
+      namespace :stats, defaults: {format: 'json'} do
+        match "prices/:id", controller: "prices", action: "show", via: :get, :defaults => { :format => 'json' }
+        match "view/:id", controller: "prices", action: "show_table", via: :get, :defaults => { :format => 'json' }
+        match "history/:id", controller: "history", action: "show", via: :get, :defaults => { :format => 'json' }
 
-        match "gold", controller: "gold", action: "index", via: :get
+        match "gold", controller: "gold", action: "index", via: :get, :defaults => { :format => 'json' }
       end
 
       # resources :stats
