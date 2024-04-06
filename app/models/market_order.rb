@@ -25,4 +25,20 @@
 #
 class MarketOrder < ApplicationRecord
   include ActiveModel::Dirty
+
+  def self.purge_old_data
+    continue = true
+    start_time = DateTime.now
+    limit = 1000
+    row_count = 0
+
+    while continue && start_time > 30.minutes.ago
+      deleted_rows = MarketOrder.where(deleted_at: nil).and(MarketOrder.where('expires < ? or updated_at < ?', DateTime.now, 1.days.ago)).limit(limit).delete_all
+      row_count += deleted_rows
+      continue = deleted_rows > 0
+      sleep 0.1
+    end
+
+    puts "Purged #{row_count} rows"
+  end
 end

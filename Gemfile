@@ -47,6 +47,11 @@ gem "bootsnap", require: false
 gem 'mysql2', '~> 0.5.6'
 gem 'annotate', '~> 3.2'
 gem 'trilogy', '~> 2.7'
+gem 'route_downcaser', '~> 2.0'
+gem 'sidekiq', '~> 7.2', '>= 7.2.2'
+gem 'sidekiq-cron', '~> 1.12'
+gem 'nats-pure', '~> 2.2', '>= 2.2.1'
+
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -61,11 +66,8 @@ group :development, :test do
 
   gem 'spring-commands-rspec', '~> 1.0', '>= 1.0.4'
   gem 'timecop', '~> 0.9.8'
-  gem 'sidekiq', '~> 7.2', '>= 7.2.2'
-  gem 'sidekiq-cron', '~> 1.12'
-  gem 'nats-pure', '~> 2.2', '>= 2.2.1'
   gem 'httparty', '~> 0.21.0'
-
+  gem 'simplecov-rcov', '~> 0.3.7'
 end
 
 gem 'meta_request', github: 'Nowaker/rails_panel', branch: 'add-support-to-rails-7.1'

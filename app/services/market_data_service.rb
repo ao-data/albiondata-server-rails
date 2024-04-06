@@ -1,28 +1,31 @@
 class MarketDataService
 
   CITY_TO_LOCATION = {
-    "SwampCross": 4,
-    "Thetford": 7,
-    "ThetfordPortal": 9,
-    "MorganasRest": 8,
-    "Lymhurst": 1002,
-    "LymhurstPortal": 1301,
-    "ForestCross": 1006,
-    "MerlynsRest": 1012,
-    "SteppeCross": 2002,
-    "Bridgewatch": 2004,
-    "BridgewatchPortal": 2301,
-    "HighlandCross": 3002,
+    "swampcross": 4,
+    "thetford": 7,
+    "thetfordportal": 9,
+    "morganasrest": 8,
+    "lymhurst": 1002,
+    "lymhurstportal": 1301,
+    "forestcross": 1006,
+    "merlynsrest": 1012,
+    "steppecross": 2002,
+    "bridgewatch": 2004,
+    "bridgewatchportal": 2301,
+    "highlandcross": 3002,
     "BlackMarket": 3003,
-    "Caerleon": 3005,
-    "Martlock": 3008,
-    "MartlockPortal": 3301,
-    "Caerleon2": 3013,
-    "FortSterling": 4002,
-    "FortSterlingPortal": 4301,
-    "MountainCross": 4006,
-    "ArthursRest": 4300,
-    # "Brecilien": 5003,
+    "Blackmarket": 3003,
+    "blackmarket": 3003,
+    "Black Market": 3003,
+    "caerleon": 3005,
+    "martlock": 3008,
+    "martlockportal": 3301,
+    "caerleon2": 3013,
+    "fortsterling": 4002,
+    "fortsterlingportal": 4301,
+    "mountaincross": 4006,
+    "arthursrest": 4300,
+    "brecilien": 5003,
   }
 
   LOCATION_TO_CITY = CITY_TO_LOCATION.invert.transform_keys(&:to_s)
@@ -36,97 +39,90 @@ class MarketDataService
   end
 
   def get_locations(params)
-    params[:locations]&.split(',')&.map { |l| city_to_location(l) } || [3005, 5003]
+    default_locations = [4, 7, 301, 8, 1002, 1301, 1006, 1012, 2002, 2004, 2301, 3002, 3003, 3005, 3008, 3301, 3013, 4002, 4301, 4006, 4300, 5003]
+    locations = params[:locations]
+
+    # locations = nil if params[:query_string].include?('locations[]')
+    locations = locations&.map { |l| city_to_location(l.gsub(' ', '').downcase) }if locations.is_a?(Array)
+
+    locations = default_locations if locations.nil?
+    locations = default_locations if locations == 0 || locations == '0'
+    locations = locations&.split(',')&.map { |l| city_to_location(l.gsub(' ', '').downcase) } if locations.is_a?(String)
+    locations
+  end
+
+  SPLIT_WORDS = ['swamp', 'portal', 'cross', 'market', 'sterling', 'rest']
+
+  def humanize_city(city)
+    SPLIT_WORDS.each { |w| city = city.to_s.gsub(w, "_#{w}").titleize}
+    city
   end
 
   def get_qualities(params)
-    params[:qualities]&.split(',')&.map(&:to_i) || [1]
-  end
+    qualities = params[:qualities]
 
-  def prepare_empty_results(ids, locations, qualities)
-    ids.sort.product(locations, qualities.sort).each_with_object({}) do |(id, location, quality), results|
-      key = "#{id}_#{location}_#{quality}"
-      results[key] = default_result.merge(item_id: id, city: location, quality: quality)
-    end
+    # qualities = nil if params[:query_string].include?('qualities[]')
+    qualities = qualities.map(&:to_i) if qualities.is_a?(Array) && qualities[0].is_a?(String)
+
+    qualities = [1] if qualities.nil?
+    qualities = [1,2,3,4,5] if qualities == 0 || qualities == '0'
+    qualities = qualities.split(',').map(&:to_i) if qualities.is_a?(String)
+
+    qualities
   end
 
   def get_stats(params)
     # Split the provided parameters into separate variables
-    ids, locations, qualities = params[:id].upcase.split(','), get_locations(params), get_qualities(params)
+    ids, locations, qualities = params[:id].upcase.split(',').uniq, get_locations(params), get_qualities(params)
 
-    # Prepare an empty results hash with default values
-    results = prepare_empty_results(ids, locations, qualities)
+    data = MarketOrder.where(item_id: ids, updated_at: 1.days.ago..)
+    data = data.where(location: locations) unless locations.empty?
+    data = data.where(quality_level: qualities) unless qualities.empty?
+    data = data.group('2 asc', '3 desc')
+    data = data.select('CONCAT(item_id, "_", location, "_", quality_level) AS o_keey',
+                             'CONCAT(item_id, "_", location, "_", quality_level, "_", auction_type) AS o_keey_at',
+                             'FROM_UNIXTIME((UNIX_TIMESTAMP(updated_at) DIV 300 * 300), "%Y-%m-%dT%H:%i:%s") AS updated_at_binned',
+                             'min(price) as min_price',
+                             'max(price) as max_price',
+                             'auction_type',
+                             'item_id',
+                             'location',
+                             'quality_level')
 
-    # Query the MarketOrder model for orders matching the provided parameters
-    # Select necessary fields and order by the binned updated_at field
-    orders = MarketOrder.where(item_id: ids, updated_at: 1.days.ago.., quality_level: qualities, location: locations)
-       .select(:auction_type, :price,
-               'concat(item_id, "_", location, "_", quality_level) as o_keey',
-               'concat(item_id, "_", location, "_", quality_level, "_", auction_type) as o_keey_at',
-               'FROM_UNIXTIME((UNIX_TIMESTAMP(updated_at) DIV 300 * 300), "%Y-%m-%dT%H:%i:%s") as updated_at_binned'
-       ).order(updated_at_binned: :asc)
+    results = {}
+    default_date = DateTime.new(0001, 1, 1, 0, 0, 0).strftime('%Y-%m-%dT%H:%M:%S')
+    last_o_keey_at = nil
+    MarketOrder.connection.select_rows(data.to_sql).each do |result|
+      o_keey, o_keey_at, updated_at_binned, min_price, max_price, auction_type, item_id, location, quality_level = result
 
-    # Iterate over each order
-    MarketOrder.connection.select_rows(orders.to_sql).each do |order|
-      # Destructure the order into separate variables
-      auction_type, price, o_keey, o_keey_at, updated_at_binned = order
+      humanized_city = humanize_city(location_to_city(location).to_s)
+      city_key = o_keey.gsub(location.to_s, humanized_city)
 
-      # If the auction type is 'offer'
+      next if last_o_keey_at == o_keey_at
+      last_o_keey_at = o_keey_at
+
+      results[city_key] ||= {item_id: item_id, city: humanized_city, quality: quality_level, sell_price_min: 0, sell_price_min_date: default_date, sell_price_max: 0, sell_price_max_date: default_date, buy_price_min: 0, buy_price_min_date: default_date, buy_price_max: 0, buy_price_max_date: default_date }
       if auction_type == 'offer'
-        # If the binned updated_at is not the same as the current sell_price_min_date
-        if updated_at_binned != results[o_keey][:sell_price_min_date]
-          # Update the sell_price_min, sell_price_min_date, sell_price_max, and sell_price_max_date fields
-          results[o_keey].merge!({sell_price_min: price, sell_price_min_date: updated_at_binned, sell_price_max: price, sell_price_max_date: updated_at_binned})
-        else
-          # Otherwise, update the sell_price_min and sell_price_max fields if necessary
-          results[o_keey][:sell_price_min] = price if price < results[o_keey][:sell_price_min]
-          results[o_keey][:sell_price_max] = price if price > results[o_keey][:sell_price_max]
-        end
-      # If the auction type is 'request'
-      elsif auction_type == 'request'
-        # If the binned updated_at is not the same as the current buy_price_min_date
-        if updated_at_binned != results[o_keey][:buy_price_min_date]
-          # Update the buy_price_min, buy_price_min_date, buy_price_max, and buy_price_max_date fields
-          results[o_keey].merge!({buy_price_min: price, buy_price_min_date: updated_at_binned, buy_price_max: price, buy_price_max_date: updated_at_binned})
-        else
-          # Otherwise, update the buy_price_min and buy_price_max fields if necessary
-          results[o_keey][:buy_price_min] = price if price < results[o_keey][:buy_price_min]
-          results[o_keey][:buy_price_max] = price if price > results[o_keey][:buy_price_max]
-        end
+        results[city_key][:sell_price_min] = min_price
+        results[city_key][:sell_price_min_date] = updated_at_binned
+        results[city_key][:sell_price_max] = max_price
+        results[city_key][:sell_price_max_date] = updated_at_binned
+      else
+        results[city_key][:buy_price_min] = min_price
+        results[city_key][:buy_price_min_date] = updated_at_binned
+        results[city_key][:buy_price_max] = max_price
+        results[city_key][:buy_price_max_date] = updated_at_binned
       end
     end
 
-    # Sort the results and return them
-    sorted_results = sort_results(ids, locations, qualities, results)
+    # fill in the blanks
+    default_values = { sell_price_min: 0, sell_price_min_date: default_date, sell_price_max: 0, sell_price_max_date: default_date, buy_price_min: 0, buy_price_min_date: default_date, buy_price_max: 0, buy_price_max_date: default_date }
+    location_strings = locations.map { |location| location_to_city(location) }
+    ids.sort.product(location_strings.map{|s| humanize_city(s.to_s)}.sort, qualities.sort).map do |item_id, location, quality|
+      key = "#{item_id}_#{location}_#{quality}"
+      results[key] ||= {item_id: item_id, city: location, quality: quality}.merge(default_values)
+    end
 
-    sorted_results
+    results.values_at(*results.keys.sort)
   end
-
-def sort_results(ids, locations, qualities, results)
-  # Convert location ids to city names
-  location_strings = locations.map { |location| location_to_city(location) }
-
-  # Define a default date
-  default_date = DateTime.new(0001, 1, 1, 0, 0, 0).strftime('%Y-%m-%dT%H:%M:%S')
-  # Define default values for the market data
-  default_values = { sell_price_min_date: default_date, sell_price_min: 0, sell_price_max_date: default_date, sell_price_max: 0, buy_price_min_date: default_date, buy_price_min: 0, buy_price_max_date: default_date, buy_price_max: 0 }
-
-  # Generate sorted results by iterating over all combinations of ids, location_strings, and qualities
-  sorted_results = ids.sort.product(location_strings.map{|s| s.to_s}.sort, qualities.sort).map do |id, location, quality|
-    # Generate a key for each combination
-    key = "#{id}_#{city_to_location(location)}_#{quality}"
-    # Merge the city into the result
-    result = results[key].merge(city: location)
-    # Merge the default values into the result, preserving existing values
-    result.merge(default_values) { |_key, oldval, _newval| oldval || _newval }
-  end
-
-  # Return the sorted results
-  sorted_results
-end
-
-def default_result
-  %i[item_id city quality sell_price_min sell_price_min_date sell_price_max sell_price_max_date buy_price_min buy_price_min_date buy_price_max buy_price_max_date].index_with(nil)
-end
-
 end

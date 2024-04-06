@@ -12,8 +12,8 @@ RSpec.describe MarketDataService, :type => :service do
   describe '#get_stats' do
     it 'handles location ids that do not have string conversions' do
       create(:market_order_new_offer_low)
-      result = subject.get_stats({id: 'T4_BAG', locations: '5003,3005', qualities: '1'})
-      expect(result[0][:city]).to eq('5003')
+      result = subject.get_stats({id: 'T4_BAG', locations: '1234,3005', qualities: '1'})
+      expect(result[0][:city]).to eq('1234')
       expect(result[1][:city]).to eq('Caerleon')
     end
 
@@ -35,6 +35,7 @@ RSpec.describe MarketDataService, :type => :service do
       it 'returns the same dates when there is 1 old and 1 new record' do
         create(:market_order_new_offer_low)
         create(:market_order_old_offer_high)
+        create(:market_order_old_offer_low)
         result = subject.get_stats({id: 'T4_BAG', locations: '3005', qualities: '1'})
         expect(result[0][:sell_price_min_date]).to eq('2024-03-09T09:00:00')
         expect(result[0][:sell_price_max_date]).to eq('2024-03-09T09:00:00')
@@ -161,6 +162,115 @@ RSpec.describe MarketDataService, :type => :service do
         expect(result[7][:city]).to eq('Martlock')
         expect(result[7][:quality]).to eq(2)
       end
+    end
+
+
+  end
+
+  describe '#get_locations' do
+    it 'returns default list of locations if locations is nil' do
+      params = { locations: nil}
+      expect(subject.get_locations(params)).to eq([4, 7, 301, 8, 1002, 1301, 1006, 1012, 2002, 2004, 2301, 3002, 3003, 3005, 3008, 3301, 3013, 4002, 4301, 4006, 4300, 5003])
+    end
+
+    it 'returns default list of locations if locations is 0' do
+      params = { locations: 0}
+      expect(subject.get_locations(params)).to eq([4, 7, 301, 8, 1002, 1301, 1006, 1012, 2002, 2004, 2301, 3002, 3003, 3005, 3008, 3301, 3013, 4002, 4301, 4006, 4300, 5003])
+    end
+
+    it 'returns empty list of locations if locations is an empty string' do
+      params = { locations: ''}
+      expect(subject.get_locations(params)).to eq([])
+    end
+
+    it 'returns empty list of locations if locations is an empty array' do
+      params = { locations: []}
+      expect(subject.get_locations(params)).to eq([])
+    end
+
+    it 'returns string converted locations if locations is a string' do
+      params = { locations: 'martlock,caerleon2'}
+      expect(subject.get_locations(params)).to eq([3008, 3013])
+    end
+
+    it 'returns string converted locations if locations is an array' do
+      params = { locations: ['martlock', 'caerleon2']}
+      expect(subject.get_locations(params)).to eq([3008, 3013])
+    end
+
+    it 'returns string converted locations if locations is an array with spaces' do
+      params = { locations: ['fortsterling', 'caerleon 2']}
+      expect(subject.get_locations(params)).to eq([4002, 3013])
+    end
+  end
+
+  describe '#get_qualities' do
+    it 'returns default list of qualities if qualities is nil' do
+      params = { qualities: nil}
+      expect(subject.get_qualities(params)).to eq([1])
+    end
+
+    it 'returns default list of qualities if qualities is 0' do
+      params = { qualities: 0}
+      expect(subject.get_qualities(params)).to eq([1,2,3,4,5])
+    end
+
+    it 'returns empty list of qualities if qualities is an empty string' do
+      params = { qualities: ''}
+      expect(subject.get_qualities(params)).to eq([])
+    end
+
+    it 'returns empty list of qualities if qualities is an empty array' do
+      params = { qualities: []}
+      expect(subject.get_qualities(params)).to eq([])
+    end
+
+    it 'returns string converted qualities if qualities is a string' do
+      params = { qualities: '1,2'}
+      expect(subject.get_qualities(params)).to eq([1,2])
+    end
+
+    it 'returns string converted qualities if qualities is an array' do
+      params = { qualities: ['1', '2']}
+      expect(subject.get_qualities(params)).to eq([1,2])
+    end
+  end
+
+  describe '#humanize_city' do
+    it 'returns a humanized city name' do
+      expect(subject.humanize_city('martlock')).to eq('Martlock')
+    end
+
+    it 'returns a humanized city name with multiple words' do
+      expect(subject.humanize_city('mountaincross')).to eq('Mountain Cross')
+    end
+  end
+
+  describe '#location_to_city' do
+    it 'returns a city name for a location' do
+      expect(subject.location_to_city(3005)).to eq(:caerleon)
+    end
+
+    it 'returns a city name for a location as a string' do
+      expect(subject.location_to_city('3005')).to eq(:caerleon)
+    end
+
+    it 'returns a location if there is no city name' do
+      expect(subject.location_to_city(1234)).to eq('1234')
+    end
+  end
+
+  describe '#city_to_location' do
+    it 'returns a location for a city' do
+      expect(subject.city_to_location(:caerleon)).to eq(3005)
+    end
+
+    it 'returns a location for a city as a string' do
+      expect(subject.city_to_location('caerleon')).to eq(3005)
+    end
+
+    it 'returns a city if there is no location' do
+      expect(subject.city_to_location('1234')).to eq(1234)
     end
   end
 end
