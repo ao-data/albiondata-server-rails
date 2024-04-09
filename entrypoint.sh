@@ -32,7 +32,7 @@ case $1 in
 
   sidekiq)
     echo "Run mode is sidekiq"
-    bundle exec sidekiq -c ${SIDEKIQ_THREADS:-5}
+    bundle exec sidekiq -c ${SIDEKIQ_THREADS:-5} -q critical -q default -q low
     child=$!
     wait "$child"
     ;;
