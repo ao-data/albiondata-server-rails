@@ -40,10 +40,12 @@ services:
       SIDEKIQ_THREADS: 10
       SIDEKIQ_WEB_USER: ${SIDEKIQ_WEB_USER}
       SIDEKIQ_WEB_PASS: ${SIDEKIQ_WEB_PASS}
-      RACK_SESSION_SECRET: ${RACK_SESSION_SECRET}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
       REDIS_DB: ${REDIS_DB}
+      ABUSEIPDB_REDIS_URL: ${ABUSEIPDB_REDIS_URL}
+      ABUSEIPDB_API_KEY: ${ABUSEIPDB_API_KEY}
     # command: './entrypoint.sh web'
     entrypoint: ./entrypoint.sh sleep
     ports:

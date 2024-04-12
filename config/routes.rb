@@ -16,6 +16,9 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "posts#index"
 
+  match "/pow", controller: "pow", action: "index", via: :get, :defaults => { :format => 'json' }
+  match "/pow/:topic", controller: "pow", action: "reply", via: :post, constraints: { topic: /.*/ }, :defaults => { :format => 'json' }
+
   namespace :api, defaults: {format: 'json'} do
     namespace :v2, defaults: {format: 'json'} do
       namespace :stats, defaults: {format: 'json'} do
