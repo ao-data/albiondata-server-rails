@@ -23,7 +23,7 @@ class MarketHistoryProcessorService
     new_records = []
     timescale = data['Timescale'] == 0 ? 1 : 6
     data['MarketHistories'].each do |history|
-      timestamp = ticks_to_epoch(history['Timestamp'])
+      timestamp = ticks_to_time(history['Timestamp'])
       r = MarketHistory.find_by(item_id: item_id, quality: data['QualityLevel'], location: data['LocationId'], timestamp: timestamp, aggregation: timescale)
       if r != nil
         r.item_amount = history['ItemAmount'] if r.item_amount != history['ItemAmount']
@@ -52,7 +52,7 @@ class MarketHistoryProcessorService
     puts "\nMarketHistoryProcessorService: New records: #{new_record_count}, Updated records: #{updated_record_count}\n\n"
   end
 
-  def self.ticks_to_epoch(ticks)
+  def self.ticks_to_time(ticks)
     # python example for ticks to epoch
     # In [53]: import datetime
     # In [54]: ticks = 634942626000000000
