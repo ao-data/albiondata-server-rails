@@ -18,9 +18,18 @@ RSpec.describe MarketHistoryService, :type => :service do
   end
 
   describe '#get_stats' do
+    it 'uses all defaults with the exception of item_id' do
+      params = { id: 'T4_BAG' }
+      expect{subject.get_stats(params)}.not_to raise_error
+    end
+
+    it 'handles an unmapped city' do
+      params = { id: 'T4_BAG', locations: '9999' }
+      expect{subject.get_stats(params)}.not_to raise_error
+    end
+
     context 'time-scale 24' do
       let(:timescale) { 24 }
-
       it 'returns only T4_BAG in location 3005 with quality 1 of 1 record per day' do
         params = { id: 'T4_BAG', locations: '3005', qualities: '1', 'time-scale': timescale }
         result = subject.get_stats(params)
