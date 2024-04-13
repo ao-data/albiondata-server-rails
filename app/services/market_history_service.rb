@@ -39,7 +39,7 @@ class MarketHistoryService
   end
 
   def get_locations(params)
-    default_locations = [4, 7, 301, 8, 1002, 1301, 1006, 1012, 2002, 2004, 2301, 3002, 3003, 3005, 3008, 3301, 3013, 4002, 4301, 4006, 4300, 5003]
+    default_locations = [4, 7, 8, 1002, 1301, 1006, 1012, 2002, 2004, 2301, 3002, 3003, 3005, 3008, 3301, 3013, 4002, 4301, 4006, 4300, 5003]
     locations = params[:locations]
 
     # locations = nil if params[:query_string].include?('locations[]')
@@ -92,6 +92,7 @@ class MarketHistoryService
 
     # create empty results that are presorted by item_id, city string, and quality
     cities = locations.map { |location| location_to_city(location) }
+    pp cities
     cities.sort.product(ids.sort, qualities.sort).each do |location, id, quality|
       city = location_to_city(location)
       key = "#{city}-#{id}-#{quality}"

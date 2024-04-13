@@ -98,7 +98,7 @@ class PowController < ApplicationController
   end
 
   def enqueue_worker(topic, data)
-    case topic
+    case topic.downcase
     when "goldprices.ingest"
       GoldDedupeWorker.perform_async(data)
     when "marketorders.ingest"
