@@ -2,11 +2,12 @@ require 'rails_helper'
 
 RSpec.describe API::V2::Stats::GoldController, :type => :controller do
   describe "GET /gold" do
-    let!(:gold_price) { create(:gold_price) }
+    let(:gold_price) { create(:gold_price) }
 
-    # before do
-    #   create(:gold_price)
-    # end
+    before do
+      GoldPrice.destroy_all
+      gold_price
+    end
 
     context "when date and end_date parameters are not provided" do
       it "returns gold prices for the last month" do
