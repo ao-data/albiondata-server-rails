@@ -28,6 +28,36 @@ RSpec.describe MarketHistoryService, :type => :service do
       expect{subject.get_stats(params)}.not_to raise_error
     end
 
+    it 'does not error on an empty date' do
+      params = { id: 'T4_BAG', locations: '3005', qualities: '1', date: '' }
+      expect{subject.get_stats(params)}.not_to raise_error
+    end
+
+    it 'uses correct where statement for an empty date' do
+      params = { id: 'T4_BAG', locations: '3005', qualities: '1', date: '' }
+
+      orders = MarketHistory.where(item_id: 'T4_BAG', location: '3005', quality: '1', aggregation: 6)
+      expect(orders).to receive(:where).with('timestamp >= ? and timestamp <= ?', 30.days.ago, DateTime.now).and_call_original
+
+      expect(MarketHistory).to receive(:where).and_return(orders)
+      subject.get_stats(params)
+    end
+
+    it 'uses correct where statement for an empty end_date' do
+      params = { id: 'T4_BAG', locations: '3005', qualities: '1', end_date: '' }
+
+      orders = MarketHistory.where(item_id: 'T4_BAG', location: '3005', quality: '1', aggregation: 6)
+      expect(orders).to receive(:where).with('timestamp >= ? and timestamp <= ?', DateTime.now - 30.days, DateTime.now).and_call_original
+
+      expect(MarketHistory).to receive(:where).and_return(orders)
+      subject.get_stats(params)
+    end
+
+    it 'does not error on an empty end_date' do
+      params = { id: 'T4_BAG', locations: '3005', qualities: '1', end_date: '' }
+      expect{subject.get_stats(params)}.not_to raise_error
+    end
+
     context 'time-scale 24' do
       let(:timescale) { 24 }
       it 'returns only T4_BAG in location 3005 with quality 1 of 1 record per day' do
