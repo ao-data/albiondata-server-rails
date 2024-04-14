@@ -52,7 +52,8 @@ gem 'sidekiq', '~> 7.2', '>= 7.2.2'
 gem 'sidekiq-cron', '~> 1.12'
 gem 'nats-pure', '~> 2.2', '>= 2.2.1'
 gem 'httparty', '~> 0.21.0'
-gem 'abuseipdb-rb'
+gem 'abuseipdb-rb', '~> 0.0.2'
+gem 'rack-cors', '~> 2.0', '>= 2.0.2'
 
 
 group :development, :test do
