@@ -25,6 +25,7 @@ Rails.application.routes.draw do
         match "prices/:id", controller: "prices", action: "show", via: :get, :defaults => { :format => 'json' }
         match "view/:id", controller: "prices", action: "show_table", via: :get, :defaults => { :format => 'json' }
         match "history/:id", controller: "history", action: "show", via: :get, :defaults => { :format => 'json' }
+        match "charts/:id", controller: "history", action: "charts", via: :get, :defaults => { :format => 'json' }
 
         match "gold", controller: "gold", action: "index", via: :get, :defaults => { :format => 'json' }
       end

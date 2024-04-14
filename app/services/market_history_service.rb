@@ -92,7 +92,6 @@ class MarketHistoryService
 
     # create empty results that are presorted by item_id, city string, and quality
     cities = locations.map { |location| location_to_city(location) }
-    pp cities
     cities.sort.product(ids.sort, qualities.sort).each do |location, id, quality|
       city = location_to_city(location)
       key = "#{city}-#{id}-#{quality}"
@@ -142,5 +141,24 @@ class MarketHistoryService
     end
 
     histories.values
+  end
+
+  def get_charts(params)
+    params[:qualities] = [1,2,3,4,5] if params[:qualities].nil?
+    params[:'time-scale'] = 6 if params[:'time-scale'].nil?
+
+    history = get_stats(params)
+    charts = {}
+    history.each do |h|
+      key = "#{h[:location]}-#{h[:item_id]}-#{h[:quality]}"
+      charts[key] ||= { location: h[:location], item_id: h[:item_id], quality: h[:quality], data: { timestamps: [], prices_avg: [], item_count: [] } }
+      h[:data].each do |d|
+        charts[key][:data][:timestamps] << d[:timestamp]
+        charts[key][:data][:prices_avg] << d[:avg_price]
+        charts[key][:data][:item_count] << d[:item_count]
+      end
+    end
+
+    charts.values
   end
 end
