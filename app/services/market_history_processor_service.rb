@@ -14,10 +14,6 @@ class MarketHistoryProcessorService
     #   ]
     # }
 
-    return if data['AlbionId'] == 0 # sometimes the client sends us 0 for the numeric item id, we trash this data
-    item_id = REDIS.hget('ITEM_IDS', data['AlbionId'])
-    raise StandardError.new('MarketHistoryProcessorService: Item ID not found in redis.') if item_id.nil?
-
     new_record_count = 0
     updated_record_count = 0
     new_records = []
@@ -35,7 +31,7 @@ class MarketHistoryProcessorService
         end
       else
         new_records << {
-          item_id: item_id,
+          item_id: data['AlbionIdString'],
           quality: data['QualityLevel'],
           location: data['LocationId'],
           timestamp: timestamp,
