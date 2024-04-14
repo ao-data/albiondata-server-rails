@@ -204,4 +204,28 @@ RSpec.describe MarketHistoryService, :type => :service do
       end
     end
   end
+
+  describe '#get_charts' do
+    it 'calls get_stats' do
+      expect(subject).to receive(:get_stats).with({ id: 'T4_BAG', qualities: '1', 'time-scale': '1' }).and_call_original
+      subject.get_charts({ id: 'T4_BAG', qualities: '1', 'time-scale': '1' })
+    end
+
+    it 'sets defaults if not set' do
+      expect(subject).to receive(:get_stats).with({ id: 'T4_BAG', qualities: [1,2,3,4,5], 'time-scale': 6 }).and_call_original
+      subject.get_charts({ id: 'T4_BAG' })
+    end
+
+    it 'returns the correct data' do
+      result = subject.get_charts({ id: 'T4_BAG', qualities: '1', 'time-scale': '1' })
+
+      expect(result.count).to eq(1)
+      expect(result[0][:location]).to eq('Caerleon')
+      expect(result[0][:item_id]).to eq('T4_BAG')
+      expect(result[0][:quality]).to eq(1)
+      expect(result[0][:data][:timestamps].count).to eq(25)
+      expect(result[0][:data][:prices_avg].count).to eq(25)
+      expect(result[0][:data][:item_count].count).to eq(25)
+    end
+  end
 end
