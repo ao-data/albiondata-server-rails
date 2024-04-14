@@ -53,22 +53,6 @@ class MarketHistoryProcessorService
   end
 
   def self.ticks_to_time(ticks)
-    # python example for ticks to epoch
-    # In [53]: import datetime
-    # In [54]: ticks = 634942626000000000
-    # In [55]: start = datetime.datetime(1, 1, 1)
-    # In [56]: delta = datetime.timedelta(seconds=ticks/10000000)
-    # In [57]: the_actual_date = start + delta
-    # In [58]: the_actual_date.timestamp()
-    #
-    # Ruby example for ticks to epoch
-    #
-    # ticks = 638483904000000000
-    # start = DateTime.parse("0000-01-01T00:00:00Z").to_i
-    # delta = start + (ticks/10000000)
-    # pp Time.at(delta)
-    #
-    # shortened version
-    Time.at(-62167392000 + (ticks/10000000))
+    Time.at((ticks - 621355968000000000)/10000000)
   end
 end
