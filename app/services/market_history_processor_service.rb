@@ -20,7 +20,7 @@ class MarketHistoryProcessorService
     timescale = data['Timescale'] == 0 ? 1 : 6
     data['MarketHistories'].each do |history|
       timestamp = ticks_to_time(history['Timestamp'])
-      r = MarketHistory.find_by(item_id: item_id, quality: data['QualityLevel'], location: data['LocationId'], timestamp: timestamp, aggregation: timescale)
+      r = MarketHistory.find_by(item_id: data['AlbionIdString'], quality: data['QualityLevel'], location: data['LocationId'], timestamp: timestamp, aggregation: timescale)
       if r != nil
         r.item_amount = history['ItemAmount'] if r.item_amount != history['ItemAmount']
         r.silver_amount = history['SilverAmount'] / 10000 if r.silver_amount != history['SilverAmount'] / 10000
