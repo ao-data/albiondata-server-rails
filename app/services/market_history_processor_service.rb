@@ -2,6 +2,7 @@ class MarketHistoryProcessorService
   def self.process(data)
     # data = {
     #   "AlbionId": 944,
+    #   "AlbionIdString": "T4_BAG",
     #   "LocationId": 3005,
     #   "QualityLevel": 1,
     #   "Timescale": 0,
