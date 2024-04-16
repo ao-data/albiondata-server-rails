@@ -10,23 +10,38 @@ class MarketOrderProcessorService
     @unupdated_records = 0
   end
 
+  # @orders = [{"Id"=>12226808117,
+  #  "ItemTypeId"=>"T1_MEAL_SEAWEEDSALAD",
+  #  "ItemGroupTypeId"=>"T1_MEAL_SEAWEEDSALAD",
+  #  "LocationId"=>1002,
+  #  "QualityLevel"=>1,
+  #  "EnchantmentLevel"=>0,
+  #  "UnitPriceSilver"=>2490000,
+  #  "Amount"=>15,
+  #  "AuctionType"=>"offer",
+  #  "Expires"=>"2024-04-15T00:24:27.605927"}]
+
   def process
-    new_records = []
-    old_records = []
-
-    # @orders = [{"Id"=>12226808117,
-    #  "ItemTypeId"=>"T1_MEAL_SEAWEEDSALAD",
-    #  "ItemGroupTypeId"=>"T1_MEAL_SEAWEEDSALAD",
-    #  "LocationId"=>1002,
-    #  "QualityLevel"=>1,
-    #  "EnchantmentLevel"=>0,
-    #  "UnitPriceSilver"=>2490000,
-    #  "Amount"=>15,
-    #  "AuctionType"=>"offer",
-    #  "Expires"=>"2024-04-15T00:24:27.605927"}]
-
     # remove duplicates found in redis, 24 hour based
+    deduped_records = dedupe_24h
+
+    # separate new and old records
+    new_records, old_records = separate_new_from_old_records(deduped_records)
+
+    # add new records
+    add_new_records(new_records)
+
+    # update old records
+    update_old_records(old_records)
+
+    puts ''
+    puts "MarketOrderProcessorService: New records: #{@new_records}, Duplicate records: #{@duplicate_records}, Updated records: #{@updated_records}, Unupdated records: #{@unupdated_records}, Invalid records: #{@invalid_records}, Redis duplicates: #{@redis_duplicates}"
+    puts ''
+  end
+
+  def dedupe_24h
     redis_deduped = []
+
     @orders.each do |order|
       begin
         sha256 = Digest::SHA256.hexdigest(order.to_s)
@@ -39,11 +54,17 @@ class MarketOrderProcessorService
       end
     end
 
-    # separate new and old records
-    alibon_ids = @orders.map { |order| order["Id"] }
+    redis_deduped
+  end
+
+  def separate_new_from_old_records(deduped_records)
+    new_records = []
+    old_records = []
+
+    alibon_ids = deduped_records.map { |order| order["Id"] }
     found_albion_ids = MarketOrder.where(albion_id: alibon_ids).pluck(:albion_id)
 
-    @orders.each do |order|
+    deduped_records.each do |order|
       if found_albion_ids.include?(order["Id"])
         old_records << order
       else
@@ -51,7 +72,10 @@ class MarketOrderProcessorService
       end
     end
 
-    # add new records
+    [new_records, old_records]
+  end
+
+  def add_new_records(new_records)
     new_record_data = []
     new_records.each do |order|
       expires = DateTime.parse(order['Expires']).year
@@ -73,18 +97,17 @@ class MarketOrderProcessorService
     end
 
     MarketOrder.insert_all(new_record_data)
+  end
 
-    # update old records
+  def update_old_records(old_records)
     old_records.each do |order|
       begin
         market_order = MarketOrder.find_by(albion_id: order["Id"])
         next if market_order.nil?
 
-        market_order.attributes.merge!(
-          price: order["UnitPriceSilver"],
-          amount: order["Amount"],
-          expires: order["Expires"]
-        )
+        market_order['price'] = order["UnitPriceSilver"]
+        market_order['amount'] = order["Amount"]
+        market_order['expires'] = order["Expires"]
 
         if market_order.changed?
           market_order.save
@@ -98,9 +121,5 @@ class MarketOrderProcessorService
         @invalid_records += 1
       end
     end
-
-    puts ''
-    puts "MarketOrderProcessorService: New records: #{@new_records}, Duplicate records: #{@duplicate_records}, Updated records: #{@updated_records}, Unupdated records: #{@unupdated_records}, Invalid records: #{@invalid_records}, Redis duplicates: #{@redis_duplicates}"
-    puts ''
   end
 end

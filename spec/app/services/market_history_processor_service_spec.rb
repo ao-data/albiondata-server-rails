@@ -8,7 +8,58 @@ describe MarketHistoryProcessorService, type: :service do
       expect(MarketHistoryProcessorService.ticks_to_time(ticks)).to eq(expected_datetime)
     end
 
-    xit 'process needs testing here'
+    before do
+      MarketHistory.destroy_all
+    end
+
+    describe '.process' do
+      let(:data) {
+        JSON.parse({
+                     "AlbionId": 944,
+                     "AlbionIdString": "T4_BAG",
+                     "LocationId": 3005,
+                     "QualityLevel": 1,
+                     "Timescale": 0,
+                     "MarketHistories": [
+                       {
+                         "ItemAmount": 24,
+                         "SilverAmount": 960000,
+                         "Timestamp": 638464104000000000
+                       }
+                     ]
+                   }.to_json)
+      }
+
+      it 'creates new records' do
+        expect { MarketHistoryProcessorService.process(data) }.to change { MarketHistory.count }.by(1)
+      end
+
+      it 'updates existing records' do
+        MarketHistoryProcessorService.process(data)
+        old_record_amount = MarketHistory.first['item_amount']
+        sleep 1
+
+        data['MarketHistories'][0]['ItemAmount'] = 25
+        json_data = data.to_json
+        data = JSON.parse(json_data)
+        MarketHistoryProcessorService.process(data)
+        new_record = MarketHistory.first
+
+        expect(old_record_amount).not_to eq(new_record['item_amount'])
+        expect(new_record['item_amount']).to eq(25)
+      end
+
+      it 'does not update a record if the data is the same' do
+        MarketHistoryProcessorService.process(data)
+        old_record = MarketHistory.first
+        sleep 1
+
+        MarketHistoryProcessorService.process(data)
+        new_record = MarketHistory.first
+
+        expect(old_record['item_amount']).to eq(new_record['item_amount'])
+      end
+    end
   end
 
 end
