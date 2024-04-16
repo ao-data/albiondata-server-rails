@@ -72,6 +72,9 @@ class MarketDataService
   end
 
   def get_stats(params)
+    # Notes: when using _ for the keys, _ comes after L so T4_LEATHER comes before T4_LEATHER_LEVEL1@1.
+    # We don't want that. Key name separator is now !!.
+    #
     # Split the provided parameters into separate variables
     ids, locations, qualities = params[:id].upcase.split(',').uniq, get_locations(params), get_qualities(params)
 
@@ -79,8 +82,8 @@ class MarketDataService
     data = data.where(location: locations) unless locations.empty?
     data = data.where(quality_level: qualities) unless qualities.empty?
     data = data.group('2 asc', '3 desc')
-    data = data.select('CONCAT(item_id, "_", location, "_", quality_level) AS o_keey',
-                             'CONCAT(item_id, "_", location, "_", quality_level, "_", auction_type) AS o_keey_at',
+    data = data.select('CONCAT(item_id, "!!", location, "!!", quality_level) AS o_keey',
+                             'CONCAT(item_id, "!!", location, "!!_", quality_level, "!!", auction_type) AS o_keey_at',
                              'FROM_UNIXTIME((UNIX_TIMESTAMP(updated_at) DIV 300 * 300), "%Y-%m-%dT%H:%i:%s") AS updated_at_binned',
                              'min(price) as min_price',
                              'max(price) as max_price',
@@ -119,7 +122,7 @@ class MarketDataService
     default_values = { sell_price_min: 0, sell_price_min_date: default_date, sell_price_max: 0, sell_price_max_date: default_date, buy_price_min: 0, buy_price_min_date: default_date, buy_price_max: 0, buy_price_max_date: default_date }
     location_strings = locations.map { |location| location_to_city(location) }
     ids.sort.product(location_strings.map{|s| humanize_city(s.to_s)}.sort, qualities.sort).map do |item_id, location, quality|
-      key = "#{item_id}_#{location}_#{quality}"
+      key = "#{item_id}!!#{location}!!#{quality}"
       results[key] ||= {item_id: item_id, city: location, quality: quality}.merge(default_values)
     end
 

@@ -162,6 +162,16 @@ RSpec.describe MarketDataService, :type => :service do
         expect(result[7][:city]).to eq('Martlock')
         expect(result[7][:quality]).to eq(2)
       end
+
+      it 'sorts T4_LEATHER in Martlock before T4_LEATHER_LEVEL1@1' do
+        # when using _ for the keys, _ comes after L so T4_LEATHER comes before T4_LEATHER_LEVEL1@1. We don't want that.
+        MarketOrder.delete_all
+        ids = 'T4_LEATHER_LEVEL1@1,T4_LEATHER_LEVEL2@2,T4_LEATHER_LEVEL3@3,T4_LEATHER_LEVEL4@4,T4_LEATHER,T3_LEATHER'
+        result = subject.get_stats({id: ids, locations: 'Martlock', qualities: '1'})
+        expect(result[0][:item_id]).to eq('T3_LEATHER')
+        expect(result[1][:item_id]).to eq('T4_LEATHER')
+        expect(result[2][:item_id]).to eq('T4_LEATHER_LEVEL1@1')
+      end
     end
 
 

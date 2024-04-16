@@ -94,7 +94,7 @@ class MarketHistoryService
     cities = locations.map { |location| location_to_city(location) }
     cities.sort.product(ids.sort, qualities.sort).each do |location, id, quality|
       city = location_to_city(location)
-      key = "#{city}-#{id}-#{quality}"
+      key = "#{city}!!#{id}!!#{quality}"
       histories[key] = { location: city, item_id: id, quality: quality, data: {} }
     end
 
@@ -105,7 +105,7 @@ class MarketHistoryService
     # mixin data from query
     data.each do |history|
       city = location_to_city(history.location)
-      key = "#{city}-#{history.item_id}-#{history.quality}"
+      key = "#{city}!!#{history.item_id}!!#{history.quality}"
       # histories[key] ||= { location: city, item_id: history.item_id, quality: history.quality, data: {} }
 
       if timescale == 24
@@ -132,7 +132,7 @@ class MarketHistoryService
 
     # calculate avg price and remove empty data
     histories.each_value do |v|
-      key = "#{v[:location]}-#{v[:item_id]}-#{v[:quality]}"
+      key = "#{v[:location]}!!#{v[:item_id]}!!#{v[:quality]}"
       v[:data].each_value { |data| data[:avg_price] = data[:sum_silver] / data[:item_count] }
       v[:data] = v[:data].values.map { |d| d.except(:sum_silver) }
       v[:location] = humanize_city(v[:location])
