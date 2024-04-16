@@ -26,7 +26,7 @@ jobs:
         with:
           push: true
           tags: |
-            albiondata/albiondata-server-rails:$GITHUB_REF_NAME
-            albiondata/albiondata-server-rails:latest
+            "albiondata/albiondata-server-rails:${{ github.event.pull_request && github.head_ref || github.ref_name }}"
+            "albiondata/albiondata-server-rails:latest"
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
