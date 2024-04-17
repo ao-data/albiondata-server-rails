@@ -72,7 +72,7 @@ class MarketDataService
   end
 
   def get_stats(params)
-    # Notes: when using _ for the keys, _ comes after L so T4_LEATHER comes before T4_LEATHER_LEVEL1@1.
+    # Notes: when using _ for the keys, T4_LEATHER_MARTLOCK comes after T4_LEATHER_LEVEL1@1_MARTLOCK because "T4_LEATHER_M" and "T4_LEATHER_L" sorting.
     # We don't want that. Key name separator is now !!.
     #
     # Split the provided parameters into separate variables

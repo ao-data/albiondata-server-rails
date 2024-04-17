@@ -164,7 +164,8 @@ RSpec.describe MarketDataService, :type => :service do
       end
 
       it 'sorts T4_LEATHER in Martlock before T4_LEATHER_LEVEL1@1' do
-        # when using _ for the keys, _ comes after L so T4_LEATHER comes before T4_LEATHER_LEVEL1@1. We don't want that.
+        # Notes: when using _ for the keys, T4_LEATHER_MARTLOCK comes after T4_LEATHER_LEVEL1@1_MARTLOCK because "T4_LEATHER_M" and "T4_LEATHER_L" sorting.
+        # We don't want that. Key name separator is now !!.
         MarketOrder.delete_all
         ids = 'T4_LEATHER_LEVEL1@1,T4_LEATHER_LEVEL2@2,T4_LEATHER_LEVEL3@3,T4_LEATHER_LEVEL4@4,T4_LEATHER,T3_LEATHER'
         result = subject.get_stats({id: ids, locations: 'Martlock', qualities: '1'})
