@@ -92,6 +92,9 @@ GEM
     annotate (3.2.0)
       activerecord (>= 3.2, < 8.0)
       rake (>= 10.4, < 14.0)
+    ar-multidb (0.7.0)
+      activerecord (>= 5.1, < 7.2)
+      activesupport (>= 5.1, < 7.2)
     base64 (0.2.0)
     bigdecimal (3.1.6)
     bindex (0.8.1)
@@ -347,6 +350,7 @@ PLATFORMS
 DEPENDENCIES
   abuseipdb-rb (~> 0.0.2)
   annotate (~> 3.2)
+  ar-multidb (~> 0.7.0)
   bootsnap
   capybara
   debug
