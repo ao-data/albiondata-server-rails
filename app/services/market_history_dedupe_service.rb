@@ -1,4 +1,13 @@
 class MarketHistoryDedupeService
+  PORTAL_TO_CITY = {
+    9 => 7,      # ThetfordPortal to Thetford
+    1301 => 1002, # LymhurstPortal to Lymhurst
+    2301 => 2004, # BridgewatchPortal to Bridgewatch
+    3301 => 3308, # MartlockPortal to Martlock
+    4301 => 4002, # FortSterlingPortal to FortSterling
+    3013 => 3005  # Caerleon2 to Caerleon
+  }
+
   def self.dedupe(data)
     json_data = data.to_json
     sha256 = Digest::SHA256.hexdigest(json_data)
@@ -11,6 +20,7 @@ class MarketHistoryDedupeService
       raise StandardError.new('MarketHistoryProcessorService: Item ID not found in redis.') if item_id.nil?
 
       data['AlbionIdString'] = item_id
+      data['LocationId'] = PORTAL_TO_CITY[data['LocationId']] if PORTAL_TO_CITY.has_key?(data['LocationId'])
       json_data = data.to_json
 
       NatsService.send('markethistories.deduped', json_data)

@@ -1,11 +1,11 @@
 class MarketOrderDedupeService
-  # Define a hash map for portal to city mapping
   PORTAL_TO_CITY = {
     9 => 7,      # ThetfordPortal to Thetford
     1301 => 1002, # LymhurstPortal to Lymhurst
     2301 => 2004, # BridgewatchPortal to Bridgewatch
     3301 => 3308, # MartlockPortal to Martlock
-    4301 => 4002  # FortSterlingPortal to FortSterling
+    4301 => 4002, # FortSterlingPortal to FortSterling
+    3013 => 3003  # Caerleon2 to Caerleon
   }
 
   def initialize(data)
