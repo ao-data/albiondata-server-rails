@@ -1,6 +1,10 @@
 require 'rails_helper'
 
 RSpec.describe PowController, :type => :controller do
+  before do
+    @request.host = "west.example.com"
+  end
+
   describe 'GET #index' do
     it 'returns a success response' do
       get :index
@@ -32,6 +36,7 @@ RSpec.describe PowController, :type => :controller do
     before do
       REDIS.set('pow_key', pow.to_json)
       allow(controller).to receive(:supported_client?).and_return(true)
+      allow(controller).to receive(:ip_good?).and_return(true)
     end
 
     it 'returns a success response' do
@@ -123,24 +128,30 @@ RSpec.describe PowController, :type => :controller do
 
   describe 'enqueue_worker' do
     it 'enqueues a GoldPriceDedupeWorker if the topic is goldprices.ingest' do
-      expect(GoldDedupeWorker).to receive(:perform_async)
+      expect(GoldDedupeWorker).to receive(:perform_async).with({}, 'west')
       controller.enqueue_worker('goldprices.ingest', {})
     end
 
     it 'enqueues a MarketOrderDedupeWorker if the topic is marketorders.ingest' do
-      expect(MarketOrderDedupeWorker).to receive(:perform_async)
+      expect(MarketOrderDedupeWorker).to receive(:perform_async).with({}, 'west')
       controller.enqueue_worker('marketorders.ingest', {})
     end
 
     it 'enqueues a MarketHistoryDedupeWorker if the topic is markethistories.ingest' do
-      expect(MarketHistoryDedupeWorker).to receive(:perform_async)
+      expect(MarketHistoryDedupeWorker).to receive(:perform_async).with({}, 'west')
       controller.enqueue_worker('markethistories.ingest', {})
     end
 
-    xit 'enqueues a MapDataDedupeWorker if the topic is mapdata.ingest' do
-      expect(MapDataDedupeWorker).to receive(:perform_async)
-      controller.enqueue_worker('mapdata.ingest', {})
+    it 'enqueues a MarketHistoryDedupeWorker if the topic is markethistories.ingest for east database' do
+      @request.host = 'east.example.com'
+      expect(MarketHistoryDedupeWorker).to receive(:perform_async).with({}, 'east')
+      controller.enqueue_worker('markethistories.ingest', {})
     end
+
+    # xit 'enqueues a MapDataDedupeWorker if the topic is mapdata.ingest' do
+    #   expect(MapDataDedupeWorker).to receive(:perform_async).with({})
+    #   controller.enqueue_worker('mapdata.ingest', {})
+    # end
   end
 
   describe '#supported_client?' do

@@ -100,11 +100,11 @@ class PowController < ApplicationController
   def enqueue_worker(topic, data)
     case topic.downcase
     when "goldprices.ingest"
-      GoldDedupeWorker.perform_async(data)
+      GoldDedupeWorker.perform_async(data, server_id)
     when "marketorders.ingest"
-      MarketOrderDedupeWorker.perform_async(data)
+      MarketOrderDedupeWorker.perform_async(data, server_id)
     when "markethistories.ingest"
-      MarketHistoryDedupeWorker.perform_async(data)
+      MarketHistoryDedupeWorker.perform_async(data, server_id)
     # when "mapdata.ingest"
     #   MapDataDedupeWorker.perform_async(data)
     end
