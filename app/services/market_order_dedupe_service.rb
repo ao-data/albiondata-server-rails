@@ -11,7 +11,6 @@ class MarketOrderDedupeService
   def initialize(data, server_id)
     @data = data
     @server_id = server_id
-    Multidb.use(server_id.to_sym)
   end
 
   def process

@@ -1,6 +1,6 @@
 class MarketOrderProcessorService
 
-  def initialize(orders)
+  def initialize(orders, server_id)
     @orders = orders
     @new_records = 0
     @redis_duplicates = 0
@@ -8,6 +8,8 @@ class MarketOrderProcessorService
     @invalid_records = 0
     @updated_records = 0
     @unupdated_records = 0
+    @server_id = server_id
+    Multidb.use(server_id.to_sym)
   end
 
   # @orders = [{"Id"=>12226808117,
