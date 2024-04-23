@@ -8,14 +8,19 @@ describe GoldProcessorService, type: :service do
     end
 
     it 'creates gold prices' do
-      expect { described_class.process(data) }.to change { GoldPrice.count }.by(3)
+      expect { described_class.process(data, 'west') }.to change { GoldPrice.count }.by(3)
     end
 
     it 'creates gold prices with correct attributes' do
-      described_class.process(data)
+      described_class.process(data, 'west')
 
       expect(GoldPrice.first.price).to eq(1)
       expect(GoldPrice.first.timestamp).to eq(Time.at((638486496000000000 - 621355968000000000)/10000000))
+    end
+
+    it 'uses the correct database' do
+      expect(Multidb).to receive(:use).with(:east).and_call_original
+      described_class.process(data, 'east')
     end
   end
 end
