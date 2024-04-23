@@ -23,7 +23,7 @@ class MarketHistoryDedupeService
     3013 => 3005  # Caerleon2 to Caerleon
   }
 
-  def self.dedupe(data)
+  def self.dedupe(data, server_id)
     json_data = data.to_json
     sha256 = Digest::SHA256.hexdigest(json_data)
 
@@ -44,10 +44,10 @@ class MarketHistoryDedupeService
       json_data = data.to_json
 
       s = NatsService.new
-      s.send('markethistories.deduped', json_data)
+      s.send('markethistories.deduped', json_data, server_id)
       s.close
 
-      MarketHistoryProcessorWorker.perform_async(json_data)
+      MarketHistoryProcessorWorker.perform_async(json_data, server_id)
     end
   end
 end
