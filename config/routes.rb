@@ -16,6 +16,10 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "posts#index"
 
+  if Rails.env.development? || Rails.env.test?
+    match "/test", controller: "application", action: "test", via: :get, :defaults => { :format => 'json' }
+  end
+
   match "/pow", controller: "pow", action: "index", via: :get, :defaults => { :format => 'json' }
   match "/pow/:topic", controller: "pow", action: "reply", via: :post, constraints: { topic: /.*/ }, :defaults => { :format => 'json' }
 
