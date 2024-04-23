@@ -20,7 +20,7 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
     }
   end
 
-  let(:subject) { described_class.new(data) }
+  let(:subject) { described_class.new(data, 'west') }
 
   before do
     allow(REDIS).to receive(:get).and_return(nil)
@@ -28,13 +28,17 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
   end
 
   describe '#process' do
+    before do
+      allow(NatsService).to receive(:send)
+    end
+
     context 'when there are deduped records' do
       before do
         allow(subject).to receive(:dedupe).and_return([{ 'UnitPriceSilver' => 249 }])
       end
 
       it 'sends deduped records to MarketOrderProcessorWorker' do
-        expect(MarketOrderProcessorWorker).to receive(:perform_async).with(subject.dedupe.to_json)
+        expect(MarketOrderProcessorWorker).to receive(:perform_async).with(subject.dedupe.to_json, 'west')
         subject.process
       end
     end

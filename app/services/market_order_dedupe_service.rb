@@ -8,8 +8,10 @@ class MarketOrderDedupeService
     3013 => 3003  # Caerleon2 to Caerleon
   }
 
-  def initialize(data)
+  def initialize(data, server_id)
     @data = data
+    @server_id = server_id
+    Multidb.use(server_id.to_sym)
   end
 
   def process
@@ -21,16 +23,16 @@ class MarketOrderDedupeService
 
       # send single records to NATS
       deduped_records.each do
-        |record| nats.send('marketorders.deduped', record.to_json)
+        |record| nats.send('marketorders.deduped', record.to_json, server_id)
       end
 
       # Send bulk records to NATS
-      nats.send('marketorders.deduped.bulk', deduped_records.to_json)
+      nats.send('marketorders.deduped.bulk', deduped_records.to_json, server_id)
 
       nats.close
 
       # Send bulk records to Sidekiq
-      MarketOrderProcessorWorker.perform_async(deduped_records.to_json)
+      MarketOrderProcessorWorker.perform_async(deduped_records.to_json, @server_id)
     end
   end
 
