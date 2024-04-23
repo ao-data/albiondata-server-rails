@@ -2,23 +2,34 @@ require 'nats/client'
 
 class NatsService
 
-  def initialize
-    server = "nats://#{ENV['NATS_USER']}:#{ENV['NATS_PWD']}@#{ENV['NATS_HOST']}:#{ENV['NATS_PORT']}"
-    @nats = NATS.connect(server)
+  def self.send(topic, data, server_id)
+    server = case server_id
+            when 'west'
+              ENV['NATS_WEST_URL']
+            when 'east'
+              ENV['NATS_EAST_URL']
+            when 'europe'
+              ENV['NATS_EUROPE_URL']
+            else
+              ENV['NATS_WEST_URL']
+            end
+
+    nats = NATS.connect(server)
+    nats.publish(topic, data)
+    nats.close
   end
 
-  def close
-    @nats.close
-    @nats = nil
-  end
-
-  def send(topic, data)
-    return if ENV['NATS_SEND_DISABLE'] == 'true'
-    @nats.publish(topic, data)
-  end
-
-  def listen
-    server = "nats://#{ENV['NATS_USER']}:#{ENV['NATS_PWD']}@#{ENV['NATS_HOST']}:#{ENV['NATS_PORT']}"
+  def listen(server_id)
+    server = case server_id
+             when 'west'
+               ENV['NATS_WEST_URL']
+             when 'east'
+               ENV['NATS_EAST_URL']
+             when 'europe'
+               ENV['NATS_EUROPE_URL']
+             else
+               ENV['NATS_WEST_URL']
+             end
 
     nats = NATS.connect(server)
     puts "Connected to #{nats.connected_server}"
