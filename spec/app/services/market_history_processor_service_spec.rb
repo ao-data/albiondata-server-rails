@@ -33,18 +33,18 @@ describe MarketHistoryProcessorService, type: :service do
       }
 
       it 'creates new records' do
-        expect { MarketHistoryProcessorService.process(data) }.to change { MarketHistory.count }.by(1)
+        expect { MarketHistoryProcessorService.process(data, 'west') }.to change { MarketHistory.count }.by(1)
       end
 
       it 'updates existing records' do
-        MarketHistoryProcessorService.process(data)
+        MarketHistoryProcessorService.process(data, 'west')
         old_record_amount = MarketHistory.first['item_amount']
         sleep 1
 
         data['MarketHistories'][0]['ItemAmount'] = 25
         json_data = data.to_json
         data = JSON.parse(json_data)
-        MarketHistoryProcessorService.process(data)
+        MarketHistoryProcessorService.process(data, 'west')
         new_record = MarketHistory.first
 
         expect(old_record_amount).not_to eq(new_record['item_amount'])
@@ -52,11 +52,11 @@ describe MarketHistoryProcessorService, type: :service do
       end
 
       it 'does not update a record if the data is the same' do
-        MarketHistoryProcessorService.process(data)
+        MarketHistoryProcessorService.process(data, 'west')
         old_record = MarketHistory.first
         sleep 1
 
-        MarketHistoryProcessorService.process(data)
+        MarketHistoryProcessorService.process(data, 'west')
         new_record = MarketHistory.first
 
         expect(old_record['item_amount']).to eq(new_record['item_amount'])
@@ -66,6 +66,11 @@ describe MarketHistoryProcessorService, type: :service do
         allow(REDIS).to receive(:get).and_return(1)
         expect(MarketHistory).not_to receive(:find_by)
         MarketHistoryProcessorService.process(data)
+      end
+
+      it 'uses the correct database' do
+        expect(Multidb).to receive(:use).with(:east)
+        MarketHistoryProcessorService.process(data, 'east')
       end
     end
   end
