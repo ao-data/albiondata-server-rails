@@ -4,6 +4,7 @@ describe GoldProcessorService, type: :service do
     let(:data) { { 'Prices' => [1, 2, 3], 'Timestamps' => [638486496000000000, 638486460000000000, 638486424000000000] } }
 
     before do
+      Multidb.use(:west)
       GoldPrice.destroy_all
     end
 

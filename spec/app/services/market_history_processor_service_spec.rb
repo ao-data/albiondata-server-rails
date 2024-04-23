@@ -9,6 +9,7 @@ describe MarketHistoryProcessorService, type: :service do
     end
 
     before do
+      Multidb.use(:west)
       MarketHistory.destroy_all
       allow(REDIS).to receive(:get).and_return(nil)
       allow(REDIS).to receive(:set)
