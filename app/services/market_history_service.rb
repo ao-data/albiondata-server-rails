@@ -17,10 +17,10 @@ class MarketHistoryService
     "Blackmarket": 3003,
     "blackmarket": 3003,
     "Black Market": 3003,
+    "caerleon2": 3005,
     "caerleon": 3005,
     "martlock": 3008,
     "martlockportal": 3301,
-    "caerleon2": 3013,
     "fortsterling": 4002,
     "fortsterlingportal": 4301,
     "mountaincross": 4006,
@@ -39,7 +39,7 @@ class MarketHistoryService
   end
 
   def get_locations(params)
-    default_locations = [4, 7, 8, 1002, 1301, 1006, 1012, 2002, 2004, 2301, 3002, 3003, 3005, 3008, 3301, 3013, 4002, 4301, 4006, 4300, 5003]
+    default_locations = [4, 7, 8, 1002, 1301, 1006, 1012, 2002, 2004, 2301, 3002, 3003, 3005, 3008, 3301, 4002, 4301, 4006, 4300, 5003]
     locations = params[:locations]
 
     # locations = nil if params[:query_string].include?('locations[]')
