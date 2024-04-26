@@ -28,6 +28,11 @@ RSpec.describe MarketHistoryService, :type => :service do
       expect{subject.get_stats(params)}.not_to raise_error
     end
 
+    it 'handles an unmapped city with mapped cities' do
+      params = { id: 'T4_BAG', locations: '301,4,7,8,1002,1006,1012,1301,2002,2004,2301,3002,3003,3005,3008,3301,4002,4006,4300,4301,5003' }
+      expect{subject.get_stats(params)}.not_to raise_error
+    end
+
     it 'does not error on an empty date' do
       params = { id: 'T4_BAG', locations: '3005', qualities: '1', date: '' }
       expect{subject.get_stats(params)}.not_to raise_error

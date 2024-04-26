@@ -267,7 +267,7 @@ RSpec.describe MarketDataService, :type => :service do
     end
 
     it 'returns a location if there is no city name' do
-      expect(subject.location_to_city(1234)).to eq('1234')
+      expect(subject.location_to_city(1234)).to eq(:'1234')
     end
   end
 

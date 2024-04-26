@@ -31,7 +31,7 @@ class MarketDataService
   LOCATION_TO_CITY = CITY_TO_LOCATION.invert.transform_keys(&:to_s)
 
   def location_to_city(location)
-    LOCATION_TO_CITY[location.to_s] || location.to_s
+    LOCATION_TO_CITY[location.to_s] || location.to_s.to_sym
   end
 
   def city_to_location(city)
