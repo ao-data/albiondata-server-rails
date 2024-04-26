@@ -3,6 +3,6 @@ class MarketHistoryProcessorWorker
 
   def perform(data, server_id)
     data = JSON.parse(data)
-    MarketHistoryProcessorService.process(data, server_id)
+    MarketHistoryProcessorService.new.process(data, server_id)
   end
 end

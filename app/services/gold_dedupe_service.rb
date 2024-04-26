@@ -1,5 +1,5 @@
 class GoldDedupeService
-  def self.dedupe(data, server_id)
+  def dedupe(data, server_id)
     json_data = data.to_json
     sha256 = Digest::SHA256.hexdigest(json_data)
     if REDIS.get("GOLD_RECORD_SHA256:#{sha256}").nil?

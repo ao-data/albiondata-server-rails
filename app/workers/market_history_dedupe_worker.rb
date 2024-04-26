@@ -4,6 +4,6 @@ class MarketHistoryDedupeWorker
 
   def perform(data, server_id)
     data = JSON.parse(data)
-    MarketHistoryDedupeService.dedupe(data, server_id)
+    MarketHistoryDedupeService.new.dedupe(data, server_id)
   end
 end

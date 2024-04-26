@@ -4,7 +4,10 @@ RSpec.describe GoldDedupeWorker, :type => :worker do
 
   it 'calls GoldDedupeService.dedupe' do
     data = { 'foo' => 'bar' }
-    expect(GoldDedupeService).to receive(:dedupe).with(data, 'west')
+    s = double
+    expect(s).to receive(:dedupe).with(data, 'west')
+
+    allow(GoldDedupeService).to receive(:new).and_return(s)
     subject.perform(data.to_json, 'west')
   end
 

@@ -3,6 +3,6 @@ class GoldProcessorWorker
 
   def perform(data, server_id)
     data = JSON.parse(data)
-    GoldProcessorService.process(data, server_id)
+    GoldProcessorService.new.process(data, server_id)
   end
 end

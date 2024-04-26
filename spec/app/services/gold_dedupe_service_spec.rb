@@ -23,7 +23,7 @@ describe GoldDedupeService, type: :service do
 
       expect(GoldProcessorWorker).to receive(:perform_async).with(data.to_json, server_id)
 
-      described_class.dedupe(data, server_id)
+      subject.dedupe(data, server_id)
     end
 
     it "sets a REDIS key with a 10 minute expiry" do
@@ -31,7 +31,7 @@ describe GoldDedupeService, type: :service do
 
       expect(REDIS).to receive(:set).with("GOLD_RECORD_SHA256:#{Digest::SHA256.hexdigest(data.to_json)}", '1', ex: 600)
 
-      described_class.dedupe(data, server_id)
+      subject.dedupe(data, server_id)
     end
 
     context "when the REDIS key already exists" do
@@ -43,7 +43,7 @@ describe GoldDedupeService, type: :service do
         expect(NatsService).to_not receive(:new)
         expect(GoldProcessorWorker).not_to receive(:perform_async)
 
-        described_class.dedupe(data, server_id)
+        subject.dedupe(data, server_id)
       end
     end
   end

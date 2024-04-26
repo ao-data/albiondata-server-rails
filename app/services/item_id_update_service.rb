@@ -1,5 +1,5 @@
 class ItemIdUpdateService
-  def self.update
+  def update
     items = get_items_from_github
 
     REDIS.del('ITEM_IDS')
@@ -12,7 +12,7 @@ class ItemIdUpdateService
     puts "Added #{counter} items to the ITEM_IDS hash."
   end
 
-  def self.get_items_from_github
+  def get_items_from_github
     url = "https://raw.githubusercontent.com/ao-data/ao-bin-dumps/master/formatted/items.json"
     response = HTTParty.get(url)
     JSON.parse(response.body)

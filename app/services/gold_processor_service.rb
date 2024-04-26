@@ -1,5 +1,5 @@
 class GoldProcessorService
-  def self.process(data, server_id)
+  def process(data, server_id)
     Multidb.use(server_id.to_sym) do
       data['Prices'].each_with_index do |price, index|
         timestamp = Time.at((data['Timestamps'][index] - 621355968000000000)/10000000)

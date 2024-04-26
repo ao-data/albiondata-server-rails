@@ -1,5 +1,5 @@
 class MarketHistoryProcessorService
-  def self.process(data, server_id)
+  def process(data, server_id)
     Multidb.use(server_id.to_sym) do
 
       # data = {
@@ -86,7 +86,7 @@ class MarketHistoryProcessorService
   end
 
 
-  def self.ticks_to_time(ticks)
+  def ticks_to_time(ticks)
     Time.at((ticks - 621355968000000000)/10000000)
   end
 end

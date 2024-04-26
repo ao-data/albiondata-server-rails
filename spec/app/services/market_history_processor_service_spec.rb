@@ -5,7 +5,7 @@ describe MarketHistoryProcessorService, type: :service do
     it 'converts ticks to time object' do
       ticks = 638486460000000000
       expected_datetime = DateTime.parse("2024-04-13 23:00:00 +0000")
-      expect(MarketHistoryProcessorService.ticks_to_time(ticks)).to eq(expected_datetime)
+      expect(subject.ticks_to_time(ticks)).to eq(expected_datetime)
     end
 
     before do
@@ -34,18 +34,18 @@ describe MarketHistoryProcessorService, type: :service do
       }
 
       it 'creates new records' do
-        expect { MarketHistoryProcessorService.process(data, 'west') }.to change { MarketHistory.count }.by(1)
+        expect { subject.process(data, 'west') }.to change { MarketHistory.count }.by(1)
       end
 
       it 'updates existing records' do
-        MarketHistoryProcessorService.process(data, 'west')
+        subject.process(data, 'west')
         old_record_amount = MarketHistory.first['item_amount']
         sleep 1
 
         data['MarketHistories'][0]['ItemAmount'] = 25
         json_data = data.to_json
         data = JSON.parse(json_data)
-        MarketHistoryProcessorService.process(data, 'west')
+        subject.process(data, 'west')
         new_record = MarketHistory.first
 
         expect(old_record_amount).not_to eq(new_record['item_amount'])
@@ -53,11 +53,11 @@ describe MarketHistoryProcessorService, type: :service do
       end
 
       it 'does not update a record if the data is the same' do
-        MarketHistoryProcessorService.process(data, 'west')
+        subject.process(data, 'west')
         old_record = MarketHistory.first
         sleep 1
 
-        MarketHistoryProcessorService.process(data, 'west')
+        subject.process(data, 'west')
         new_record = MarketHistory.first
 
         expect(old_record['item_amount']).to eq(new_record['item_amount'])
@@ -71,7 +71,7 @@ describe MarketHistoryProcessorService, type: :service do
 
       it 'uses the correct database' do
         expect(Multidb).to receive(:use).with(:east)
-        MarketHistoryProcessorService.process(data, 'east')
+        subject.process(data, 'east')
       end
     end
   end
