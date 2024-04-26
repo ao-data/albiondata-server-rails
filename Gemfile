@@ -54,7 +54,8 @@ gem 'nats-pure', '~> 2.2', '>= 2.2.1'
 gem 'httparty', '~> 0.21.0'
 gem 'abuseipdb-rb', '~> 0.0.2'
 gem 'rack-cors', '~> 2.0', '>= 2.0.2'
-gem 'ar-multidb', '~> 0.7.0'
+# gem 'ar-multidb', '~> 0.7.0'
+gem 'ar-multidb', git: 'https://github.com/phendryx/multidb.git', branch: 'fix/bold-fix'
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
