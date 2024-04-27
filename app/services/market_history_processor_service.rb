@@ -24,7 +24,7 @@ class MarketHistoryProcessorService
       r = MarketHistory.find_by(item_id: data['AlbionIdString'], quality: data['QualityLevel'], location: data['LocationId'], timestamp: timestamp, aggregation: timescale)
       if r != nil
         r.item_amount = history['ItemAmount'] if r.item_amount != history['ItemAmount']
-        r.silver_amount = history['SilverAmount'] / 10000 if r.silver_amount != history['SilverAmount'] / 10000
+        r.silver_amount = history['SilverAmount'] if r.silver_amount != history['SilverAmount']
 
         if r.changed?
           r.save

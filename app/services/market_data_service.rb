@@ -55,6 +55,7 @@ class MarketDataService
 
   def humanize_city(city)
     SPLIT_WORDS.each { |w| city = city.to_s.gsub(w, "_#{w}").titleize}
+    city = city.gsub('Fo Rest', 'Forest')
     city
   end
 
@@ -99,7 +100,7 @@ class MarketDataService
       o_keey, o_keey_at, updated_at_binned, min_price, max_price, auction_type, item_id, location, quality_level = result
 
       humanized_city = humanize_city(location_to_city(location).to_s)
-      city_key = o_keey.gsub(location.to_s, humanized_city)
+      city_key = o_keey.gsub("!!#{location.to_s}!!", "!!#{humanized_city}!!")
 
       next if last_o_keey_at == o_keey_at
       last_o_keey_at = o_keey_at
