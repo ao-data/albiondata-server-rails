@@ -255,6 +255,10 @@ RSpec.describe MarketDataService, :type => :service do
     it 'returns a humanized city name with multiple words' do
       expect(subject.humanize_city('mountaincross')).to eq('Mountain Cross')
     end
+
+    it 'handles forestcross properly' do
+      expect(subject.humanize_city('forestcross')).to eq('Forest Cross')
+    end
   end
 
   describe '#location_to_city' do

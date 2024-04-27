@@ -55,6 +55,7 @@ class MarketDataService
 
   def humanize_city(city)
     SPLIT_WORDS.each { |w| city = city.to_s.gsub(w, "_#{w}").titleize}
+    city = city.gsub('Fo Rest', 'Forest')
     city
   end
 
