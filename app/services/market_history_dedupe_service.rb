@@ -1,4 +1,19 @@
 class MarketHistoryDedupeService
+  # data = {
+  #   "AlbionId": 944,
+  #   "AlbionIdString": "T4_BAG",
+  #   "LocationId": 3005,
+  #   "QualityLevel": 1,
+  #   "Timescale": 0,
+  #   "MarketHistories": [
+  #     {
+  #       "ItemAmount": 24,
+  #       "SilverAmount": 960000,
+  #       "Timestamp": 638464104000000000
+  #     }
+  #   ]
+  # }
+
   PORTAL_TO_CITY = {
     9 => 7,      # ThetfordPortal to Thetford
     1301 => 1002, # LymhurstPortal to Lymhurst
@@ -21,6 +36,11 @@ class MarketHistoryDedupeService
 
       data['AlbionIdString'] = item_id
       data['LocationId'] = PORTAL_TO_CITY[data['LocationId']] if PORTAL_TO_CITY.has_key?(data['LocationId'])
+
+      data['MarketHistories'].each do |history|
+        history['SilverAmount'] = history['SilverAmount'].to_i / 10000
+      end
+
       json_data = data.to_json
 
       NatsService.send('markethistories.deduped', json_data)
