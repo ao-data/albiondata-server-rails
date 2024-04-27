@@ -175,7 +175,12 @@ RSpec.describe MarketDataService, :type => :service do
       end
     end
 
-
+    it 'doesnt return 2 of the same item_id for thetford and a T7 item' do
+      # it was replacing "7" with "Thetford" so the key ended up being "TThetford_item!!Thetford!!1" instead of "T7_item!!Thetford!!1"
+      create(:market_order_new_offer_low, item_id: 'T7_BAG', location: 7)
+      result = subject.get_stats({id: 'T7_BAG', locations: '7', qualities: '1'})
+      expect(result.length).to eq(1)
+    end
   end
 
   describe '#get_locations' do
