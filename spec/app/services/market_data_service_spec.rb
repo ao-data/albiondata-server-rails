@@ -186,12 +186,12 @@ RSpec.describe MarketDataService, :type => :service do
   describe '#get_locations' do
     it 'returns default list of locations if locations is nil' do
       params = { locations: nil}
-      expect(subject.get_locations(params)).to eq([4, 7, 301, 8, 1002, 1301, 1006, 1012, 2002, 2004, 2301, 3002, 3003, 3005, 3008, 3301, 4002, 4301, 4006, 4300, 5003])
+      expect(subject.get_locations(params)).to eq([4, 7, 301, 8, 1002, 1301, 1006, 1012, 2002, 2004, 3002, 3003, 3005, 3008, 4002, 4006, 4300, 5003])
     end
 
     it 'returns default list of locations if locations is 0' do
       params = { locations: 0}
-      expect(subject.get_locations(params)).to eq([4, 7, 301, 8, 1002, 1301, 1006, 1012, 2002, 2004, 2301, 3002, 3003, 3005, 3008, 3301, 4002, 4301, 4006, 4300, 5003])
+      expect(subject.get_locations(params)).to eq([4, 7, 301, 8, 1002, 1301, 1006, 1012, 2002, 2004, 3002, 3003, 3005, 3008, 4002, 4006, 4300, 5003])
     end
 
     it 'returns empty list of locations if locations is an empty string' do
