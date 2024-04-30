@@ -103,7 +103,7 @@ class MarketDataService
     execution_time = Benchmark.measure do
       rows = MarketOrder.connection.select_rows(data.to_sql)
     end
-    puts "Retriving data took #{execution_time.real} seconds"
+    Rails.logger.info("Retriving data took #{execution_time.real} seconds")
 
     results = {}
     default_date = DateTime.new(0001, 1, 1, 0, 0, 0).strftime('%Y-%m-%dT%H:%M:%S')
@@ -132,7 +132,7 @@ class MarketDataService
         end
       end
     end
-    puts "Data processing took #{execution_time.real} seconds"
+    Rails.logger.info("Data processing took #{execution_time.real} seconds")
 
     # fill in the blanks
     execution_time = Benchmark.measure do
@@ -143,7 +143,7 @@ class MarketDataService
         results[key] ||= {item_id: item_id, city: location, quality: quality}.merge(default_values)
       end
     end
-    puts "Blanks processing took #{execution_time.real} seconds"
+    Rails.logger.info("Blanks processing took #{execution_time.real} seconds")
 
     results.values_at(*results.keys.sort)
   end

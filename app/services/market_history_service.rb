@@ -90,55 +90,73 @@ class MarketHistoryService
 
     histories = {}
 
+    # build a hash of humanized cities for this call
+    humanized_cities = {}
+    locations.each do |location|
+      humanized_cities[location] = humanize_city(location_to_city(location).to_s)
+    end
+
     # create empty results that are presorted by item_id, city string, and quality
-    cities = locations.map { |location| location_to_city(location) }
-    cities.sort.product(ids.sort, qualities.sort).each do |location, id, quality|
-      city = location_to_city(location)
+    cities = locations.map { |location| humanized_cities[location] }
+    cities.sort.product(ids.sort, qualities.sort).each do |city, id, quality|
       key = "#{city}!!#{id}!!#{quality}"
       histories[key] = { location: city, item_id: id, quality: quality, data: {} }
     end
 
-    data = MarketHistory.where(item_id: ids, location: locations, quality: qualities, aggregation: (timescale == 24 ? 6 : timescale))
-                        .where('timestamp >= ? and timestamp <= ?', date_start, date_end)
-                        .order('item_id, location, quality, timestamp')
+    data = []
+    execution_time = Benchmark.measure do
+      data = MarketHistory.where(item_id: ids, location: locations, quality: qualities, aggregation: (timescale == 24 ? 6 : timescale))
+                          .where('timestamp >= ? and timestamp <= ?', date_start, date_end)
+                          .order('item_id, location, quality, timestamp')
+    end
+    Rails.logger.info("Retriving data took #{execution_time.real} seconds")
 
     # mixin data from query
-    data.each do |history|
-      city = location_to_city(history.location)
-      key = "#{city}!!#{history.item_id}!!#{history.quality}"
-      # histories[key] ||= { location: city, item_id: history.item_id, quality: history.quality, data: {} }
+    execution_time = Benchmark.measure do
+      counter = 0
+      data.each do |history|
+        counter += 1
+        city = humanized_cities[history.location]
+        key = "#{city}!!#{history.item_id}!!#{history.quality}"
+        # histories[key] ||= { location: city, item_id: history.item_id, quality: history.quality, data: {} }
 
-      if timescale == 24
-        # "Adjust timestamp back 1 minute since the 00:00:00 timestamp should be included as end of day, not beginning"
-        # ^ Taken from comments from the original code, I do not agree with this, but I want to keep the original behavior - phendryx/stanx
-        timestamp = history.timestamp - 1.minute
-        timestamp_date = timestamp.strftime('%Y-%m-%d')
-        timestamp_timescale = (timestamp.hour / timescale).floor
-        timeblock = "#{timestamp_date}-#{timestamp_timescale}"
-        timestamp = DateTime.parse("#{timestamp_date} #{timestamp_timescale * 6}:00:00").strftime('%Y-%m-%dT%H:%M:%S')
-      else
+        if timescale == 24
+          # "Adjust timestamp back 1 minute since the 00:00:00 timestamp should be included as end of day, not beginning"
+          # ^ Taken from comments from the original code, I do not agree with this, but I want to keep the original behavior - phendryx/stanx
+          timestamp = history.timestamp - 1.minute
+          timestamp_date = timestamp.strftime('%Y-%m-%d')
+          timestamp_timescale = (timestamp.hour / timescale).floor
+          timeblock = "#{timestamp_date}-#{timestamp_timescale}"
+          timestamp = DateTime.parse("#{timestamp_date} #{timestamp_timescale * 6}:00:00").strftime('%Y-%m-%dT%H:%M:%S')
+        else
 
-        timestamp = history.timestamp
-        timestamp_date = timestamp.strftime('%Y-%m-%d')
-        timestamp_timescale = (timestamp.hour / timescale).floor
-        timeblock = "#{timestamp_date}-#{timestamp_timescale}"
-        timestamp = timestamp.strftime('%Y-%m-%dT%H:%M:%S')
+          timestamp = history.timestamp
+          timestamp_date = timestamp.strftime('%Y-%m-%d')
+          timestamp_timescale = (timestamp.hour / timescale).floor
+          timeblock = "#{timestamp_date}-#{timestamp_timescale}"
+          timestamp = timestamp.strftime('%Y-%m-%dT%H:%M:%S')
+        end
+
+        histories[key][:data][timeblock] ||= { item_count: 0, avg_price: 0, timestamp: timestamp, sum_silver: 0 }
+        histories[key][:data][timeblock][:item_count] += history.item_amount
+        histories[key][:data][timeblock][:sum_silver] += history.silver_amount
       end
-
-      histories[key][:data][timeblock] ||= { item_count: 0, avg_price: 0, timestamp: timestamp, sum_silver: 0 }
-      histories[key][:data][timeblock][:item_count] += history.item_amount
-      histories[key][:data][timeblock][:sum_silver] += history.silver_amount
+      Rails.logger.info("Counter: #{counter}")
     end
+    Rails.logger.info("Data processing took #{execution_time.real} seconds")
 
     # calculate avg price and remove empty data
-    histories.each_value do |v|
-      key = "#{v[:location]}!!#{v[:item_id]}!!#{v[:quality]}"
-      v[:data].each_value { |data| data[:avg_price] = data[:sum_silver] / data[:item_count] }
-      v[:data] = v[:data].values.map { |d| d.except(:sum_silver) }
-      v[:location] = humanize_city(v[:location])
-      # histories[key][:location] = humanize_city(v[:location])
-      histories.delete(key) if v[:data].empty?
+    execution_time = Benchmark.measure do
+      histories.each_value do |v|
+        key = "#{v[:location]}!!#{v[:item_id]}!!#{v[:quality]}"
+        v[:data].each_value { |data| data[:avg_price] = data[:sum_silver] / data[:item_count] }
+        v[:data] = v[:data].values.map { |d| d.except(:sum_silver) }
+        # v[:location] = humanized_cities[v[:location]]
+        # histories[key][:location] = humanize_city(v[:location])
+        histories.delete(key) if v[:data].empty?
+      end
     end
+    Rails.logger.info("Data calculation took #{execution_time.real} seconds")
 
     histories.values
   end
