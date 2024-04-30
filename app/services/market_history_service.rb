@@ -108,29 +108,34 @@ class MarketHistoryService
       data = MarketHistory.where(item_id: ids, location: locations, quality: qualities, aggregation: (timescale == 24 ? 6 : timescale))
                           .where('timestamp >= ? and timestamp <= ?', date_start, date_end)
                           .order('item_id, location, quality, timestamp')
+                          .select(:item_id, :location, :quality, :timestamp, :item_amount, :silver_amount)
+
+      rows = MarketOrder.connection.select_rows(data.to_sql)
+      data = rows
     end
     Rails.logger.info("Retriving data took #{execution_time.real} seconds")
 
     # mixin data from query
     execution_time = Benchmark.measure do
       counter = 0
-      data.each do |history|
+      data.each do |r|
+        h_item_id, h_location, h_quality, h_timestamp, h_item_amount, h_silver_amount = r
+
         counter += 1
-        city = humanized_cities[history.location]
-        key = "#{city}!!#{history.item_id}!!#{history.quality}"
-        # histories[key] ||= { location: city, item_id: history.item_id, quality: history.quality, data: {} }
+        city = humanized_cities[h_location]
+        key = "#{city}!!#{h_item_id}!!#{h_quality}"
 
         if timescale == 24
           # "Adjust timestamp back 1 minute since the 00:00:00 timestamp should be included as end of day, not beginning"
           # ^ Taken from comments from the original code, I do not agree with this, but I want to keep the original behavior - phendryx/stanx
-          timestamp = history.timestamp - 1.minute
+          timestamp = h_timestamp - 1.minute
           timestamp_date = timestamp.strftime('%Y-%m-%d')
           timestamp_timescale = (timestamp.hour / timescale).floor
           timeblock = "#{timestamp_date}-#{timestamp_timescale}"
           timestamp = DateTime.parse("#{timestamp_date} #{timestamp_timescale * 6}:00:00").strftime('%Y-%m-%dT%H:%M:%S')
         else
 
-          timestamp = history.timestamp
+          timestamp = h_timestamp
           timestamp_date = timestamp.strftime('%Y-%m-%d')
           timestamp_timescale = (timestamp.hour / timescale).floor
           timeblock = "#{timestamp_date}-#{timestamp_timescale}"
@@ -138,8 +143,8 @@ class MarketHistoryService
         end
 
         histories[key][:data][timeblock] ||= { item_count: 0, avg_price: 0, timestamp: timestamp, sum_silver: 0 }
-        histories[key][:data][timeblock][:item_count] += history.item_amount
-        histories[key][:data][timeblock][:sum_silver] += history.silver_amount
+        histories[key][:data][timeblock][:item_count] += h_item_amount
+        histories[key][:data][timeblock][:sum_silver] += h_silver_amount
       end
       Rails.logger.info("Counter: #{counter}")
     end
