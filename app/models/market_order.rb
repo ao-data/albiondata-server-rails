@@ -32,10 +32,10 @@ class MarketOrder < ApplicationRecord
     limit = 1000
     row_count = 0
 
-    while continue && start_time > 30.minutes.ago
+    while continue && start_time > 1.minutes.ago
       deleted_rows = MarketOrder.where(deleted_at: nil).and(MarketOrder.where('expires < ? or updated_at < ?', DateTime.now, 1.days.ago)).limit(limit).delete_all
       row_count += deleted_rows
-      continue = deleted_rows > 0
+      continue = deleted_rows > 100
       sleep 0.1
     end
 
