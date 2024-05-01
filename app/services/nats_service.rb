@@ -7,6 +7,11 @@ class NatsService
     @nats = NATS.connect(server)
   end
 
+  def close
+    @nats.close
+    @nats = nil
+  end
+
   def send(topic, data)
     return if ENV['NATS_SEND_DISABLE'] == 'true'
     @nats.publish(topic, data)
