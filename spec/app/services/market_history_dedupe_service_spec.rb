@@ -30,7 +30,7 @@ describe MarketHistoryDedupeService, type: :service do
       allow(REDIS).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
 
       nats = double
-      allow(nats).to receive(:send).with('markethistories.deduped', expected_data.to_json)
+      expect(nats).to receive(:send).with('markethistories.deduped', expected_data.to_json, 'west')
       allow(nats).to receive(:close)
       allow(NatsService).to receive(:new).and_return(nats)
 
@@ -43,17 +43,14 @@ describe MarketHistoryDedupeService, type: :service do
       expected_data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [], 'AlbionIdString' => 'SOME_ITEM_ID', }
       allow(REDIS).to receive(:get).and_return(nil)
       allow(REDIS).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
-      expect(NatsService).to receive(:send).with('markethistories.deduped', expected_data.to_json, 'west')
-      expect(MarketHistoryProcessorWorker).to receive(:perform_async).with(expected_data.to_json, 'west')
-      MarketHistoryDedupeService.dedupe(data, 'west')
 
       nats = double
-      allow(nats).to receive(:send).with('markethistories.deduped', expected_data.to_json)
+      allow(nats).to receive(:send)
       allow(nats).to receive(:close)
       allow(NatsService).to receive(:new).and_return(nats)
 
-      expect(MarketHistoryProcessorWorker).to receive(:perform_async).with(expected_data.to_json)
-      MarketHistoryDedupeService.dedupe(data)
+      expect(MarketHistoryProcessorWorker).to receive(:perform_async).with(expected_data.to_json, 'west')
+      subject.dedupe(data, 'west')
     end
 
     it 'will not convert the LocationId if it is not a portal' do
@@ -61,17 +58,14 @@ describe MarketHistoryDedupeService, type: :service do
       expected_data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 1234, 'MarketHistories' => [], 'AlbionIdString' => 'SOME_ITEM_ID', }
       allow(REDIS).to receive(:get).and_return(nil)
       allow(REDIS).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
-      expect(NatsService).to receive(:send).with('markethistories.deduped', expected_data.to_json, 'west')
-      expect(MarketHistoryProcessorWorker).to receive(:perform_async).with(expected_data.to_json, 'west')
-      MarketHistoryDedupeService.dedupe(data, 'west')
 
       nats = double
-      allow(nats).to receive(:send).with('markethistories.deduped', expected_data.to_json)
+      allow(nats).to receive(:send)
       allow(nats).to receive(:close)
       allow(NatsService).to receive(:new).and_return(nats)
 
-      expect(MarketHistoryProcessorWorker).to receive(:perform_async).with(expected_data.to_json)
-      MarketHistoryDedupeService.dedupe(data)
+      expect(MarketHistoryProcessorWorker).to receive(:perform_async).with(expected_data.to_json, 'west')
+      subject.dedupe(data, 'west')
     end
 
     it 'corrects the price of the MarketHistories' do
@@ -81,12 +75,12 @@ describe MarketHistoryDedupeService, type: :service do
       allow(REDIS).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
 
       nats = double
-      allow(nats).to receive(:send).with('markethistories.deduped', expected_data.to_json)
+      allow(nats).to receive(:send)
       allow(nats).to receive(:close)
       allow(NatsService).to receive(:new).and_return(nats)
 
-      expect(MarketHistoryProcessorWorker).to receive(:perform_async).with(expected_data.to_json)
-      MarketHistoryDedupeService.dedupe(data)
+      expect(MarketHistoryProcessorWorker).to receive(:perform_async).with(expected_data.to_json, 'west')
+      subject.dedupe(data, 'west')
     end
   end
 end
