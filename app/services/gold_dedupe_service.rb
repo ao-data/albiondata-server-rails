@@ -5,7 +5,10 @@ class GoldDedupeService
     if REDIS.get("GOLD_RECORD_SHA256:#{sha256}").nil?
       REDIS.set("GOLD_RECORD_SHA256:#{sha256}", '1', ex: 600)
 
-      NatsService.new.send('marketorders.deduped', json_data).close
+      s = NatsService.new
+      s.send('marketorders.deduped', json_data)
+      s.close
+
       GoldProcessorWorker.perform_async(json_data)
     end
   end
