@@ -27,6 +27,8 @@ class MarketOrderDedupeService
       # Send bulk records to NATS
       nats.send('marketorders.deduped.bulk', deduped_records.to_json)
 
+      nats.close
+
       # Send bulk records to Sidekiq
       MarketOrderProcessorWorker.perform_async(deduped_records.to_json)
     end

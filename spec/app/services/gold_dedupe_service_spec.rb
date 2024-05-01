@@ -14,8 +14,12 @@ describe GoldDedupeService, type: :service do
     it "sends the data to the NatsService and GoldProcessorWorker" do
       allow(REDIS).to receive(:get).and_return(nil)
 
+      nats_send = double
+      expect(nats_send).to receive(:close)
+
       nats = double
-      expect(nats).to receive(:send).with('marketorders.deduped', data.to_json)
+      expect(nats).to receive(:send).with('marketorders.deduped', data.to_json).and_return(nats_send)
+
       allow(NatsService).to receive(:new).and_return(nats)
       expect(GoldProcessorWorker).to receive(:perform_async).with(data.to_json)
 
@@ -36,7 +40,7 @@ describe GoldDedupeService, type: :service do
       end
 
       it "does not send the data to the NatsService or GoldProcessorWorker" do
-        expect(NatsService).not_to receive(:send)
+        expect(NatsService).to_not receive(:new)
         expect(GoldProcessorWorker).not_to receive(:perform_async)
 
         described_class.dedupe(data)
