@@ -10,6 +10,8 @@ describe MarketHistoryProcessorService, type: :service do
 
     before do
       MarketHistory.destroy_all
+      allow(REDIS).to receive(:get).and_return(nil)
+      allow(REDIS).to receive(:set)
     end
 
     describe '.process' do
@@ -58,6 +60,12 @@ describe MarketHistoryProcessorService, type: :service do
         new_record = MarketHistory.first
 
         expect(old_record['item_amount']).to eq(new_record['item_amount'])
+      end
+
+      it 'does not attempt to lookup a record if it is cached in redis' do
+        allow(REDIS).to receive(:get).and_return(1)
+        expect(MarketHistory).not_to receive(:find_by)
+        MarketHistoryProcessorService.process(data)
       end
     end
   end
