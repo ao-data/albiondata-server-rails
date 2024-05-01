@@ -2,7 +2,7 @@ require 'nats/client'
 
 class NatsService
 
-  def self.send(topic, data, server_id)
+  def send(topic, data, server_id)
     server = case server_id
             when 'west'
               ENV['NATS_WEST_URL']

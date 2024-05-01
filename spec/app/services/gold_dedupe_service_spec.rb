@@ -15,9 +15,10 @@ describe GoldDedupeService, type: :service do
 
     it "sends the data to the NatsService and GoldProcessorWorker" do
       allow(REDIS).to receive(:get).and_return(nil)
+      allow(REDIS).to receive(:set).and_return(nil)
 
       nats = double
-      allow(nats).to receive(:send).with('marketorders.deduped', data.to_json)
+      expect(nats).to receive(:send).with('marketorders.deduped', data.to_json, 'west')
       allow(nats).to receive(:close)
       allow(NatsService).to receive(:new).and_return(nats)
 
@@ -27,8 +28,12 @@ describe GoldDedupeService, type: :service do
     end
 
     it "sets a REDIS key with a 10 minute expiry" do
-      allow(REDIS).to receive(:get).and_return(nil)
+      nats = double
+      allow(nats).to receive(:send)
+      allow(nats).to receive(:close)
+      allow(NatsService).to receive(:new).and_return(nats)
 
+      allow(REDIS).to receive(:get).and_return(nil)
       expect(REDIS).to receive(:set).with("GOLD_RECORD_SHA256:#{Digest::SHA256.hexdigest(data.to_json)}", '1', ex: 600)
 
       subject.dedupe(data, server_id)
