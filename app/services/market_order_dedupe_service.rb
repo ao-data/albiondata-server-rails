@@ -17,13 +17,15 @@ class MarketOrderDedupeService
 
     if deduped_records.any?
 
+      nats = NatsService.new
+
       # send single records to NATS
       deduped_records.each do
-        |record| NatsService.send('marketorders.deduped', record.to_json)
+        |record| nats.send('marketorders.deduped', record.to_json)
       end
 
       # Send bulk records to NATS
-      NatsService.send('marketorders.deduped.bulk', deduped_records.to_json)
+      nats.send('marketorders.deduped.bulk', deduped_records.to_json)
 
       # Send bulk records to Sidekiq
       MarketOrderProcessorWorker.perform_async(deduped_records.to_json)

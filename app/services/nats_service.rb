@@ -2,13 +2,14 @@ require 'nats/client'
 
 class NatsService
 
-  def self.send(topic, data)
+  def initialize
     server = "nats://#{ENV['NATS_USER']}:#{ENV['NATS_PWD']}@#{ENV['NATS_HOST']}:#{ENV['NATS_PORT']}"
-    return if ENV['NATS_SEND_DISABLE'] == 'true'
+    @nats = NATS.connect(server)
+  end
 
-    nats = NATS.connect(server)
-    nats.publish(topic, data)
-    nats.close
+  def send(topic, data)
+    return if ENV['NATS_SEND_DISABLE'] == 'true'
+    @nats.publish(topic, data)
   end
 
   def listen

@@ -20,6 +20,9 @@ class MarketHistoryProcessorService
     new_records = []
     timescale = data['Timescale'] == 0 ? 1 : 6
     data['MarketHistories'].each do |history|
+      sha256 = Digest::SHA256.hexdigest(history.to_json)
+      next unless REDIS.get("RECORD_HISTORY_SHA256_24H:#{sha256}").nil?
+
       timestamp = ticks_to_time(history['Timestamp'])
       r = MarketHistory.find_by(item_id: data['AlbionIdString'], quality: data['QualityLevel'], location: data['LocationId'], timestamp: timestamp, aggregation: timescale)
       if r != nil
@@ -42,6 +45,8 @@ class MarketHistoryProcessorService
         }
         new_record_count += 1
       end
+
+      REDIS.set("RECORD_HISTORY_SHA256_24H:#{sha256}", 1, ex: 86400)
     end
 
     MarketHistory.insert_all(new_records) if new_records.length > 0
