@@ -29,12 +29,9 @@ describe MarketHistoryDedupeService, type: :service do
       allow(REDIS).to receive(:get).and_return(nil)
       allow(REDIS).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
 
-      nats_send = double
-      expect(nats_send).to receive(:close)
-
       nats = double
-      expect(nats).to receive(:send).with('markethistories.deduped', expected_data.to_json).and_return(nats_send)
-
+      allow(nats).to receive(:send).with('markethistories.deduped', expected_data.to_json)
+      allow(nats).to receive(:close)
       allow(NatsService).to receive(:new).and_return(nats)
 
       expect(MarketHistoryProcessorWorker).to receive(:perform_async).with(expected_data.to_json)
@@ -47,12 +44,9 @@ describe MarketHistoryDedupeService, type: :service do
       allow(REDIS).to receive(:get).and_return(nil)
       allow(REDIS).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
 
-      nats_send = double
-      expect(nats_send).to receive(:close)
-
       nats = double
-      expect(nats).to receive(:send).with('markethistories.deduped', expected_data.to_json).and_return(nats_send)
-
+      allow(nats).to receive(:send).with('markethistories.deduped', expected_data.to_json)
+      allow(nats).to receive(:close)
       allow(NatsService).to receive(:new).and_return(nats)
 
       expect(MarketHistoryProcessorWorker).to receive(:perform_async).with(expected_data.to_json)
@@ -65,12 +59,9 @@ describe MarketHistoryDedupeService, type: :service do
       allow(REDIS).to receive(:get).and_return(nil)
       allow(REDIS).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
 
-      nats_send = double
-      expect(nats_send).to receive(:close)
-
       nats = double
-      expect(nats).to receive(:send).with('markethistories.deduped', expected_data.to_json).and_return(nats_send)
-
+      allow(nats).to receive(:send).with('markethistories.deduped', expected_data.to_json)
+      allow(nats).to receive(:close)
       allow(NatsService).to receive(:new).and_return(nats)
 
       expect(MarketHistoryProcessorWorker).to receive(:perform_async).with(expected_data.to_json)
@@ -83,12 +74,9 @@ describe MarketHistoryDedupeService, type: :service do
       allow(REDIS).to receive(:get).and_return(nil)
       allow(REDIS).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
 
-      nats_send = double
-      expect(nats_send).to receive(:close)
-
       nats = double
-      expect(nats).to receive(:send).with('markethistories.deduped', expected_data.to_json).and_return(nats_send)
-
+      allow(nats).to receive(:send).with('markethistories.deduped', expected_data.to_json)
+      allow(nats).to receive(:close)
       allow(NatsService).to receive(:new).and_return(nats)
 
       expect(MarketHistoryProcessorWorker).to receive(:perform_async).with(expected_data.to_json)
