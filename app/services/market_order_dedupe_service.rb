@@ -22,11 +22,11 @@ class MarketOrderDedupeService
 
       # send single records to NATS
       deduped_records.each do
-        |record| nats.send('marketorders.deduped', record.to_json, server_id)
+        |record| nats.send('marketorders.deduped', record.to_json, @server_id)
       end
 
       # Send bulk records to NATS
-      nats.send('marketorders.deduped.bulk', deduped_records.to_json, server_id)
+      nats.send('marketorders.deduped.bulk', deduped_records.to_json, @server_id)
 
       nats.close
 

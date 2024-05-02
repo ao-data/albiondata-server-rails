@@ -66,7 +66,7 @@ describe MarketHistoryProcessorService, type: :service do
       it 'does not attempt to lookup a record if it is cached in redis' do
         allow(REDIS).to receive(:get).and_return(1)
         expect(MarketHistory).not_to receive(:find_by)
-        MarketHistoryProcessorService.process(data)
+        subject.process(data, 'west')
       end
 
       it 'uses the correct database' do

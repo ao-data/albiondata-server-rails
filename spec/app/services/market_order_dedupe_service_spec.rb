@@ -29,7 +29,7 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
 
   describe '#process' do
     before do
-      allow(NatsService).to receive(:send)
+      allow(NatsService).to receive(:new).and_return(double(send: nil, close: nil))
     end
 
     context 'when there are deduped records' do
