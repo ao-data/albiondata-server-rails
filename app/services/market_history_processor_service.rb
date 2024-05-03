@@ -53,7 +53,7 @@ class MarketHistoryProcessorService
           timestamp: timestamp,
           aggregation: timescale,
           item_amount: history['ItemAmount'],
-          silver_amount: history['SilverAmount'] / 10000
+          silver_amount: history['SilverAmount']
         }
         new_record_count += 1
       end

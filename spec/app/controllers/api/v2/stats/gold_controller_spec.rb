@@ -81,5 +81,15 @@ RSpec.describe API::V2::Stats::GoldController, :type => :controller do
         expect(response.body).to eq("<?xml version=\"1.0\"?>\n<ArrayOfGoldPrice xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\n  <GoldPrice>\n    <Id>#{gold_price.id}</Id>\n    <Price>#{gold_price.price / 10000}</Price>\n    <Timestamp>#{gold_price.timestamp.strftime('%Y-%m-%dT%H:%M:%S')}</Timestamp>\n  </GoldPrice>\n</ArrayOfGoldPrice>\n")
       end
     end
+
+    it 'returns the gold prices in asc order' do
+      create(:gold_price, timestamp: 2.days.ago)
+
+      get :index, format: :json
+
+      first_record_timestamp = JSON.parse(response.body).first['timestamp']
+      second_record_timestamp = JSON.parse(response.body).second['timestamp']
+      expect(first_record_timestamp).to be < second_record_timestamp
+    end
   end
 end
