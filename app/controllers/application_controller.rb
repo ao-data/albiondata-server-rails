@@ -11,7 +11,7 @@ class ApplicationController < ActionController::Base
   end
 
   def run_using_database(&block)
-    pp "using database #{request.subdomain}"
+    logger.info("using database #{request.subdomain}")
     Multidb.use(server_id, &block)
   end
 end
