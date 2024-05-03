@@ -25,14 +25,14 @@ case $1 in
 
   web)
     echo "Service type is web"
-    bundle exec rails s
+    RUBY_YJIT_ENABLE=1 bundle exec rails s
     child=$!
     wait "$child"
     ;;
 
   sidekiq)
     echo "Run mode is sidekiq"
-    bundle exec sidekiq -c ${SIDEKIQ_THREADS:-5} -q critical -q default -q low
+    RUBY_YJIT_ENABLE=1 bundle exec sidekiq -c ${SIDEKIQ_THREADS:-5} -q critical -q default -q low
     child=$!
     wait "$child"
     ;;
