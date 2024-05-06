@@ -22,8 +22,11 @@ class MarketOrderProcessorService
   #  "Expires"=>"2024-04-15T00:24:27.605927"}]
 
   def process
-    # remove duplicates found in redis, 24 hour based
-    deduped_records = dedupe_24h
+    # separate duplicates found in redis and update their updated_at, 24 hour based
+    dupe_records, deduped_records = dedupe_24h
+
+    # # update duplicates updated_at
+    update_dupe_records(dupe_records)
 
     # separate new and old records
     new_records, old_records = separate_new_from_old_records(deduped_records)
@@ -39,8 +42,13 @@ class MarketOrderProcessorService
     puts ''
   end
 
+  def update_dupe_records(dupe_records)
+    MarketOrder.where(albion_id: dupe_records.map { |order| order["Id"] }).update_all(updated_at: Time.now)
+  end
+
   def dedupe_24h
     redis_deduped = []
+    redis_duped = []
 
     @orders.each do |order|
       begin
@@ -49,12 +57,13 @@ class MarketOrderProcessorService
           REDIS.set("RECORD_SHA256_24H:#{sha256}", 1, ex: 86400)
           redis_deduped << order
         else
+          redis_duped << order
           @redis_duplicates += 1
         end
       end
     end
 
-    redis_deduped
+    [redis_duped, redis_deduped]
   end
 
   def separate_new_from_old_records(deduped_records)
