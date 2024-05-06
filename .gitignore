@@ -40,3 +40,5 @@
 
 .idea
 coverage
+
+vendor/cache

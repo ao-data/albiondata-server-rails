@@ -44,7 +44,7 @@ gem "bootsnap", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"
 
-gem 'mysql2', '~> 0.5.6'
+# gem 'mysql2', '~> 0.5.6'
 gem 'annotate', '~> 3.2'
 gem 'trilogy', '~> 2.7'
 gem 'route_downcaser', '~> 2.0'
@@ -54,7 +54,7 @@ gem 'nats-pure', '~> 2.2', '>= 2.2.1'
 gem 'httparty', '~> 0.21.0'
 gem 'abuseipdb-rb', '~> 0.0.2'
 gem 'rack-cors', '~> 2.0', '>= 2.0.2'
-
+gem 'rack-attack', '~> 6.7'
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -70,6 +70,8 @@ group :development, :test do
   gem 'spring-commands-rspec', '~> 1.0', '>= 1.0.4'
   gem 'timecop', '~> 0.9.8'
   gem 'simplecov-rcov', '~> 0.3.7'
+
+  gem 'rack-test', '~> 2.1'
 end
 
 gem 'meta_request', github: 'Nowaker/rails_panel', branch: 'add-support-to-rails-7.1'
