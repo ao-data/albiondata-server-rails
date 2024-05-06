@@ -26,5 +26,8 @@ module AlbiondataServer
 
 
     config.secret_key_base = ENV['SECRET_KEY_BASE']
+
+    config.middleware.use Rack::Attack
+
   end
 end
