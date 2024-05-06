@@ -1,4 +1,3 @@
-version: "3"
 services:
   mysql:
     image: mariadb:10.5.10
@@ -44,6 +43,12 @@ services:
       REDIS_DB: ${REDIS_DB}
       ABUSEIPDB_REDIS_URL: ${ABUSEIPDB_REDIS_URL}
       ABUSEIPDB_API_KEY: ${ABUSEIPDB_API_KEY}
+      RACKATTACK_REDIS_URL: ${RACKATTACK_REDIS_URL:-redis://redis:6379/9}
+      THROTTLE_API_1MIN: ${THROTTLE_API_1MIN}
+      THROTTLE_API_5MIN: ${THROTTLE_API_5MIN}
+      THROTTLE_POW_1MIN: ${THROTTLE_POW_1MIN}
+      THROTTLE_POW_1HOUR: ${THROTTLE_POW_1HOUR}
+      THROTTLE_POW_1DAY: ${THROTTLE_POW_1DAY}
     # command: './entrypoint.sh web'
     entrypoint: ./entrypoint.sh sleep
     ports:

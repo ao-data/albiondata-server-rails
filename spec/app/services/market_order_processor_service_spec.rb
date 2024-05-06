@@ -9,17 +9,12 @@ describe MarketOrderProcessorService, type: :service do
     MarketOrder.delete_all
   end
 
-  describe '#initialize' do
-    it 'uses the correct database' do
-      expect(Multidb).to receive(:use).with(:east)
-      described_class.new(orders, 'east')
-    end
-  end
-
   describe '#process' do
+    let(:subject) { described_class.new(orders) }
 
     before do
       allow(subject).to receive(:dedupe_24h)
+      allow(subject).to receive(:update_dupe_records)
       allow(subject).to receive(:separate_new_from_old_records)
       allow(subject).to receive(:add_new_records)
       allow(subject).to receive(:update_old_records)
@@ -27,6 +22,11 @@ describe MarketOrderProcessorService, type: :service do
 
     it 'calls dedupe_24h' do
       expect(subject).to receive(:dedupe_24h)
+      subject.process
+    end
+
+    it 'calls update_dupe_records' do
+      expect(subject).to receive(:update_dupe_records)
       subject.process
     end
 
@@ -47,6 +47,10 @@ describe MarketOrderProcessorService, type: :service do
   end
 
   describe '#dedupe_24h' do
+    let(:order1) { { 'order1' => 'Data' } }
+    let(:order2) { { 'order2' => 'Data' } }
+    let(:orders) { [order1, order2] }
+
     it 'returns 2 deduped records' do
       subject = described_class.new(orders, 'west')
       expect(subject.dedupe_24h).to eq(orders)
@@ -60,7 +64,7 @@ describe MarketOrderProcessorService, type: :service do
     it 'returns 0 deduped records' do
       subject = described_class.new([order1, order1], 'west')
       subject.dedupe_24h
-      expect(subject.dedupe_24h).to eq([])
+      expect(subject.dedupe_24h).to eq([[order1, order1], []])
     end
 
     it 'calls redis.get' do
@@ -74,6 +78,16 @@ describe MarketOrderProcessorService, type: :service do
       allow(REDIS).to receive(:get).and_return(nil)
       expect(REDIS).to receive(:set).with("RECORD_SHA256_24H:#{Digest::SHA256.hexdigest(order1.to_s)}", 1, ex: 86400)
       subject.dedupe_24h
+    end
+  end
+
+  describe '#update_dupe_records' do
+    it 'updates 1 record' do
+      subject = described_class.new(orders)
+      subject.add_new_records([order1])
+      Timecop.travel(1.minute.from_now)
+      expect { subject.update_dupe_records([order1]) }.to change { MarketOrder.find_by(albion_id: order1['Id']).updated_at }
+      Timecop.return
     end
   end
 
