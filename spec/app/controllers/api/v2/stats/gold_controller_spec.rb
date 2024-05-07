@@ -82,7 +82,7 @@ RSpec.describe API::V2::Stats::GoldController, :type => :controller do
       end
     end
 
-    it 'returns the gold prices in asc order' do
+    it 'returns the gold prices in asc order when there is no count specified' do
       create(:gold_price, timestamp: 2.days.ago)
 
       get :index, format: :json
@@ -90,6 +90,24 @@ RSpec.describe API::V2::Stats::GoldController, :type => :controller do
       first_record_timestamp = JSON.parse(response.body).first['timestamp']
       second_record_timestamp = JSON.parse(response.body).second['timestamp']
       expect(first_record_timestamp).to be < second_record_timestamp
+    end
+
+    it 'returns the gold prices in desc order when there is a count specified' do
+      create(:gold_price, timestamp: 2.days.ago)
+
+      get :index, params: { 'count': '2' }, format: :json
+
+      first_record_timestamp = JSON.parse(response.body).first['timestamp']
+      second_record_timestamp = JSON.parse(response.body).second['timestamp']
+      expect(first_record_timestamp).to be > second_record_timestamp
+    end
+
+    it 'returns only 1 if count 1 is specified' do
+      create(:gold_price, timestamp: 2.days.ago)
+
+      get :index, params: { 'count': '1' }, format: :json
+
+      expect(JSON.parse(response.body).count).to eq(1)
     end
   end
 end
