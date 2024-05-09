@@ -10,7 +10,7 @@ describe MarketOrderProcessorService, type: :service do
   end
 
   describe '#process' do
-    let(:subject) { described_class.new(orders) }
+    let(:subject) { described_class.new(orders, 'west') }
 
     before do
       allow(subject).to receive(:dedupe_24h)
@@ -53,18 +53,23 @@ describe MarketOrderProcessorService, type: :service do
 
     it 'returns 2 deduped records' do
       subject = described_class.new(orders, 'west')
-      expect(subject.dedupe_24h).to eq(orders)
+      expect(subject.dedupe_24h).to eq([[], orders])
     end
 
     it 'returns 1 deduped record' do
-      subject = described_class.new([order1, order1], 'west')
-      expect(subject.dedupe_24h).to eq([order1])
+      # store order1 in redis
+      described_class.new([order1], 'west').dedupe_24h
+
+      # now dedupe order1 and order2, resulting in order2 being non-dupe
+      subject = described_class.new([order1, order2], 'west')
+      expect(subject.dedupe_24h).to eq([[order1], [order2]])
     end
 
     it 'returns 0 deduped records' do
-      subject = described_class.new([order1, order1], 'west')
+      described_class.new([order1, order2], 'west').dedupe_24h
+      subject = described_class.new([order1, order2], 'west')
       subject.dedupe_24h
-      expect(subject.dedupe_24h).to eq([[order1, order1], []])
+      expect(subject.dedupe_24h).to eq([[order1, order2], []])
     end
 
     it 'calls redis.get' do
@@ -83,7 +88,7 @@ describe MarketOrderProcessorService, type: :service do
 
   describe '#update_dupe_records' do
     it 'updates 1 record' do
-      subject = described_class.new(orders)
+      subject = described_class.new(orders, 'west')
       subject.add_new_records([order1])
       Timecop.travel(1.minute.from_now)
       expect { subject.update_dupe_records([order1]) }.to change { MarketOrder.find_by(albion_id: order1['Id']).updated_at }

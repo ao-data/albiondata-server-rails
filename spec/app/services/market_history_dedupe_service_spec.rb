@@ -30,9 +30,9 @@ describe MarketHistoryDedupeService, type: :service do
       allow(REDIS).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
 
       nats = double
-      expect(nats).to receive(:send).with('markethistories.deduped', expected_data.to_json, 'west')
+      expect(nats).to receive(:send).with('markethistories.deduped', expected_data.to_json)
       allow(nats).to receive(:close)
-      allow(NatsService).to receive(:new).and_return(nats)
+      allow(NatsService).to receive(:new).with('west').and_return(nats)
 
       expect(MarketHistoryProcessorWorker).to receive(:perform_async).with(expected_data.to_json, 'west')
       subject.dedupe(data, 'west')

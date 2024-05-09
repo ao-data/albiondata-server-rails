@@ -2,21 +2,28 @@ require 'nats/client'
 
 class NatsService
 
-  def send(topic, data, server_id)
+  def initialize(server_id)
     server = case server_id
-            when 'west'
-              ENV['NATS_WEST_URL']
-            when 'east'
-              ENV['NATS_EAST_URL']
-            when 'europe'
-              ENV['NATS_EUROPE_URL']
-            else
-              ENV['NATS_WEST_URL']
-            end
+             when 'west'
+               ENV['NATS_WEST_URL']
+             when 'east'
+               ENV['NATS_EAST_URL']
+             when 'europe'
+               ENV['NATS_EUROPE_URL']
+             else
+               ENV['NATS_WEST_URL']
+             end
+    @nats = NATS.connect(server)
+  end
 
-    nats = NATS.connect(server)
-    nats.publish(topic, data)
-    nats.close
+  def close
+    @nats.close
+    @nats = nil
+  end
+
+  def send(topic, data)
+    return if ENV['NATS_SEND_DISABLE'] == 'true'
+    @nats.publish(topic, data)
   end
 
   def listen(server_id)

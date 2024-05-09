@@ -5,33 +5,34 @@
 #   gem "sqlite3"
 #
 default: &default
+  adapter: trilogy
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   encoding: utf8
-  url: <%= ENV.fetch("MYSQL_WEST_URL") %>
+  url: <%= ENV['MYSQL_WEST_URL'] %>
   multidb:
     fallback: true
     databases:
       west:
-        url: <%= ENV.fetch("MYSQL_WEST_URL") %>
+        url: <%= ENV['MYSQL_WEST_URL'] %>
       east:
-        url: <%= ENV.fetch("MYSQL_EAST_URL") %>
+        url: <%= ENV['MYSQL_EAST_URL'] %>
       europe:
-        url: <%= ENV.fetch("MYSQL_EUROPE_URL") %>
+        url: <%= ENV['MYSQL_EUROPE_URL'] %>
 
 development:
   <<: *default
 
 test:
   <<: *default
-  url: <%= ENV.fetch("MYSQL_WEST_URL") %>_test
+  url: <%= ENV['MYSQL_WEST_URL'] %>_test
   multidb:
     databases:
       west:
-        url: <%= ENV.fetch("MYSQL_WEST_URL") %>_test
+        url: <%= ENV['MYSQL_WEST_URL'] %>_test
       east:
-        url: <%= ENV.fetch("MYSQL_EAST_URL") %>_test
+        url: <%= ENV['MYSQL_EAST_URL'] %>_test
       europe:
-        url: <%= ENV.fetch("MYSQL_EUROPE_URL") %>_test
+        url: <%= ENV['MYSQL_EUROPE_URL'] %>_test
 
 production:
   <<: *default

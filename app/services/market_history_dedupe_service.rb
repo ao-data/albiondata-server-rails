@@ -43,8 +43,8 @@ class MarketHistoryDedupeService
 
       json_data = data.to_json
 
-      s = NatsService.new
-      s.send('markethistories.deduped', json_data, server_id)
+      s = NatsService.new(server_id)
+      s.send('markethistories.deduped', json_data)
       s.close
 
       MarketHistoryProcessorWorker.perform_async(json_data, server_id)

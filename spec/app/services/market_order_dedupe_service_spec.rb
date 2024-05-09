@@ -35,6 +35,17 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
     context 'when there are deduped records' do
       before do
         allow(subject).to receive(:dedupe).and_return([{ 'UnitPriceSilver' => 249 }])
+
+        allow(NatsService).to receive(:new).and_return(double(send: nil, close: nil))
+      end
+
+      it 'sends deduped records to nats' do
+        nats = double
+        expect(NatsService).to receive(:new).with('west').and_return(nats)
+        expect(nats).to receive(:send).with('marketorders.deduped', subject.dedupe.first.to_json)
+        expect(nats).to receive(:send).with('marketorders.deduped.bulk', [subject.dedupe.first].to_json)
+        expect(nats).to receive(:close)
+        subject.process
       end
 
       it 'sends deduped records to MarketOrderProcessorWorker' do

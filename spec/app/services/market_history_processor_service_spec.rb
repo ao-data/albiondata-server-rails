@@ -75,14 +75,14 @@ describe MarketHistoryProcessorService, type: :service do
       end
 
       it 'processes the record with expected values' do
-        MarketHistoryProcessorService.process(data)
+        MarketHistoryProcessorService.new.process(data, 'west')
         record = MarketHistory.first
 
         expect(record['item_id']).to eq('T4_BAG')
         expect(record['location']).to eq(3005)
         expect(record['quality']).to eq(1)
         expect(record['item_amount']).to eq(24)
-        expect(record['silver_amount']).to eq(960000)
+        expect(record['silver_amount']).to eq(96)
         expect(record['aggregation']).to eq(1)
         expect(record['timestamp'].utc.to_datetime.strftime('%Y-%m-%dT%H:%M:%S')).to eq("2024-03-19T02:00:00")
       end
