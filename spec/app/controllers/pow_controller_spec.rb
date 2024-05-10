@@ -111,6 +111,7 @@ RSpec.describe PowController, :type => :controller do
     it 'does process data if the ip is good' do
       allow(controller).to receive(:ip_good?).and_return(true)
       expect(controller).to receive(:enqueue_worker).with('marketorders.ingest', { 'Orders' => [] }.to_json)
+      expect(controller).to receive(:send_to_nats).with('marketorders.ingest', { 'Orders' => [] }.to_json)
       post :reply, params: params
     end
 
@@ -140,6 +141,16 @@ RSpec.describe PowController, :type => :controller do
     xit 'enqueues a MapDataDedupeWorker if the topic is mapdata.ingest' do
       expect(MapDataDedupeWorker).to receive(:perform_async)
       controller.enqueue_worker('mapdata.ingest', {})
+    end
+  end
+
+  describe 'send_to_nats' do
+    it 'sends the data to NATS' do
+      nats = double('NatsService')
+      expect(nats).to receive(:send).with('topic', 'data')
+      expect(nats).to receive(:close)
+      expect(NatsService).to receive(:new).and_return(nats)
+      controller.send_to_nats('topic', 'data')
     end
   end
 
