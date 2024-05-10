@@ -87,8 +87,8 @@ class PowController < ApplicationController
     log_params = params.merge({request_ip: request.ip, user_agent: request.env['HTTP_USER_AGENT']})
     if ip_good?
 
-      enqueue_worker(params[:topic], params[:natsmsg])
-      send_to_nats(params[:topic], params[:natsmsg])
+      enqueue_worker(params[:topic], params[:natsmsg], server_id)
+      send_to_nats(params[:topic], params[:natsmsg], server_id)
 
       logger.info(log_params.to_json) if ENV['DEBUG'] == "true"
     else
@@ -98,7 +98,7 @@ class PowController < ApplicationController
     render json: { message: "OK", status: 200 }
   end
 
-  def enqueue_worker(topic, data)
+  def enqueue_worker(topic, data, server_id)
     case topic.downcase
     when "goldprices.ingest"
       GoldDedupeWorker.perform_async(data, server_id)
@@ -111,8 +111,8 @@ class PowController < ApplicationController
     end
   end
 
-  def send_to_nats(topic, data)
-    nats = NatsService.new
+  def send_to_nats(topic, data, server_id)
+    nats = NatsService.new(server_id)
     nats.send(topic, data)
     nats.close
   end

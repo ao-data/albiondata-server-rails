@@ -115,8 +115,8 @@ RSpec.describe PowController, :type => :controller do
 
     it 'does process data if the ip is good' do
       allow(controller).to receive(:ip_good?).and_return(true)
-      expect(controller).to receive(:enqueue_worker).with('marketorders.ingest', { 'Orders' => [] }.to_json)
-      expect(controller).to receive(:send_to_nats).with('marketorders.ingest', { 'Orders' => [] }.to_json)
+      expect(controller).to receive(:enqueue_worker).with('marketorders.ingest', { 'Orders' => [] }.to_json, 'west')
+      expect(controller).to receive(:send_to_nats).with('marketorders.ingest', { 'Orders' => [] }.to_json, 'west')
       post :reply, params: params
     end
 
@@ -130,23 +130,23 @@ RSpec.describe PowController, :type => :controller do
   describe 'enqueue_worker' do
     it 'enqueues a GoldPriceDedupeWorker if the topic is goldprices.ingest' do
       expect(GoldDedupeWorker).to receive(:perform_async).with({}, 'west')
-      controller.enqueue_worker('goldprices.ingest', {})
+      controller.enqueue_worker('goldprices.ingest', {}, 'west')
     end
 
     it 'enqueues a MarketOrderDedupeWorker if the topic is marketorders.ingest' do
       expect(MarketOrderDedupeWorker).to receive(:perform_async).with({}, 'west')
-      controller.enqueue_worker('marketorders.ingest', {})
+      controller.enqueue_worker('marketorders.ingest', {}, 'west')
     end
 
     it 'enqueues a MarketHistoryDedupeWorker if the topic is markethistories.ingest' do
       expect(MarketHistoryDedupeWorker).to receive(:perform_async).with({}, 'west')
-      controller.enqueue_worker('markethistories.ingest', {})
+      controller.enqueue_worker('markethistories.ingest', {}, 'west')
     end
 
     it 'enqueues a MarketHistoryDedupeWorker if the topic is markethistories.ingest for east database' do
       @request.host = 'east.example.com'
       expect(MarketHistoryDedupeWorker).to receive(:perform_async).with({}, 'east')
-      controller.enqueue_worker('markethistories.ingest', {})
+      controller.enqueue_worker('markethistories.ingest', {}, 'east')
     end
 
     # xit 'enqueues a MapDataDedupeWorker if the topic is mapdata.ingest' do
@@ -160,8 +160,8 @@ RSpec.describe PowController, :type => :controller do
       nats = double('NatsService')
       expect(nats).to receive(:send).with('topic', 'data')
       expect(nats).to receive(:close)
-      expect(NatsService).to receive(:new).and_return(nats)
-      controller.send_to_nats('topic', 'data')
+      expect(NatsService).to receive(:new).with('west').and_return(nats)
+      controller.send_to_nats('topic', 'data', 'west')
     end
   end
 
