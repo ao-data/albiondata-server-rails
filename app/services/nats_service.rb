@@ -3,6 +3,7 @@ require 'nats/client'
 class NatsService
 
   def initialize(server_id)
+    @server_id = server_id
     server = case server_id
              when 'west'
                ENV['NATS_WEST_URL']
@@ -26,8 +27,8 @@ class NatsService
     @nats.publish(topic, data)
   end
 
-  def listen(server_id)
-    server = case server_id
+  def listen
+    server = case @server_id
              when 'west'
                ENV['NATS_WEST_URL']
              when 'east'
@@ -59,17 +60,17 @@ class NatsService
 
     nats.subscribe('marketorders.ingest') do |msg|
       puts "Receiving market order data from NATS"
-      MarketOrderDedupeWorker.perform_async(msg.data)
+      MarketOrderDedupeWorker.perform_async(msg.data, @server_id)
     end
 
     nats.subscribe('goldprices.ingest') do |msg|
       puts "Receiving gold price data from NATS"
-      GoldDedupeWorker.perform_async(msg.data)
+      GoldDedupeWorker.perform_async(msg.data, @server_id)
     end
 
     nats.subscribe('markethistories.ingest') do |msg|
       puts "Receiving market history data from NATS"
-      MarketHistoryDedupeWorker.perform_async(msg.data)
+      MarketHistoryDedupeWorker.perform_async(msg.data, @server_id)
     end
 
     while true

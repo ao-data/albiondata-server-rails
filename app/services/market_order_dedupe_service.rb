@@ -31,7 +31,7 @@ class MarketOrderDedupeService
       nats.close
 
       # Send bulk records to Sidekiq
-      MarketOrderProcessorWorker.perform_async(deduped_records.to_json, 'west')
+      MarketOrderProcessorWorker.perform_async(deduped_records.to_json, @server_id)
     end
   end
 

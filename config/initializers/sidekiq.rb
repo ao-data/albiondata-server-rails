@@ -19,25 +19,55 @@ end
 
 cron_jobs = [
   {
-    'name'  => 'MarketOrder Cleanup',
+    'name'  => 'MarketOrder Cleanup West',
     'class' => 'MarketOrderCleanupWorker',
     'cron'  => '*/5 * * * *',
+    'args'  => 'west',
     'queue' => 'low'
   },
   {
-    'name' => ' MarketHistory Cleanup',
+    'name' => ' MarketHistory Cleanup West',
     'class' => 'MarketHistoryCleanupWorker',
     'cron'  => '*/5 * * * *',
+    'args'  => 'west',
     'queue' => 'low'
-  }
+  },
+  {
+    'name'  => 'MarketOrder Cleanup East',
+    'class' => 'MarketOrderCleanupWorker',
+    'cron'  => '*/5 * * * *',
+    'args'  => 'east',
+    'queue' => 'low'
+  },
+  {
+    'name' => ' MarketHistory Cleanup East',
+    'class' => 'MarketHistoryCleanupWorker',
+    'cron'  => '*/5 * * * *',
+    'args'  => 'east',
+    'queue' => 'low'
+  },
+  {
+    'name'  => 'MarketOrder Cleanup Europe',
+    'class' => 'MarketOrderCleanupWorker',
+    'cron'  => '*/5 * * * *',
+    'args'  => 'europe',
+    'queue' => 'low'
+  },
+  {
+    'name' => ' MarketHistory Cleanup Europe',
+    'class' => 'MarketHistoryCleanupWorker',
+    'cron'  => '*/5 * * * *',
+    'args'  => 'europe',
+    'queue' => 'low'
+  },
 ]
 
-
-# {
-#   'name' => 'MarketHistory Monthly Exporter',
-#   'class' => 'MarketHistoryMonthlyExporterWorker',
-#   'cron'  => '*/5 * * * *',
-#   'queue' => 'low'
-# }
-
+#
+# # {
+# #   'name' => 'MarketHistory Monthly Exporter',
+# #   'class' => 'MarketHistoryMonthlyExporterWorker',
+# #   'cron'  => '*/5 * * * *',
+# #   'queue' => 'low'
+# # }
+#
 Sidekiq::Cron::Job.load_from_array(cron_jobs) unless ENV['SECRET_KEY_BASE_DUMMY']
