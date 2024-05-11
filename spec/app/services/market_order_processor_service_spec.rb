@@ -5,7 +5,7 @@ describe MarketOrderProcessorService, type: :service do
   let(:subject) { described_class.new(orders, 'west') }
 
   before do
-    REDIS.flushall
+    REDIS['west'].flushall
     MarketOrder.delete_all
   end
 
@@ -74,14 +74,14 @@ describe MarketOrderProcessorService, type: :service do
 
     it 'calls redis.get' do
       subject = described_class.new([order1], 'west')
-      expect(REDIS).to receive(:get).with("RECORD_SHA256_24H:#{Digest::SHA256.hexdigest(order1.to_s)}").and_return(nil)
+      expect(REDIS['west']).to receive(:get).with("RECORD_SHA256_24H:#{Digest::SHA256.hexdigest(order1.to_s)}").and_return(nil)
       subject.dedupe_24h
     end
 
     it 'calls redis.set' do
       subject = described_class.new([order1], 'west')
-      allow(REDIS).to receive(:get).and_return(nil)
-      expect(REDIS).to receive(:set).with("RECORD_SHA256_24H:#{Digest::SHA256.hexdigest(order1.to_s)}", 1, ex: 86400)
+      allow(REDIS['west']).to receive(:get).and_return(nil)
+      expect(REDIS['west']).to receive(:set).with("RECORD_SHA256_24H:#{Digest::SHA256.hexdigest(order1.to_s)}", 1, ex: 86400)
       subject.dedupe_24h
     end
   end

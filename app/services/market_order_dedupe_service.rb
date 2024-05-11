@@ -53,8 +53,8 @@ class MarketOrderDedupeService
     @data['Orders'].each do |order|
       begin
         sha256 = Digest::SHA256.hexdigest(order.to_s)
-        if REDIS.get("RECORD_SHA256:#{sha256}").nil?
-          REDIS.set("RECORD_SHA256:#{sha256}", '1', ex: 600)
+        if REDIS[@server_id].get("RECORD_SHA256:#{sha256}").nil?
+          REDIS[@server_id].set("RECORD_SHA256:#{sha256}", '1', ex: 600)
 
           # Hack since albion seems to be multiplying every price by 10000
           order['UnitPriceSilver'] /= 10000

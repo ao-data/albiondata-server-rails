@@ -4,11 +4,11 @@ require 'sidekiq-cron'
 require 'sidekiq/web'
 
 Sidekiq.configure_client do |config|
-  config.redis = { url: "redis://#{ENV['SIDEKIQ_REDIS_HOST']}:#{ENV['SIDEKIQ_REDIS_PORT']}/#{ENV['SIDEKIQ_REDIS_DB']}" }
+  config.redis = { url: ENV['SIDEKIQ_REDIS_URL'] }
 end
 
 Sidekiq.configure_server do |config|
-  config.redis = { url: "redis://#{ENV['SIDEKIQ_REDIS_HOST']}:#{ENV['SIDEKIQ_REDIS_PORT']}/#{ENV['SIDEKIQ_REDIS_DB']}" }
+  config.redis = { url: ENV['SIDEKIQ_REDIS_URL'] }
 end
 
 Sidekiq::Web.use(Rack::Auth::Basic) do |user, password|

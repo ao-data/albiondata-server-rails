@@ -55,8 +55,8 @@ class MarketOrderProcessorService
     @orders.each do |order|
       begin
         sha256 = Digest::SHA256.hexdigest(order.to_s)
-        if REDIS.get("RECORD_SHA256_24H:#{sha256}").nil?
-          REDIS.set("RECORD_SHA256_24H:#{sha256}", 1, ex: 86400)
+        if REDIS[@server_id].get("RECORD_SHA256_24H:#{sha256}").nil?
+          REDIS[@server_id].set("RECORD_SHA256_24H:#{sha256}", 1, ex: 86400)
           redis_deduped << order
         else
           redis_duped << order

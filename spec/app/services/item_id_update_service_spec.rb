@@ -3,8 +3,10 @@ describe ItemIdUpdateService, type: :service do
   let(:item2) { { 'Index' => "2", 'UniqueName' => 'T1_MEAL_SEAWEEDSALAD' } }
   let(:items) { [item1, item2] }
 
+  let(:subject) { described_class.new('west') }
+
   before do
-    REDIS.flushall
+    REDIS['west'].flushall
   end
 
   describe '.update' do
@@ -13,13 +15,13 @@ describe ItemIdUpdateService, type: :service do
     end
 
     it 'adds 2 items to the ITEM_IDS hash' do
-      expect(REDIS).to receive(:hset).with('ITEM_IDS', item1['Index'], item1['UniqueName'])
-      expect(REDIS).to receive(:hset).with('ITEM_IDS', item2['Index'], item2['UniqueName'])
+      expect(REDIS['west']).to receive(:hset).with('ITEM_IDS', item1['Index'], item1['UniqueName'])
+      expect(REDIS['west']).to receive(:hset).with('ITEM_IDS', item2['Index'], item2['UniqueName'])
       subject.update
     end
 
     it 'calls REDIS.del' do
-      expect(REDIS).to receive(:del).with('ITEM_IDS')
+      expect(REDIS['west']).to receive(:del).with('ITEM_IDS')
       subject.update
     end
   end

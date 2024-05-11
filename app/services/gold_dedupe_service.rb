@@ -2,8 +2,8 @@ class GoldDedupeService
   def dedupe(data, server_id)
     json_data = data.to_json
     sha256 = Digest::SHA256.hexdigest(json_data)
-    if REDIS.get("GOLD_RECORD_SHA256:#{sha256}").nil?
-      REDIS.set("GOLD_RECORD_SHA256:#{sha256}", '1', ex: 600)
+    if REDIS[server_id].get("GOLD_RECORD_SHA256:#{sha256}").nil?
+      REDIS[server_id].set("GOLD_RECORD_SHA256:#{sha256}", '1', ex: 600)
 
       s = NatsService.new(server_id)
       s.send('marketorders.deduped', json_data)

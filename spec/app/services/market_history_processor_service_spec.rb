@@ -11,8 +11,8 @@ describe MarketHistoryProcessorService, type: :service do
     before do
       Multidb.use(:west)
       MarketHistory.destroy_all
-      allow(REDIS).to receive(:get).and_return(nil)
-      allow(REDIS).to receive(:set)
+      allow(REDIS['west']).to receive(:get).and_return(nil)
+      allow(REDIS['west']).to receive(:set)
     end
 
     describe '.process' do
@@ -64,7 +64,7 @@ describe MarketHistoryProcessorService, type: :service do
       end
 
       it 'does not attempt to lookup a record if it is cached in redis' do
-        allow(REDIS).to receive(:get).and_return(1)
+        allow(REDIS['west']).to receive(:get).and_return(1)
         expect(MarketHistory).not_to receive(:find_by)
         subject.process(data, 'west')
       end

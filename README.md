@@ -19,5 +19,6 @@ Run
 0 - West Redis Cache
 1 - East Redis Cache
 2 - Europe Redis Cache
+3 - Sidekiq Redis
 5 - ABUSEIPDB_REDIS_URL
 6 - RACKATTACK_REDIS_URL

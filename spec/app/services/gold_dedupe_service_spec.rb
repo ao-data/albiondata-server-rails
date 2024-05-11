@@ -14,8 +14,8 @@ describe GoldDedupeService, type: :service do
     end
 
     it "sends the data to the NatsService and GoldProcessorWorker" do
-      allow(REDIS).to receive(:get).and_return(nil)
-      allow(REDIS).to receive(:set).and_return(nil)
+      allow(REDIS['west']).to receive(:get).and_return(nil)
+      allow(REDIS['west']).to receive(:set).and_return(nil)
 
       nats = double
       expect(nats).to receive(:send).with('marketorders.deduped', data.to_json)
@@ -33,15 +33,15 @@ describe GoldDedupeService, type: :service do
       allow(nats).to receive(:close)
       allow(NatsService).to receive(:new).and_return(nats)
 
-      allow(REDIS).to receive(:get).and_return(nil)
-      expect(REDIS).to receive(:set).with("GOLD_RECORD_SHA256:#{Digest::SHA256.hexdigest(data.to_json)}", '1', ex: 600)
+      allow(REDIS['west']).to receive(:get).and_return(nil)
+      expect(REDIS['west']).to receive(:set).with("GOLD_RECORD_SHA256:#{Digest::SHA256.hexdigest(data.to_json)}", '1', ex: 600)
 
       subject.dedupe(data, server_id)
     end
 
     context "when the REDIS key already exists" do
       before do
-        allow(REDIS).to receive(:get).and_return('1')
+        allow(REDIS['west']).to receive(:get).and_return('1')
       end
 
       it "does not send the data to the NatsService or GoldProcessorWorker" do

@@ -23,7 +23,7 @@ RSpec.describe PowController, :type => :controller do
 
     it 'stores the challenge in redis' do
       # todo: fill this test in with a more specific expectation
-      expect(REDIS).to receive(:set).and_call_original
+      expect(REDIS['west']).to receive(:set).and_call_original
 
       get :index
     end

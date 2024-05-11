@@ -23,8 +23,8 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
   let(:subject) { described_class.new(data, 'west') }
 
   before do
-    allow(REDIS).to receive(:get).and_return(nil)
-    allow(REDIS).to receive(:set)
+    allow(REDIS['west']).to receive(:get).and_return(nil)
+    allow(REDIS['west']).to receive(:set)
   end
 
   describe '#process' do
@@ -88,7 +88,7 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
 
     context 'when order is a duplicate' do
       before do
-        allow(REDIS).to receive(:get).and_return('1')
+        allow(REDIS['west']).to receive(:get).and_return('1')
       end
 
       it 'does not add order to deduped list' do
