@@ -3,11 +3,11 @@ class ApplicationController < ActionController::Base
 
   def test
     # this only here for spec testing run_using_database
-    render json: { orders: MarketOrder.all }.to_json
+    render json: { orders: MarketOrder.all.limit(10) }.to_json
   end
 
   def server_id
-    request.subdomain
+    request.subdomain.split('.').last
   end
 
   def run_using_database(&block)

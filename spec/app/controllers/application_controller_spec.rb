@@ -130,5 +130,10 @@ RSpec.describe ApplicationController, :type => :controller do
       get :test
       expect(JSON.parse(response.body)['orders'].length).to eq(1)
     end
+
+    it 'returns the correct server_id with sub-subdomains' do
+      @request.host = "pow.west.example.com"
+      expect(controller.server_id).to eq("west")
+    end
   end
 end
