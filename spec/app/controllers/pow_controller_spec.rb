@@ -34,7 +34,7 @@ RSpec.describe PowController, :type => :controller do
     let(:params) { { topic: 'marketorders.ingest', key: 'pow_key', solution: '0011', natsmsg: { Orders: [] }.to_json } }
 
     before do
-      REDIS.set('pow_key', pow.to_json)
+      REDIS['west'].set('pow_key', pow.to_json)
       allow(controller).to receive(:supported_client?).and_return(true)
       allow(controller).to receive(:ip_good?).and_return(true)
     end
@@ -56,7 +56,7 @@ RSpec.describe PowController, :type => :controller do
     end
 
     it 'returns a 902 error if the pow was never requested or has expired' do
-      REDIS.del('pow_key')
+      REDIS['west'].del('pow_key')
       post :reply, params: params
       expect(response.status).to eq(902)
     end
@@ -167,18 +167,18 @@ RSpec.describe PowController, :type => :controller do
 
   describe '#supported_client?' do
     it 'returns true if there are no supported clients' do
-      REDIS.del('supported_clients')
+      REDIS['west'].del('supported_clients')
       expect(controller.supported_client?).to be(true)
     end
 
     it 'returns true if the user agent is in the supported clients' do
-      REDIS.set('supported_clients', ['Mozilla'])
+      REDIS['west'].set('supported_clients', ['Mozilla'])
       request.env['HTTP_USER_AGENT'] = 'Mozilla'
       expect(controller.supported_client?).to be(true)
     end
 
     it 'returns false if the user agent is not in the supported clients' do
-      REDIS.set('supported_clients', ['Mozilla'])
+      REDIS['west'].set('supported_clients', ['Mozilla'])
       request.env['HTTP_USER_AGENT'] = 'Chrome'
       expect(controller.supported_client?).to be(false)
     end

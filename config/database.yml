@@ -6,7 +6,7 @@
 #
 default: &default
   adapter: trilogy
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 100 } %>
   encoding: utf8
   url: <%= ENV['MYSQL_WEST_URL'] %>
   multidb:

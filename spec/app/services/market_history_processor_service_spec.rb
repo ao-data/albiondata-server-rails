@@ -26,7 +26,7 @@ describe MarketHistoryProcessorService, type: :service do
                      "MarketHistories": [
                        {
                          "ItemAmount": 24,
-                         "SilverAmount": 960000,
+                         "SilverAmount": 96,
                          "Timestamp": 638464104000000000
                        }
                      ]
