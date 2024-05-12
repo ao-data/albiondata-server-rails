@@ -34,7 +34,7 @@ RSpec.describe PowController, :type => :controller do
     let(:params) { { topic: 'marketorders.ingest', key: 'pow_key', solution: '0011', natsmsg: { Orders: [] }.to_json } }
 
     before do
-      REDIS['west'].set('pow_key', pow.to_json)
+      REDIS['west'].set('POW:pow_key', pow.to_json)
       allow(controller).to receive(:supported_client?).and_return(true)
       allow(controller).to receive(:ip_good?).and_return(true)
     end
@@ -56,7 +56,7 @@ RSpec.describe PowController, :type => :controller do
     end
 
     it 'returns a 902 error if the pow was never requested or has expired' do
-      REDIS['west'].del('pow_key')
+      REDIS['west'].del('POW:pow_key')
       post :reply, params: params
       expect(response.status).to eq(902)
     end

@@ -39,13 +39,13 @@ class PowController < ApplicationController
 
   def index
     challange = { wanted: SecureRandom.hex(POW_RANDOMNESS).unpack("B*")[0][0..POW_DIFFICULITY-1], key: SecureRandom.hex(POW_RANDOMNESS) }
-    REDIS[server_id].set(challange[:key], {wanted: challange[:wanted]}.to_json, ex: POW_EXPIRE_SECONDS)
+    REDIS[server_id].set("POW:#{challange[:key]}", {wanted: challange[:wanted]}.to_json, ex: POW_EXPIRE_SECONDS)
     render json: challange.to_json
   end
 
   def reply
-    pow_json = REDIS[server_id].get(params[:key])
-    REDIS[server_id].del(params[:key])
+    pow_json = REDIS[server_id].get("POW:#{params[:key]}")
+    REDIS[server_id].del("POW:#{params[:key]}")
     return render plain: "Pow not handed", status: 902 unless pow_json # This pow was never requested or has expired
     pow = JSON.parse(pow_json)
 
