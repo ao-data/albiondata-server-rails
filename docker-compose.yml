@@ -47,6 +47,7 @@ services:
       THROTTLE_POW_1MIN: ${THROTTLE_POW_1MIN}
       THROTTLE_POW_1HOUR: ${THROTTLE_POW_1HOUR}
       THROTTLE_POW_1DAY: ${THROTTLE_POW_1DAY}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
     # command: './entrypoint.sh web'
     entrypoint: ./entrypoint.sh sleep
     ports:
