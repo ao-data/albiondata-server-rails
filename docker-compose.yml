@@ -4,7 +4,7 @@ services:
     container_name: aodata-mysql
     restart: on-failure
     environment:
-      MARIADB_ROOT_PASSWORD: ${MYSQL_PWD}
+      MARIADB_ROOT_PASSWORD: ${MYSQL_ROOT_PWD}
     ports:
       - 3306:3306
     volumes:
@@ -23,27 +23,22 @@ services:
       - ./:/rails
     environment:
       RAILS_ENV: development
-      MYSQL_HOST: ${MYSQL_HOST}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PWD: ${MYSQL_PWD}
-      MYSQL_DB: ${MYSQL_DB}
-      MYSQL_PORT: ${MYSQL_PORT:-3306}
+      MYSQL_WEST_URL: ${MYSQL_WEST_URL}
+      MYSQL_EAST_URL: ${MYSQL_EAST_URL}
+      MYSQL_EUROPE_URL: ${MYSQL_EUROPE_URL}
       MYSQL_EXPORT_PATH: ${MYSQL_EXPORT_PATH}
-      NATS_HOST: ${NATS_HOST}
-      NATS_PORT: ${NATS_PORT}
-      NATS_USER: ${NATS_USER}
-      NATS_PWD: ${NATS_PWD}
+      NATS_WEST_URL: ${NATS_WEST_URL}
+      NATS_EAST_URL: ${NATS_EAST_URL}
+      NATS_EUROPE_URL: ${NATS_EUROPE_URL}
       NATS_SEND_DISABLE: ${NATS_SEND_DISABLE}
-      SIDEKIQ_REDIS_HOST: ${SIDEKIQ_REDIS_HOST}
-      SIDEKIQ_REDIS_PORT: ${SIDEKIQ_REDIS_PORT}
-      SIDEKIQ_REDIS_DB: ${SIDEKIQ_REDIS_DB}
+      SIDEKIQ_REDIS_URL: ${SIDEKIQ_REDIS_URL}
       SIDEKIQ_THREADS: 10
       SIDEKIQ_WEB_USER: ${SIDEKIQ_WEB_USER}
       SIDEKIQ_WEB_PASS: ${SIDEKIQ_WEB_PASS}
       SECRET_KEY_BASE: ${SECRET_KEY_BASE}
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
-      REDIS_DB: ${REDIS_DB}
+      REDIS_WEST_URL: ${REDIS_WEST_URL}
+      REDIS_EAST_URL: ${REDIS_EAST_URL}
+      REDIS_EUROPE_URL: ${REDIS_EUROPE_URL}
       ABUSEIPDB_REDIS_URL: ${ABUSEIPDB_REDIS_URL}
       ABUSEIPDB_API_KEY: ${ABUSEIPDB_API_KEY}
       RACKATTACK_REDIS_URL: ${RACKATTACK_REDIS_URL:-redis://redis:6379/9}
@@ -52,6 +47,7 @@ services:
       THROTTLE_POW_1MIN: ${THROTTLE_POW_1MIN}
       THROTTLE_POW_1HOUR: ${THROTTLE_POW_1HOUR}
       THROTTLE_POW_1DAY: ${THROTTLE_POW_1DAY}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
     # command: './entrypoint.sh web'
     entrypoint: ./entrypoint.sh sleep
     ports:
@@ -64,62 +60,6 @@ services:
     logging:
       options:
         tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
-  # sidekiq:
-  #   image: ruby:3
-  #   build:
-  #     context: .
-  #   platform: linux/amd64
-  #   container_name: sidekiq
-  #   restart: on-failure
-  #   volumes:
-  #     - ./:/usr/src/app
-  #   environment:
-  #     MYSQL_USER: ${MYSQL_USER}
-  #     MYSQL_PWD: ${MYSQL_PWD}
-  #     MYSQL_DB: ${MYSQL_DB}
-  #     MYSQL_EXPORT_PATH: ${MYSQL_EXPORT_PATH}
-  #     SIDEKIQ_REDIS_HOST: ${SIDEKIQ_REDIS_HOST}
-  #     SIDEKIQ_REDIS_PORT: ${SIDEKIQ_REDIS_PORT}
-  #     SIDEKIQ_REDIS_DB: ${SIDEKIQ_REDIS_DB}
-  #     SIDEKIQ_THREADS: 1
-  #     SIDEKIQ_WEB_USER: ${SIDEKIQ_WEB_USER}
-  #     SIDEKIQ_WEB_PASS: ${SIDEKIQ_WEB_PASS}
-  #   command: './entrypoint.sh sidekiq'
-  #   depends_on:
-  #     - redis
-  #   networks:
-  #     - albiondata
-  #   logging:
-  #     options:
-  #       tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
-  # sleep:
-  #   image: ruby:3
-  #   build:
-  #     context: .
-  #   platform: linux/amd64
-  #   container_name: sleep
-  #   restart: on-failure
-  #   volumes:
-  #     - ./:/usr/src/app
-  #   environment:
-  #     MYSQL_USER: ${MYSQL_USER}
-  #     MYSQL_PWD: ${MYSQL_PWD}
-  #     MYSQL_DB: ${MYSQL_DB}
-  #     MYSQL_EXPORT_PATH: ${MYSQL_EXPORT_PATH}
-  #     SIDEKIQ_REDIS_HOST: ${SIDEKIQ_REDIS_HOST}
-  #     SIDEKIQ_REDIS_PORT: ${SIDEKIQ_REDIS_PORT}
-  #     SIDEKIQ_REDIS_DB: ${SIDEKIQ_REDIS_DB}
-  #     SIDEKIQ_THREADS: 1
-  #     SIDEKIQ_WEB_USER: ${SIDEKIQ_WEB_USER}
-  #     SIDEKIQ_WEB_PASS: ${SIDEKIQ_WEB_PASS}
-  #   command: './entrypoint.sh sleep'
-  #   depends_on:
-  #     - redis
-  #   networks:
-  #     - albiondata
-  #   logging:
-  #     options:
-  #       tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
   redis:
     image: redis
     container_name: redis

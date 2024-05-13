@@ -2,6 +2,9 @@ require 'rails_helper'
 
 RSpec.describe MarketHistoryService, :type => :service do
   before do
+    Multidb.use(:west)
+    MarketHistory.destroy_all
+
     Timecop.freeze(DateTime.parse('2024-03-10 00:00:00'))
 
     ['T4_BAG', 'T5_BAG'].product([1,2], [3003,3005], [8,9,10].to_a, [0, 6, 12, 18]).each do |item_id, quality, location, i, j|

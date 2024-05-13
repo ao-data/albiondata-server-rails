@@ -8,8 +8,9 @@ class MarketOrderDedupeService
     3013 => 3003  # Caerleon2 to Caerleon
   }
 
-  def initialize(data)
+  def initialize(data, server_id)
     @data = data
+    @server_id = server_id
   end
 
   def process
@@ -17,7 +18,7 @@ class MarketOrderDedupeService
 
     if deduped_records.any?
 
-      nats = NatsService.new
+      nats = NatsService.new(@server_id)
 
       # send single records to NATS
       deduped_records.each do
@@ -30,7 +31,7 @@ class MarketOrderDedupeService
       nats.close
 
       # Send bulk records to Sidekiq
-      MarketOrderProcessorWorker.perform_async(deduped_records.to_json)
+      MarketOrderProcessorWorker.perform_async(deduped_records.to_json, @server_id)
     end
   end
 
@@ -52,8 +53,8 @@ class MarketOrderDedupeService
     @data['Orders'].each do |order|
       begin
         sha256 = Digest::SHA256.hexdigest(order.to_s)
-        if REDIS.get("RECORD_SHA256:#{sha256}").nil?
-          REDIS.set("RECORD_SHA256:#{sha256}", '1', ex: 600)
+        if REDIS[@server_id].get("RECORD_SHA256:#{sha256}").nil?
+          REDIS[@server_id].set("RECORD_SHA256:#{sha256}", '1', ex: 600)
 
           # Hack since albion seems to be multiplying every price by 10000
           order['UnitPriceSilver'] /= 10000

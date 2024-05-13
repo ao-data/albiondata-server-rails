@@ -6,8 +6,8 @@ RSpec.describe MarketOrderProcessorWorker, :type => :worker do
     data = { 'foo' => 'bar' }
     s = double
     expect(s).to receive(:process)
-    expect(MarketOrderProcessorService).to receive(:new).with(data).and_return(s)
-    subject.perform(data.to_json)
+    expect(MarketOrderProcessorService).to receive(:new).with(data, 'west').and_return(s)
+    subject.perform(data.to_json, 'west')
   end
 
 end

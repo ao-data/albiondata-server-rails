@@ -1,6 +1,10 @@
 require 'rails_helper'
 
 RSpec.describe PowController, :type => :controller do
+  before do
+    @request.host = "west.example.com"
+  end
+
   describe 'GET #index' do
     it 'returns a success response' do
       get :index
@@ -19,7 +23,7 @@ RSpec.describe PowController, :type => :controller do
 
     it 'stores the challenge in redis' do
       # todo: fill this test in with a more specific expectation
-      expect(REDIS).to receive(:set).and_call_original
+      expect(REDIS['west']).to receive(:set).and_call_original
 
       get :index
     end
@@ -30,8 +34,9 @@ RSpec.describe PowController, :type => :controller do
     let(:params) { { topic: 'marketorders.ingest', key: 'pow_key', solution: '0011', natsmsg: { Orders: [] }.to_json } }
 
     before do
-      REDIS.set('pow_key', pow.to_json)
+      REDIS['west'].set('POW:pow_key', pow.to_json)
       allow(controller).to receive(:supported_client?).and_return(true)
+      allow(controller).to receive(:ip_good?).and_return(true)
     end
 
     it 'returns a success response' do
@@ -51,7 +56,7 @@ RSpec.describe PowController, :type => :controller do
     end
 
     it 'returns a 902 error if the pow was never requested or has expired' do
-      REDIS.del('pow_key')
+      REDIS['west'].del('POW:pow_key')
       post :reply, params: params
       expect(response.status).to eq(902)
     end
@@ -110,8 +115,8 @@ RSpec.describe PowController, :type => :controller do
 
     it 'does process data if the ip is good' do
       allow(controller).to receive(:ip_good?).and_return(true)
-      expect(controller).to receive(:enqueue_worker).with('marketorders.ingest', { 'Orders' => [] }.to_json)
-      expect(controller).to receive(:send_to_nats).with('marketorders.ingest', { 'Orders' => [] }.to_json)
+      expect(controller).to receive(:enqueue_worker).with('marketorders.ingest', { 'Orders' => [] }.to_json, 'west')
+      expect(controller).to receive(:send_to_nats).with('marketorders.ingest', { 'Orders' => [] }.to_json, 'west')
       post :reply, params: params
     end
 
@@ -124,24 +129,30 @@ RSpec.describe PowController, :type => :controller do
 
   describe 'enqueue_worker' do
     it 'enqueues a GoldPriceDedupeWorker if the topic is goldprices.ingest' do
-      expect(GoldDedupeWorker).to receive(:perform_async)
-      controller.enqueue_worker('goldprices.ingest', {})
+      expect(GoldDedupeWorker).to receive(:perform_async).with({}, 'west')
+      controller.enqueue_worker('goldprices.ingest', {}, 'west')
     end
 
     it 'enqueues a MarketOrderDedupeWorker if the topic is marketorders.ingest' do
-      expect(MarketOrderDedupeWorker).to receive(:perform_async)
-      controller.enqueue_worker('marketorders.ingest', {})
+      expect(MarketOrderDedupeWorker).to receive(:perform_async).with({}, 'west')
+      controller.enqueue_worker('marketorders.ingest', {}, 'west')
     end
 
     it 'enqueues a MarketHistoryDedupeWorker if the topic is markethistories.ingest' do
-      expect(MarketHistoryDedupeWorker).to receive(:perform_async)
-      controller.enqueue_worker('markethistories.ingest', {})
+      expect(MarketHistoryDedupeWorker).to receive(:perform_async).with({}, 'west')
+      controller.enqueue_worker('markethistories.ingest', {}, 'west')
     end
 
-    xit 'enqueues a MapDataDedupeWorker if the topic is mapdata.ingest' do
-      expect(MapDataDedupeWorker).to receive(:perform_async)
-      controller.enqueue_worker('mapdata.ingest', {})
+    it 'enqueues a MarketHistoryDedupeWorker if the topic is markethistories.ingest for east database' do
+      @request.host = 'east.example.com'
+      expect(MarketHistoryDedupeWorker).to receive(:perform_async).with({}, 'east')
+      controller.enqueue_worker('markethistories.ingest', {}, 'east')
     end
+
+    # xit 'enqueues a MapDataDedupeWorker if the topic is mapdata.ingest' do
+    #   expect(MapDataDedupeWorker).to receive(:perform_async).with({})
+    #   controller.enqueue_worker('mapdata.ingest', {})
+    # end
   end
 
   describe 'send_to_nats' do
@@ -149,25 +160,25 @@ RSpec.describe PowController, :type => :controller do
       nats = double('NatsService')
       expect(nats).to receive(:send).with('topic', 'data')
       expect(nats).to receive(:close)
-      expect(NatsService).to receive(:new).and_return(nats)
-      controller.send_to_nats('topic', 'data')
+      expect(NatsService).to receive(:new).with('west').and_return(nats)
+      controller.send_to_nats('topic', 'data', 'west')
     end
   end
 
   describe '#supported_client?' do
     it 'returns true if there are no supported clients' do
-      REDIS.del('supported_clients')
+      REDIS['west'].del('supported_clients')
       expect(controller.supported_client?).to be(true)
     end
 
     it 'returns true if the user agent is in the supported clients' do
-      REDIS.set('supported_clients', ['Mozilla'])
+      REDIS['west'].set('supported_clients', ['Mozilla'])
       request.env['HTTP_USER_AGENT'] = 'Mozilla'
       expect(controller.supported_client?).to be(true)
     end
 
     it 'returns false if the user agent is not in the supported clients' do
-      REDIS.set('supported_clients', ['Mozilla'])
+      REDIS['west'].set('supported_clients', ['Mozilla'])
       request.env['HTTP_USER_AGENT'] = 'Chrome'
       expect(controller.supported_client?).to be(false)
     end

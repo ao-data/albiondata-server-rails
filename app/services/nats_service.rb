@@ -2,8 +2,18 @@ require 'nats/client'
 
 class NatsService
 
-  def initialize
-    server = "nats://#{ENV['NATS_USER']}:#{ENV['NATS_PWD']}@#{ENV['NATS_HOST']}:#{ENV['NATS_PORT']}"
+  def initialize(server_id)
+    @server_id = server_id
+    server = case server_id
+             when 'west'
+               ENV['NATS_WEST_URL']
+             when 'east'
+               ENV['NATS_EAST_URL']
+             when 'europe'
+               ENV['NATS_EUROPE_URL']
+             else
+               ENV['NATS_WEST_URL']
+             end
     @nats = NATS.connect(server)
   end
 
@@ -18,7 +28,16 @@ class NatsService
   end
 
   def listen
-    server = "nats://#{ENV['NATS_USER']}:#{ENV['NATS_PWD']}@#{ENV['NATS_HOST']}:#{ENV['NATS_PORT']}"
+    server = case @server_id
+             when 'west'
+               ENV['NATS_WEST_URL']
+             when 'east'
+               ENV['NATS_EAST_URL']
+             when 'europe'
+               ENV['NATS_EUROPE_URL']
+             else
+               ENV['NATS_WEST_URL']
+             end
 
     nats = NATS.connect(server)
     puts "Connected to #{nats.connected_server}"
@@ -41,17 +60,17 @@ class NatsService
 
     nats.subscribe('marketorders.ingest') do |msg|
       puts "Receiving market order data from NATS"
-      MarketOrderDedupeWorker.perform_async(msg.data)
+      MarketOrderDedupeWorker.perform_async(msg.data, @server_id)
     end
 
     nats.subscribe('goldprices.ingest') do |msg|
       puts "Receiving gold price data from NATS"
-      GoldDedupeWorker.perform_async(msg.data)
+      GoldDedupeWorker.perform_async(msg.data, @server_id)
     end
 
     nats.subscribe('markethistories.ingest') do |msg|
       puts "Receiving market history data from NATS"
-      MarketHistoryDedupeWorker.perform_async(msg.data)
+      MarketHistoryDedupeWorker.perform_async(msg.data, @server_id)
     end
 
     while true

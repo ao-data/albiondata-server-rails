@@ -39,13 +39,13 @@ class PowController < ApplicationController
 
   def index
     challange = { wanted: SecureRandom.hex(POW_RANDOMNESS).unpack("B*")[0][0..POW_DIFFICULITY-1], key: SecureRandom.hex(POW_RANDOMNESS) }
-    REDIS.set(challange[:key], {wanted: challange[:wanted]}.to_json, ex: POW_EXPIRE_SECONDS)
+    REDIS[server_id].set("POW:#{challange[:key]}", {wanted: challange[:wanted]}.to_json, ex: POW_EXPIRE_SECONDS)
     render json: challange.to_json
   end
 
   def reply
-    pow_json = REDIS.get(params[:key])
-    REDIS.del(params[:key])
+    pow_json = REDIS[server_id].get("POW:#{params[:key]}")
+    REDIS[server_id].del("POW:#{params[:key]}")
     return render plain: "Pow not handed", status: 902 unless pow_json # This pow was never requested or has expired
     pow = JSON.parse(pow_json)
 
@@ -87,8 +87,8 @@ class PowController < ApplicationController
     log_params = params.merge({request_ip: request.ip, user_agent: request.env['HTTP_USER_AGENT']})
     if ip_good?
 
-      enqueue_worker(params[:topic], params[:natsmsg])
-      send_to_nats(params[:topic], params[:natsmsg])
+      enqueue_worker(params[:topic], params[:natsmsg], server_id)
+      send_to_nats(params[:topic], params[:natsmsg], server_id)
 
       logger.info(log_params.to_json) if ENV['DEBUG'] == "true"
     else
@@ -98,27 +98,27 @@ class PowController < ApplicationController
     render json: { message: "OK", status: 200 }
   end
 
-  def enqueue_worker(topic, data)
+  def enqueue_worker(topic, data, server_id)
     case topic.downcase
     when "goldprices.ingest"
-      GoldDedupeWorker.perform_async(data)
+      GoldDedupeWorker.perform_async(data, server_id)
     when "marketorders.ingest"
-      MarketOrderDedupeWorker.perform_async(data)
+      MarketOrderDedupeWorker.perform_async(data, server_id)
     when "markethistories.ingest"
-      MarketHistoryDedupeWorker.perform_async(data)
+      MarketHistoryDedupeWorker.perform_async(data, server_id)
     # when "mapdata.ingest"
     #   MapDataDedupeWorker.perform_async(data)
     end
   end
 
-  def send_to_nats(topic, data)
-    nats = NatsService.new
+  def send_to_nats(topic, data, server_id)
+    nats = NatsService.new(server_id)
     nats.send(topic, data)
     nats.close
   end
 
   def supported_client?
-    if (supported_clients_json = REDIS.get('supported_clients'))
+    if (supported_clients_json = REDIS[server_id].get('supported_clients'))
       supported_clients = JSON.parse(supported_clients_json)
       return false if !supported_clients.empty? && !supported_clients.include?(request.env['HTTP_USER_AGENT'])
     end

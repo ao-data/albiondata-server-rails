@@ -1,19 +1,21 @@
 class MarketHistoryProcessorService
-  def self.process(data)
-    # data = {
-    #   "AlbionId": 944,
-    #   "AlbionIdString": "T4_BAG",
-    #   "LocationId": 3005,
-    #   "QualityLevel": 1,
-    #   "Timescale": 0,
-    #   "MarketHistories": [
-    #     {
-    #       "ItemAmount": 24,
-    #       "SilverAmount": 960000,
-    #       "Timestamp": 638464104000000000
-    #     }
-    #   ]
-    # }
+  def process(data, server_id)
+    Multidb.use(server_id.to_sym) do
+
+      # data = {
+      #   "AlbionId": 944,
+      #   "AlbionIdString": "T4_BAG",
+      #   "LocationId": 3005,
+      #   "QualityLevel": 1,
+      #   "Timescale": 0,
+      #   "MarketHistories": [
+      #     {
+      #       "ItemAmount": 24,
+      #       "SilverAmount": 960000,
+      #       "Timestamp": 638464104000000000
+      #     }
+      #   ]
+      # }
 
     new_record_count = 0
     updated_record_count = 0
@@ -21,7 +23,7 @@ class MarketHistoryProcessorService
     timescale = data['Timescale'] == 0 ? 1 : 6
     data['MarketHistories'].each do |history|
       sha256 = Digest::SHA256.hexdigest(history.to_s)
-      next unless REDIS.get("RECORD_HISTORY_SHA256_24H:#{sha256}").nil?
+      next unless REDIS[server_id].get("RECORD_HISTORY_SHA256_24H:#{sha256}").nil?
 
       timestamp = ticks_to_time(history['Timestamp'])
       r = MarketHistory.find_by(item_id: data['AlbionIdString'], quality: data['QualityLevel'], location: data['LocationId'], timestamp: timestamp, aggregation: timescale)
@@ -43,18 +45,19 @@ class MarketHistoryProcessorService
           item_amount: history['ItemAmount'],
           silver_amount: history['SilverAmount']
         }
+        REDIS[server_id].set("RECORD_HISTORY_SHA256_24H:#{sha256}", 1, ex: 86400)
         new_record_count += 1
       end
-
-      REDIS.set("RECORD_HISTORY_SHA256_24H:#{sha256}", 1, ex: 86400)
     end
 
-    MarketHistory.insert_all(new_records) if new_records.length > 0
+      MarketHistory.insert_all(new_records) if new_records.length > 0
 
-    puts "\nMarketHistoryProcessorService: New records: #{new_record_count}, Updated records: #{updated_record_count}\n\n"
+      puts "\nMarketHistoryProcessorService: New records: #{new_record_count}, Updated records: #{updated_record_count}\n\n"
+    end
   end
 
-  def self.ticks_to_time(ticks)
+
+  def ticks_to_time(ticks)
     Time.at((ticks - 621355968000000000)/10000000)
   end
 end

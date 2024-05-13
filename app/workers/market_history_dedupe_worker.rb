@@ -2,8 +2,8 @@
 class MarketHistoryDedupeWorker
   include Sidekiq::Job
 
-  def perform(data)
+  def perform(data, server_id)
     data = JSON.parse(data)
-    MarketHistoryDedupeService.dedupe(data)
+    MarketHistoryDedupeService.new.dedupe(data, server_id)
   end
 end

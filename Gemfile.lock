@@ -7,6 +7,15 @@ GIT
       rack-contrib (>= 1.1, < 3)
       railties (>= 3.0.0, < 7.2)
 
+GIT
+  remote: https://github.com/phendryx/multidb.git
+  revision: d36bf57b123ff5858fa88fb932b12fd9dac45800
+  branch: fix/bold-fix
+  specs:
+    ar-multidb (0.7.0)
+      activerecord (>= 5.1, < 7.2)
+      activesupport (>= 5.1, < 7.2)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -348,6 +357,7 @@ PLATFORMS
 DEPENDENCIES
   abuseipdb-rb (~> 0.0.2)
   annotate (~> 3.2)
+  ar-multidb!
   bootsnap
   capybara
   debug

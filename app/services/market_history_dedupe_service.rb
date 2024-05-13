@@ -23,15 +23,15 @@ class MarketHistoryDedupeService
     3013 => 3005  # Caerleon2 to Caerleon
   }
 
-  def self.dedupe(data)
+  def dedupe(data, server_id)
     json_data = data.to_json
     sha256 = Digest::SHA256.hexdigest(json_data)
 
-    if REDIS.get("HISTORY_RECORD_SHA256:#{sha256}").nil?
-      REDIS.set("HISTORY_RECORD_SHA256:#{sha256}", '1', ex: 600)
+    if REDIS[server_id].get("HISTORY_RECORD_SHA256:#{sha256}").nil?
+      REDIS[server_id].set("HISTORY_RECORD_SHA256:#{sha256}", '1', ex: 600)
       return if data['AlbionId'] == 0 # sometimes the client sends us 0 for the numeric item id, we trash this data
 
-      item_id = REDIS.hget('ITEM_IDS', data['AlbionId'])
+      item_id = REDIS[server_id].hget('ITEM_IDS', data['AlbionId'])
       raise StandardError.new('MarketHistoryProcessorService: Item ID not found in redis.') if item_id.nil?
 
       data['AlbionIdString'] = item_id
@@ -43,11 +43,11 @@ class MarketHistoryDedupeService
 
       json_data = data.to_json
 
-      s = NatsService.new
+      s = NatsService.new(server_id)
       s.send('markethistories.deduped', json_data)
       s.close
 
-      MarketHistoryProcessorWorker.perform_async(json_data)
+      MarketHistoryProcessorWorker.perform_async(json_data, server_id)
     end
   end
 end

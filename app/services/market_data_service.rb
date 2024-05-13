@@ -1,4 +1,5 @@
 class MarketDataService
+  # called by api controller, which sets which database to use
 
   CITY_TO_LOCATION = {
     "swampcross": 4,
