@@ -5,6 +5,7 @@ class API::V2::Stats::GoldController < API::V2::APIController
       date_from = params.key?(:date) ? Date.strptime(params[:date], '%m-%d-%Y') : DateTime.now - 1.month
       date_to = (params.key?(:end_date) ? Date.strptime(params[:end_date], '%m-%d-%Y') : DateTime.now) + 1.day
 
+      logger.info("multidb_info: server_id: #{server_id}, database: #{Multidb.balancer.current_connection.raw_connection.connection_options[:database]}")
       data = GoldPrice.where(timestamp: date_from..date_to)
       data = data.order(timestamp: :desc).limit(params[:count].to_i) if params.key?(:count)
 

@@ -2,6 +2,7 @@ class API::V2::Stats::HistoryController < API::V2::APIController
 
   def show
     begin
+      logger.info("multidb_info: server_id: #{server_id}, database: #{Multidb.balancer.current_connection.raw_connection.connection_options[:database]}")
       results = MarketHistoryService.new.get_stats(params.merge({ query_string: request.query_string}))
 
       respond_to do |format|
