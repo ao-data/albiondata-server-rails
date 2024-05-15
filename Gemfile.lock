@@ -187,6 +187,7 @@ GEM
       timeout
     net-smtp (0.4.0.1)
       net-protocol
+    newrelic_rpm (9.9.0)
     nio4r (2.7.0)
     nokogiri (1.16.2-aarch64-linux)
       racc (~> 1.4)
@@ -368,6 +369,7 @@ DEPENDENCIES
   jbuilder
   meta_request!
   nats-pure (~> 2.2, >= 2.2.1)
+  newrelic_rpm
   puma (>= 5.0)
   rack-attack (~> 6.7)
   rack-cors (~> 2.0, >= 2.0.2)
