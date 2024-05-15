@@ -57,6 +57,7 @@ gem 'rack-cors', '~> 2.0', '>= 2.0.2'
 gem 'rack-attack', '~> 6.7'
 # gem 'ar-multidb', '~> 0.7.0'
 gem 'ar-multidb', git: 'https://github.com/phendryx/multidb.git', branch: 'fix/bold-fix'
+gem 'newrelic_rpm'
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
