@@ -119,6 +119,7 @@ class MarketOrderProcessorService
         market_order['price'] = order["UnitPriceSilver"]
         market_order['amount'] = order["Amount"]
         market_order['expires'] = order["Expires"]
+        market_order['updated_at'] = Time.now
 
         if market_order.changed?
           market_order.save
