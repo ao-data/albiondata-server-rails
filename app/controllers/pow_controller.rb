@@ -49,7 +49,8 @@ class PowController < ApplicationController
     return render plain: "Pow not handed", status: 902 unless pow_json # This pow was never requested or has expired
     pow = JSON.parse(pow_json)
 
-    return render plain: "Unsupported data client.", status: 905 unless supported_client?
+    # dont check for supported clients for now
+    # return render plain: "Unsupported data client.", status: 905 unless supported_client?
     return render plain: "Topic not found.", status: 404 unless TOPICS.include?(params[:topic])
     return render plain: "Pow not solved correctly", status: 903 unless Digest::SHA2.hexdigest("aod^" + params[:solution] + "^" + params[:key]).unpack("B*")[0].start_with?(pow['wanted'])
     return render plain: "Payload too large", status: 904 unless params[:natsmsg].bytesize <= NATS_PAYLOAD_MAX
