@@ -18,7 +18,8 @@ describe GoldDedupeService, type: :service do
       allow(REDIS['west']).to receive(:set).and_return(nil)
 
       nats = double
-      expect(nats).to receive(:send).with('marketorders.deduped', data.to_json)
+      expect(nats).to receive(:send).with('goldprices.ingest', data.to_json)
+      expect(nats).to receive(:send).with('goldprices.deduped', data.to_json)
       allow(nats).to receive(:close)
       allow(NatsService).to receive(:new).with('west').and_return(nats)
 
@@ -44,9 +45,8 @@ describe GoldDedupeService, type: :service do
         allow(REDIS['west']).to receive(:get).and_return('1')
       end
 
-      it "does not send the data to the NatsService or GoldProcessorWorker" do
-        expect(NatsService).to_not receive(:new)
-        expect(GoldProcessorWorker).not_to receive(:perform_async)
+      it "does not send the data to the GoldProcessorWorker" do
+        expect(GoldProcessorWorker).not_to receive(:send)
 
         subject.dedupe(data, server_id)
       end

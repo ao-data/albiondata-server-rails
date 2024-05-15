@@ -42,6 +42,7 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
       it 'sends deduped records to nats' do
         nats = double
         expect(NatsService).to receive(:new).with('west').and_return(nats)
+        expect(nats).to receive(:send).with('marketorders.ingest', data.to_json)
         expect(nats).to receive(:send).with('marketorders.deduped', subject.dedupe.first.to_json)
         expect(nats).to receive(:send).with('marketorders.deduped.bulk', [subject.dedupe.first].to_json)
         expect(nats).to receive(:close)

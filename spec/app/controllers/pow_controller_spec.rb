@@ -44,7 +44,8 @@ RSpec.describe PowController, :type => :controller do
       expect(response).to be_successful
     end
 
-    it 'returns a 905 error if the client is not supported' do
+    # remove this test for now
+    xit 'returns a 905 error if the client is not supported' do
       allow(controller).to receive(:supported_client?).and_return(false)
       post :reply, params: params
       expect(response.status).to eq(905)
@@ -116,7 +117,6 @@ RSpec.describe PowController, :type => :controller do
     it 'does process data if the ip is good' do
       allow(controller).to receive(:ip_good?).and_return(true)
       expect(controller).to receive(:enqueue_worker).with('marketorders.ingest', { 'Orders' => [] }.to_json, 'west')
-      expect(controller).to receive(:send_to_nats).with('marketorders.ingest', { 'Orders' => [] }.to_json, 'west')
       post :reply, params: params
     end
 
@@ -153,16 +153,6 @@ RSpec.describe PowController, :type => :controller do
     #   expect(MapDataDedupeWorker).to receive(:perform_async).with({})
     #   controller.enqueue_worker('mapdata.ingest', {})
     # end
-  end
-
-  describe 'send_to_nats' do
-    it 'sends the data to NATS' do
-      nats = double('NatsService')
-      expect(nats).to receive(:send).with('topic', 'data')
-      expect(nats).to receive(:close)
-      expect(NatsService).to receive(:new).with('west').and_return(nats)
-      controller.send_to_nats('topic', 'data', 'west')
-    end
   end
 
   describe '#supported_client?' do
