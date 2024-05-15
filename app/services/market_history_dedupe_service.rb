@@ -25,6 +25,10 @@ class MarketHistoryDedupeService
 
   def dedupe(data, server_id)
     json_data = data.to_json
+
+    nats = NatsService.new(server_id)
+    nats.send('markethistories.ingest', json_data)
+
     sha256 = Digest::SHA256.hexdigest(json_data)
 
     if REDIS[server_id].get("HISTORY_RECORD_SHA256:#{sha256}").nil?
@@ -43,11 +47,11 @@ class MarketHistoryDedupeService
 
       json_data = data.to_json
 
-      s = NatsService.new(server_id)
-      s.send('markethistories.deduped', json_data)
-      s.close
+      nats.send('markethistories.deduped', json_data)
 
       MarketHistoryProcessorWorker.perform_async(json_data, server_id)
     end
+
+    nats.close
   end
 end

@@ -88,7 +88,6 @@ class PowController < ApplicationController
     if ip_good?
 
       enqueue_worker(params[:topic], params[:natsmsg], server_id)
-      send_to_nats(params[:topic], params[:natsmsg], server_id)
 
       logger.info(log_params.to_json) if ENV['DEBUG'] == "true"
     else
@@ -109,12 +108,6 @@ class PowController < ApplicationController
     # when "mapdata.ingest"
     #   MapDataDedupeWorker.perform_async(data)
     end
-  end
-
-  def send_to_nats(topic, data, server_id)
-    nats = NatsService.new(server_id)
-    nats.send(topic, data)
-    nats.close
   end
 
   def supported_client?
