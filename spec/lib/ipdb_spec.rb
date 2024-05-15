@@ -6,20 +6,20 @@ RSpec.describe Ipdb, :type => :class do
 
   describe '#check_ip' do
     before do
-      allow(ipdb.instance_variable_get(:@redis_client)).to receive(:sismember).with('bad_ips', ip).and_return(false)
-      allow(ipdb.instance_variable_get(:@redis_client)).to receive(:get).with('checked_ip_1.1.1.1').and_return(false)
-      allow(ipdb.instance_variable_get(:@redis_client)).to receive(:get).with('apidb-rate-limit-remaining').and_return(9999)
-      allow(ipdb.instance_variable_get(:@redis_client)).to receive(:set).with('checked_ip_1.1.1.1', 1, ex: 604800)
-      allow(ipdb.instance_variable_get(:@redis_client)).to receive(:set).with('apidb-rate-limit-remaining', 100, ex: 1800)
+      allow(ABUSEIPDB_REDIS).to receive(:sismember).with('bad_ips', ip).and_return(false)
+      allow(ABUSEIPDB_REDIS).to receive(:get).with('checked_ip_1.1.1.1').and_return(false)
+      allow(ABUSEIPDB_REDIS).to receive(:get).with('apidb-rate-limit-remaining').and_return(9999)
+      allow(ABUSEIPDB_REDIS).to receive(:set).with('checked_ip_1.1.1.1', 1, ex: 604800)
+      allow(ABUSEIPDB_REDIS).to receive(:set).with('apidb-rate-limit-remaining', 100, ex: 1800)
     end
 
     it 'returns false if the ip is in the bad list' do
-      allow(ipdb.instance_variable_get(:@redis_client)).to receive(:sismember).with('bad_ips', ip).and_return(true)
+      allow(ABUSEIPDB_REDIS).to receive(:sismember).with('bad_ips', ip).and_return(true)
       expect(ipdb.check_ip(ip)).to eq(false)
     end
 
     it 'returns true if the ip was checked and came back clean' do
-      allow(ipdb.instance_variable_get(:@redis_client)).to receive(:get).with('checked_ip_1.1.1.1').and_return(true)
+      allow(ABUSEIPDB_REDIS).to receive(:get).with('checked_ip_1.1.1.1').and_return(true)
       expect(ipdb.check_ip(ip)).to eq(true)
     end
 
@@ -29,7 +29,7 @@ RSpec.describe Ipdb, :type => :class do
     end
 
     it 'returns true if we are close to rate limit' do
-      allow(ipdb.instance_variable_get(:@redis_client)).to receive(:get).and_return(100)
+      allow(ABUSEIPDB_REDIS).to receive(:get).and_return(100)
       expect(ipdb.check_ip(ip)).to eq(true)
     end
 
@@ -80,7 +80,7 @@ RSpec.describe Ipdb, :type => :class do
       allow(client).to receive(:check).and_return(check)
       allow(Abuseipdb).to receive(:client).and_return(client)
 
-      expect(ipdb.instance_variable_get(:@redis_client)).to receive(:set).with('apidb-rate-limit-remaining', 100, ex: 1800)
+      expect(ABUSEIPDB_REDIS).to receive(:set).with('apidb-rate-limit-remaining', 100, ex: 1800)
 
       ipdb.check_ip(ip)
     end
@@ -97,7 +97,7 @@ RSpec.describe Ipdb, :type => :class do
       allow(client).to receive(:check).and_return(check)
       allow(Abuseipdb).to receive(:client).and_return(client)
 
-      expect(ipdb.instance_variable_get(:@redis_client)).to receive(:sadd).with('bad_ips', ip)
+      expect(ABUSEIPDB_REDIS).to receive(:sadd).with('bad_ips', ip)
 
       ipdb.check_ip(ip)
     end
@@ -114,7 +114,7 @@ RSpec.describe Ipdb, :type => :class do
       allow(client).to receive(:check).and_return(check)
       allow(Abuseipdb).to receive(:client).and_return(client)
 
-      expect(ipdb.instance_variable_get(:@redis_client)).not_to receive(:sadd)
+      expect(ABUSEIPDB_REDIS).not_to receive(:sadd)
 
       ipdb.check_ip(ip)
     end
