@@ -5,7 +5,7 @@ class MarketOrderDedupeService
     2301 => 2004, # BridgewatchPortal to Bridgewatch
     3301 => 3308, # MartlockPortal to Martlock
     4301 => 4002, # FortSterlingPortal to FortSterling
-    3013 => 3003  # Caerleon2 to Caerleon
+    3013 => 3005  # Caerleon2 to Caerleon
   }
 
   def initialize(data, server_id)
