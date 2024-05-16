@@ -131,9 +131,8 @@ class MarketHistoryService
           # ^ Taken from comments from the original code, I do not agree with this, but I want to keep the original behavior - phendryx/stanx
           timestamp = h_timestamp - 1.minute
           timestamp_date = timestamp.strftime('%Y-%m-%d')
-          timestamp_timescale = (timestamp.hour / timescale).floor
-          timeblock = "#{timestamp_date}-#{timestamp_timescale}"
-          timestamp = DateTime.parse("#{timestamp_date} #{timestamp_timescale * 6}:00:00").strftime('%Y-%m-%dT%H:%M:%S')
+          timeblock = "#{timestamp_date}-0"
+          timestamp = "#{timestamp_date}T00:00:00"
         else
 
           timestamp = h_timestamp
