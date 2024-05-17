@@ -18,45 +18,45 @@ end
 
 
 cron_jobs = [
-  # {
-  #   'name'  => 'MarketOrder Cleanup West',
-  #   'class' => 'MarketOrderCleanupWorker',
-  #   'cron'  => '*/5 * * * *',
-  #   'args'  => 'west',
-  #   'queue' => 'low'
-  # },
-  # {
-  #   'name' => ' MarketHistory Cleanup West',
-  #   'class' => 'MarketHistoryCleanupWorker',
-  #   'cron'  => '*/5 * * * *',
-  #   'args'  => 'west',
-  #   'queue' => 'low'
-  # },
-  # {
-  #   'name'  => 'MarketOrder Cleanup East',
-  #   'class' => 'MarketOrderCleanupWorker',
-  #   'cron'  => '*/5 * * * *',
-  #   'args'  => 'east',
-  #   'queue' => 'low'
-  # },
-  # {
-  #   'name' => ' MarketHistory Cleanup East',
-  #   'class' => 'MarketHistoryCleanupWorker',
-  #   'cron'  => '*/5 * * * *',
-  #   'args'  => 'east',
-  #   'queue' => 'low'
-  # },
   {
-    'name'  => 'MarketOrder Cleanup Europe',
+    'name'  => 'marketorder-cleanup-west',
     'class' => 'MarketOrderCleanupWorker',
-    'cron'  => '*/5 * * * *',
+    'cron'  => '5 * * * *',
+    'args'  => 'west',
+    'queue' => 'low'
+  },
+  {
+    'name' => ' markethistory-cleanup-west',
+    'class' => 'MarketHistoryCleanupWorker',
+    'cron'  => '10 * * * *',
+    'args'  => 'west',
+    'queue' => 'low'
+  },
+  {
+    'name'  => 'marketorder-cleanup-east',
+    'class' => 'MarketOrderCleanupWorker',
+    'cron'  => '15 * * * *',
+    'args'  => 'east',
+    'queue' => 'low'
+  },
+  {
+    'name' => ' markethistory-cleanup-east',
+    'class' => 'MarketHistoryCleanupWorker',
+    'cron'  => '20 * * * *',
+    'args'  => 'east',
+    'queue' => 'low'
+  },
+  {
+    'name'  => 'marketorder-cleanup-europe',
+    'class' => 'MarketOrderCleanupWorker',
+    'cron'  => '25 * * * *',
     'args'  => 'europe',
     'queue' => 'low'
   },
   {
-    'name' => ' MarketHistory Cleanup Europe',
+    'name' => ' markethistory-cleanup-europe',
     'class' => 'MarketHistoryCleanupWorker',
-    'cron'  => '*/5 * * * *',
+    'cron'  => '30 * * * *',
     'args'  => 'europe',
     'queue' => 'low'
   },
