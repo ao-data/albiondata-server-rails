@@ -7,13 +7,16 @@ RSpec.describe MarketHistoryService, :type => :service do
 
     Timecop.freeze(DateTime.parse('2024-03-10 00:00:00'))
 
+    records = []
     ['T4_BAG', 'T5_BAG'].product([1,2], [3003,3005], [8,9,10].to_a, [0, 6, 12, 18]).each do |item_id, quality, location, i, j|
-      MarketHistory.create(item_id: item_id, quality: quality, location: location, item_amount: location * quality, silver_amount:  location * quality * 2, timestamp: DateTime.parse("2024-03-#{i} #{j}:00:00"), aggregation: 6)
+      records << { item_id: item_id, quality: quality, location: location, item_amount: location * quality, silver_amount: location * quality * 2, timestamp: DateTime.parse("2024-03-#{i} #{j}:00:00"), aggregation: 6 }
     end
 
     ['T4_BAG', 'T5_BAG'].product([1], [3005], [9,10].to_a, (0..23).to_a).each do |item_id, quality, location, i, j|
-      MarketHistory.create(item_id: item_id, quality: quality, location: location, item_amount: location * quality, silver_amount: location * quality * 2, timestamp: DateTime.parse("2024-03-#{i} #{j}:00:00"), aggregation: 1)
+      records << { item_id: item_id, quality: quality, location: location, item_amount: location * quality, silver_amount: location * quality * 2, timestamp: DateTime.parse("2024-03-#{i} #{j}:00:00"), aggregation: 1 }
     end
+
+    MarketHistory.insert_all(records)
   end
 
   after do
