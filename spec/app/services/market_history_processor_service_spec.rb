@@ -40,7 +40,7 @@ describe MarketHistoryProcessorService, type: :service do
       it 'updates existing records' do
         subject.process(data, 'west')
         old_record_amount = MarketHistory.first['item_amount']
-        sleep 1
+        Timecop.freeze(Time.now + 1.second)
 
         data['MarketHistories'][0]['ItemAmount'] = 25
         json_data = data.to_json
@@ -55,7 +55,7 @@ describe MarketHistoryProcessorService, type: :service do
       it 'does not update a record if the data is the same' do
         subject.process(data, 'west')
         old_record = MarketHistory.first
-        sleep 1
+        Timecop.freeze(Time.now + 1.second)
 
         subject.process(data, 'west')
         new_record = MarketHistory.first
