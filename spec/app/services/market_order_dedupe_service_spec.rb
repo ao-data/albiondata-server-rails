@@ -75,7 +75,7 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
       end
 
       it 'merges portals to parent city' do
-        data['Orders'].first['LocationId'] = 9
+        data['Orders'].first['LocationId'] = 301
         result = subject.dedupe
         expect(result.first['LocationId']).to eq(7)
       end
