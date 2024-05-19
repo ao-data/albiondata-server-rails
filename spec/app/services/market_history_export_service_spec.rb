@@ -147,4 +147,11 @@ describe MarketHistoryExportService, type: :service do
       end
     end
   end
+
+  describe '#run_cmd' do
+    it 'runs the command' do
+      expect(described_class).to receive(:`).with('ls')
+      described_class.run_cmd('ls')
+    end
+  end
 end

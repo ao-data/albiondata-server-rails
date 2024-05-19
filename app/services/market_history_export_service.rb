@@ -2,7 +2,7 @@ class MarketHistoryExportService
 
   def self.run_cmd(cmd)
     puts "MarketHistoryExportService::run_cmd: cmd: #{cmd}"
-    # `#{cmd}`
+    `#{cmd}`
   end
 
   def self.export(server_id, year = nil, month = nil)
