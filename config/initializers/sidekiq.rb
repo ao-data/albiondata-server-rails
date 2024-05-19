@@ -60,14 +60,12 @@ cron_jobs = [
     'args'  => 'europe',
     'queue' => 'low'
   },
+  {
+    'name' => ' albion-online-update-check',
+    'class' => 'AlbionOnlineUpdateCheckWorker',
+    'cron'  => '*/30 * * * *',
+    'queue' => 'low'
+  },
 ]
 
-#
-# # {
-# #   'name' => 'MarketHistory Monthly Exporter',
-# #   'class' => 'MarketHistoryMonthlyExporterWorker',
-# #   'cron'  => '*/5 * * * *',
-# #   'queue' => 'low'
-# # }
-#
 Sidekiq::Cron::Job.load_from_array(cron_jobs) unless ENV['SECRET_KEY_BASE_DUMMY']
