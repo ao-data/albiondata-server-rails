@@ -4,7 +4,7 @@ class MarketDataService
   CITY_TO_LOCATION = {
     "swampcross": 4,
     "thetford": 7,
-    "thetfordportal": 9,
+    "thetfordportal": 301,
     "morganasrest": 8,
     "lymhurst": 1002,
     "lymhurstportal": 1301,
