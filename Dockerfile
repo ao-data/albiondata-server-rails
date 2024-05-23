@@ -34,4 +34,4 @@ RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
-CMD ["./bin/rails", "server"]
+ENTRYPOINT "./entrypoint.sh"

@@ -1,0 +1,30 @@
+name: rspec
+
+on: [push, pull_request]
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build Container
+        id: docker_build
+        uses: docker/build-push-action@v5
+        with:
+          load: true
+          push: false
+          tags: albiondata-server-rails:latest
+          context: .
+          file: Dockerfile
+          cache-from: type=registry,ref=albiondata/albiondata-server-rails:latest
+          cache-to: type=inline
+      - name: list files
+        run: ls -la
+      - name: copy .env.sample to .env
+        run: cp $GITHUB_WORKSPACE/.env.sample $GITHUB_WORKSPACE/.env
+        working-directory: ./app
+      - run: RUN_MODE=rspec docker compose -f docker-compose-gha.yml up --abort-on-container-exit
