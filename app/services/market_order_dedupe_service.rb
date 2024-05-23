@@ -1,12 +1,6 @@
 class MarketOrderDedupeService
-  PORTAL_TO_CITY = {
-    301 => 7,     # ThetfordPortal to Thetford
-    1301 => 1002, # LymhurstPortal to Lymhurst
-    2301 => 2004, # BridgewatchPortal to Bridgewatch
-    3301 => 3008, # MartlockPortal to Martlock
-    4301 => 4002, # FortSterlingPortal to FortSterling
-    3013 => 3005  # Caerleon2 to Caerleon
-  }
+
+  include Location
 
   def initialize(data, server_id)
     @data = data
