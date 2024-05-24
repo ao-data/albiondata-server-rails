@@ -16,6 +16,16 @@ describe MarketHistoryDedupeService, type: :service do
       expect(subject.dedupe(data, 'west')).to eq(nil)
     end
 
+    it 'returns nil if LocationId is 0' do
+      data = { 'LocationId' => 0 }
+      expect(subject.dedupe(data, 'west')).to eq(nil)
+    end
+
+    it 'returns nil if LocationId is not a numeric' do
+      data = { 'LocationId' => '3005' }
+      expect(subject.dedupe(data, 'west')).to eq(nil)
+    end
+
     it 'returns a StandardError if the AlbionID is not found in redis' do
       data = { 'foo' => 'bar', 'AlbionId' => 1234 }
       allow(REDIS['west']).to receive(:get).and_return(nil)
