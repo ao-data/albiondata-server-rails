@@ -1,6 +1,3 @@
-require_relative '../../lib/location'
-require 'rails_helper'
-
 RSpec.describe Location, :type => :module do
 
   include Location
