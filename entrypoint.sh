@@ -13,10 +13,34 @@ _term() {
 
 trap _term SIGTERM
 
+if [[ ! -z $1 ]]; then
+  RUN_MODE=$1
+fi
+
+if [ -z "${RUN_MODE}" ]; then
+  echo "RUN_MODE environment variable or first argument can be: console, web, sidekiq, nats, rspec, sleep"
+  exit 1
+fi
+
+function check_db {
+  echo "Checking Database"
+  while ! mysqladmin ping -h mysql --silent; do
+    echo "Waiting for mysql; sleep 1"
+    sleep 1
+  done
+  if [[ ${RUN_MODE} == 'rspec' ]]; then
+    echo "Creating test databases"
+    ./scripts/setup_databases.sh
+  fi
+}
+
+echo "Running: ${RUN_MODE}"
+
 cd /rails
 
-case $1 in
+case ${RUN_MODE} in
   coonsole)
+    check_db
     echo "Service type is console"
     bundle exec rails c
     child=$!
@@ -24,6 +48,7 @@ case $1 in
     ;;
 
   web)
+    check_db
     echo "Service type is web"
     RUBY_YJIT_ENABLE=1 bundle exec rails s
     child=$!
@@ -31,6 +56,7 @@ case $1 in
     ;;
 
   sidekiq)
+    check_db
     echo "Run mode is sidekiq"
     RUBY_YJIT_ENABLE=1 bundle exec sidekiq -c ${SIDEKIQ_THREADS:-5} -q critical -q default -q low
     child=$!
@@ -42,6 +68,11 @@ case $1 in
     ./bin/rake custom_task:nats_subscribe
     child=$!
     wait "$child"
+    ;;
+
+  rspec)
+    check_db
+    bundle exec rake spec
     ;;
 
   sleep)

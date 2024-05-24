@@ -1,26 +1,22 @@
 services:
   mysql:
-    image: mariadb:10.5.10
-    container_name: aodata-mysql
+    image: mariadb:11.3
     restart: on-failure
     environment:
       MARIADB_ROOT_PASSWORD: ${MYSQL_ROOT_PWD}
     ports:
       - 3306:3306
-    volumes:
-      - ./mysqldata:/var/lib/mysql
-      - ./mysqlbackup:/mysqlbackup
     networks:
       - albiondata
   web:
-    image: ruby:3
+    image: albiondata-server-rails
+#    image: ruby:3
     build:
       context: .
+      dockerfile: Dockerfile
     platform: linux/amd64
     container_name: web
     restart: no
-    volumes:
-      - ./:/rails
     environment:
       RUN_MODE: ${RUN_MODE}
 
@@ -74,8 +70,7 @@ services:
       DEBUG: "true"
       ADDITIONAL_MESSAGE_CONTENT: ${ADDITIONAL_MESSAGE_CONTENT}
       DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL}
-    # command: './entrypoint.sh web'
-#    entrypoint: ./entrypoint.sh sleep
+    entrypoint: ./entrypoint.sh rspec
     ports:
       - 3000:3000
     depends_on:
@@ -92,8 +87,6 @@ services:
     restart: on-failure
     ports:
       - 6379:6379
-    volumes:
-      - ./redisdata:/data
     command: redis-server --appendonly yes
     networks:
       - albiondata
