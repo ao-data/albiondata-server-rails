@@ -97,5 +97,28 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
         expect(result).to be_empty
       end
     end
+
+    context 'when order has LocationId equal to 0' do
+      before do
+        data['Orders'].first['LocationId'] = 0
+      end
+
+      it 'skips the order' do
+        result = subject.dedupe
+        expect(result).to be_empty
+      end
+    end
+
+    context 'when order has non-numeric LocationId' do
+      before do
+        data['Orders'].first['LocationId'] = '3005'
+      end
+
+      it 'skips the order' do
+        result = subject.dedupe
+        expect(result).to be_empty
+      end
+    end
+
   end
 end

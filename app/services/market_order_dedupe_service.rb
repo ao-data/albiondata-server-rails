@@ -51,6 +51,8 @@ class MarketOrderDedupeService
         if REDIS[@server_id].get("RECORD_SHA256:#{sha256}").nil?
           REDIS[@server_id].set("RECORD_SHA256:#{sha256}", '1', ex: 600)
 
+          next if order['LocationId'] == 0 || !order['LocationId'].is_a?(Numeric)  # sometimes the client sends us 0 for the numeric location id, or a string, we trash this data
+
           # Hack since albion seems to be multiplying every price by 10000
           order['UnitPriceSilver'] /= 10000
 
