@@ -27,15 +27,15 @@ describe MarketHistoryDedupeService, type: :service do
     end
 
     it 'returns a StandardError if the AlbionID is not found in redis' do
-      data = { 'foo' => 'bar', 'AlbionId' => 1234 }
+      data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005 }
       allow(REDIS['west']).to receive(:get).and_return(nil)
       allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return(nil)
       expect { subject.dedupe(data, 'west') }.to raise_error(StandardError)
     end
 
     it 'sends data to NatsService and MarketHistoryProcessorWorker' do
-      data = { 'foo' => 'bar', 'AlbionId' => 1234, 'MarketHistories' => [] }
-      expected_data = { 'foo' => 'bar', 'AlbionId' => 1234, 'MarketHistories' => [], 'AlbionIdString' => 'SOME_ITEM_ID' }
+      data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [] }
+      expected_data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [], 'AlbionIdString' => 'SOME_ITEM_ID' }
       allow(REDIS['west']).to receive(:get).and_return(nil)
       allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
 
