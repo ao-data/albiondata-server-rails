@@ -112,12 +112,16 @@ RSpec.describe MarketDataService, :type => :service do
     context 'sorting' do
       it 'has locations in the correct order' do
         result = subject.get_stats({id: 'T4_BAG', locations: '3005,3008'})
-        expect(result[0][:city]).to eq('Caerleon')
-        expect(result[1][:city]).to eq('Martlock')
+        (0..4).each do |i|
+          expect(result[i][:city]).to eq('Caerleon')
+        end
+        (5..9).each do |i|
+          expect(result[i][:city]).to eq('Martlock')
+        end
       end
 
       it 'has item_id in the correct order' do
-        result = subject.get_stats({id: 'T4_BAG,T5_BAG', locations: '3005'})
+        result = subject.get_stats({id: 'T4_BAG,T5_BAG', locations: '3005', qualities: '1'})
         expect(result[0][:item_id]).to eq('T4_BAG')
         expect(result[1][:item_id]).to eq('T5_BAG')
       end
