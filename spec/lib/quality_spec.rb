@@ -5,7 +5,7 @@ RSpec.describe Quality, :type => :module do
   describe '#get_qualities' do
     it 'returns default list of qualities if qualities is nil' do
       params = { qualities: nil}
-      expect(get_qualities(params)).to eq([1])
+      expect(get_qualities(params)).to eq([1,2,3,4,5])
     end
 
     it 'returns default list of qualities if qualities is 0' do
