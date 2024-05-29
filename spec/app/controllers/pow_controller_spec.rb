@@ -141,6 +141,10 @@ RSpec.describe PowController, :type => :controller do
       expect(controller).to receive(:enqueue_worker).with('marketorders.ingest', { 'Orders' => [] }.to_json, 'west', opts)
       post :reply, params: params.except(:identifier)
     end
+
+    xit 'logs the request' do
+
+    end
   end
 
   describe 'enqueue_worker' do

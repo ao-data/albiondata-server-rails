@@ -88,12 +88,13 @@ class PowController < ApplicationController
     identifier = params[:identifier] || SecureRandom.uuid
     user_agent = request.user_agent ||= "unknown"
     opts = { client_ip: request.ip, user_agent: user_agent, identifier: identifier }
+    log = { class: 'PowController', method: 'reply', params: params, opts: opts }
     if ip_good?
       enqueue_worker(params[:topic], params[:natsmsg], server_id, opts.to_json)
 
-      logger.info(opts.to_json)
+      logger.info(log.to_json)
     else
-      logger.warn(opts.merge({bad_ip: true}).to_json)
+      logger.warn(log[:opts].merge({bad_ip: true}).to_json)
     end
 
     render json: { message: "OK", status: 200 }
