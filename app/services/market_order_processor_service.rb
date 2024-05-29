@@ -1,8 +1,9 @@
 class MarketOrderProcessorService
 
-  def initialize(orders, server_id)
+  def initialize(orders, server_id, opts)
     @orders = orders
     @server_id = server_id
+    @opts = opts
     Multidb.use(server_id.to_sym)
   end
 
@@ -37,6 +38,11 @@ class MarketOrderProcessorService
         updated_at: DateTime.now
       }
     end
+
+    # logs
+    log = { class: 'MarketOrderProcessorService', method: 'process', data: @orders,
+            server_id: @server_id, opts: @opts, record_data: record_data }
+    Sidekiq.logger.info(log.to_json)
 
     MarketOrder.upsert_all(record_data, update_only: [:price, :amount, :expires, :updated_at])
   end

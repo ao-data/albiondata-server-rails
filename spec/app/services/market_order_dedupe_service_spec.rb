@@ -19,8 +19,9 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
       ]
     }
   end
+  let (:opts) { { opt1: 'opt1' } }
 
-  let(:subject) { described_class.new(data, 'west') }
+  let(:subject) { described_class.new(data, 'west', opts) }
 
   before do
     allow(REDIS['west']).to receive(:get).and_return(nil)
@@ -50,7 +51,7 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
       end
 
       it 'sends deduped records to MarketOrderProcessorWorker' do
-        expect(MarketOrderProcessorWorker).to receive(:perform_async).with(subject.dedupe.to_json, 'west')
+        expect(MarketOrderProcessorWorker).to receive(:perform_async).with(subject.dedupe.to_json, 'west', opts.to_json)
         subject.process
       end
     end
@@ -64,6 +65,21 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
         expect(MarketOrderProcessorWorker).not_to receive(:perform_async)
         subject.process
       end
+    end
+
+    it 'sends logs' do
+      expected_log = {
+        class: 'MarketOrderDedupeService',
+        method: 'process',
+        data: data,
+        server_id: 'west',
+        opts: opts,
+        deduped_recprds: [ fake: 'data']
+      }
+
+      allow(subject).to receive(:dedupe).and_return([ fake: 'data'])
+      expect(Sidekiq.logger).to receive(:info).with(expected_log.to_json)
+      subject.process
     end
   end
 
@@ -120,5 +136,16 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
       end
     end
 
+    it 'sends logs' do
+      expected_log = {
+        class: 'MarketOrderDedupeService',
+        method: 'dedupe',
+        opts: opts,
+        redis_duplicates: 0
+      }
+
+      expect(Sidekiq.logger).to receive(:info).with(expected_log.to_json)
+      subject.dedupe
+    end
   end
 end
