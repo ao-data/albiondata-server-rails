@@ -33,7 +33,7 @@ describe AlbionOnlineUpdateCheckService, type: :service do
     it 'sends a message to discord' do
       expect(ENV).to receive(:[]).with('DISCORD_WEBHOOK_URL').and_return('webhook_url')
       expect(ENV).to receive(:[]).with('ADDITIONAL_MESSAGE_CONTENT').exactly(2).times.and_return('additional_content')
-      expect(HTTParty).to receive(:post).with('webhook_url', body: { content: "TESTING: Albion Online has been updated to version 1.0.0.additional_content" }.to_json, headers: { 'Content-Type' => 'application/json' })
+      expect(HTTParty).to receive(:post).with('webhook_url', body: { content: "Albion Online has been updated to version 1.0.0.additional_content" }.to_json, headers: { 'Content-Type' => 'application/json' })
       described_class.alert_discord('1.0.0')
     end
   end
