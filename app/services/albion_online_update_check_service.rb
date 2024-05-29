@@ -21,7 +21,7 @@ class AlbionOnlineUpdateCheckService
   def self.alert_discord(new_version)
     # send a message to the discord channel
     url = ENV['DISCORD_WEBHOOK_URL']
-    message = "TESTING: Albion Online has been updated to version #{new_version}."
+    message = "Albion Online has been updated to version #{new_version}."
     message += ENV['ADDITIONAL_MESSAGE_CONTENT'] unless ENV['ADDITIONAL_MESSAGE_CONTENT'].nil?
     HTTParty.post(url, body: { content: message }.to_json, headers: { 'Content-Type' => 'application/json' })
   end
