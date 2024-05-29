@@ -7,8 +7,9 @@ RSpec.describe MarketHistoryProcessorWorker, :type => :worker do
     allow(MarketHistoryProcessorService).to receive(:new).and_return(s)
 
     data = { 'foo' => 'bar' }
-    expect(s).to receive(:process).with(data, 'west')
-    subject.perform(data.to_json, 'west')
+    opts = { 'baz' => 'qux' }
+    expect(s).to receive(:process).with(data, 'west', opts)
+    subject.perform(data.to_json, 'west', opts.to_json)
   end
 
 end

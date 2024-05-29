@@ -16,13 +16,16 @@ class MarketHistoryDedupeService
 
   include Location
 
-  def dedupe(data, server_id)
+  def dedupe(data, server_id, opts)
     json_data = data.to_json
+    json_opts = opts.to_json
 
     nats = NatsService.new(server_id)
     nats.send('markethistories.ingest', json_data)
 
     sha256 = Digest::SHA256.hexdigest(json_data)
+
+    log = { class: 'MarketHistoryDedupeService', method: 'dedupe', server_id: server_id, opts: opts}
 
     if REDIS[server_id].get("HISTORY_RECORD_SHA256:#{sha256}").nil?
       REDIS[server_id].set("HISTORY_RECORD_SHA256:#{sha256}", '1', ex: 600)
@@ -43,8 +46,14 @@ class MarketHistoryDedupeService
 
       nats.send('markethistories.deduped', json_data)
 
-      MarketHistoryProcessorWorker.perform_async(json_data, server_id)
+      MarketHistoryProcessorWorker.perform_async(json_data, server_id, json_opts)
+
+      log.merge!(data: data, message: 'data not duplicate')
+    else
+      log.merge!(message: 'data duplicate')
     end
+
+    Sidekiq.logger.info(log.to_json)
 
     nats.close
   end

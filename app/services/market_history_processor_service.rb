@@ -1,5 +1,5 @@
 class MarketHistoryProcessorService
-  def process(data, server_id)
+  def process(data, server_id, opts)
     Multidb.use(server_id.to_sym) do
 
       # data = {
@@ -29,6 +29,11 @@ class MarketHistoryProcessorService
           silver_amount: history['SilverAmount']
         }
       end
+
+      # logs
+      log = { class: 'MarketHistoryProcessorService', method: 'process',
+              server_id: server_id, opts: opts, record_data: record_data }
+      Sidekiq.logger.info(log.to_json)
 
       MarketHistory.upsert_all(record_data, update_only: [:item_amount, :silver_amount])
     end
