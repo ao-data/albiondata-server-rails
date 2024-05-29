@@ -7,7 +7,8 @@ RSpec.describe MarketHistoryDedupeWorker, :type => :worker do
     allow(MarketHistoryDedupeService).to receive(:new).and_return(s)
 
     data = { 'foo' => 'bar' }
-    expect(s).to receive(:dedupe).with(data, 'west')
-    subject.perform(data.to_json, 'west')
+    opts = { 'baz' => 'qux' }
+    expect(s).to receive(:dedupe).with(data, 'west', opts)
+    subject.perform(data.to_json, 'west', opts.to_json)
   end
 end

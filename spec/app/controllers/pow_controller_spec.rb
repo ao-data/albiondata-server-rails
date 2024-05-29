@@ -31,7 +31,8 @@ RSpec.describe PowController, :type => :controller do
 
   describe 'POST #reply' do
     let(:pow) { { wanted: '0011', key: 'pow_key' } }
-    let(:params) { { topic: 'marketorders.ingest', key: 'pow_key', solution: '0011', natsmsg: { Orders: [] }.to_json } }
+    let(:params) { { topic: 'marketorders.ingest', key: 'pow_key', solution: '0011',
+                     natsmsg: { Orders: [] }.to_json , identifier: 'test_identifier' } }
 
     before do
       REDIS['west'].set('POW:pow_key', pow.to_json)
@@ -116,7 +117,8 @@ RSpec.describe PowController, :type => :controller do
 
     it 'does process data if the ip is good' do
       allow(controller).to receive(:ip_good?).and_return(true)
-      expect(controller).to receive(:enqueue_worker).with('marketorders.ingest', { 'Orders' => [] }.to_json, 'west')
+      opts = { client_ip: '0.0.0.0', user_agent: 'Rails Testing', identifier: 'test_identifier' }.to_json
+      expect(controller).to receive(:enqueue_worker).with('marketorders.ingest', { 'Orders' => [] }.to_json, 'west', opts)
       post :reply, params: params
     end
 
@@ -125,28 +127,44 @@ RSpec.describe PowController, :type => :controller do
       expect(controller).not_to receive(:enqueue_worker)
       post :reply, params: params
     end
+
+    it 'sets the user agent to unknown if there is no user agent present' do
+      @request.user_agent = nil
+      opts = { client_ip: '0.0.0.0', user_agent: 'unknown', identifier: 'test_identifier' }.to_json
+      expect(controller).to receive(:enqueue_worker).with('marketorders.ingest', { 'Orders' => [] }.to_json, 'west', opts)
+      post :reply, params: params
+    end
+
+    it 'sets the identifier to a new uuid if identifier is not present' do
+      opts = { client_ip: '0.0.0.0', user_agent: 'Rails Testing', identifier: 'new_uuid' }.to_json
+      expect(SecureRandom).to receive(:uuid).and_return('new_uuid')
+      expect(controller).to receive(:enqueue_worker).with('marketorders.ingest', { 'Orders' => [] }.to_json, 'west', opts)
+      post :reply, params: params.except(:identifier)
+    end
   end
 
   describe 'enqueue_worker' do
+    let (:opts) { { client_ip: '0.0.0.0', user_agent: 'Rails Testing', identifier: 'test_identifier' } }
+
     it 'enqueues a GoldPriceDedupeWorker if the topic is goldprices.ingest' do
-      expect(GoldDedupeWorker).to receive(:perform_async).with({}, 'west')
-      controller.enqueue_worker('goldprices.ingest', {}, 'west')
+      expect(GoldDedupeWorker).to receive(:perform_async).with({}, 'west', opts)
+      controller.enqueue_worker('goldprices.ingest', {}, 'west', opts)
     end
 
     it 'enqueues a MarketOrderDedupeWorker if the topic is marketorders.ingest' do
-      expect(MarketOrderDedupeWorker).to receive(:perform_async).with({}, 'west')
-      controller.enqueue_worker('marketorders.ingest', {}, 'west')
+      expect(MarketOrderDedupeWorker).to receive(:perform_async).with({}, 'west', opts)
+      controller.enqueue_worker('marketorders.ingest', {}, 'west', opts)
     end
 
     it 'enqueues a MarketHistoryDedupeWorker if the topic is markethistories.ingest' do
-      expect(MarketHistoryDedupeWorker).to receive(:perform_async).with({}, 'west')
-      controller.enqueue_worker('markethistories.ingest', {}, 'west')
+      expect(MarketHistoryDedupeWorker).to receive(:perform_async).with({}, 'west', opts)
+      controller.enqueue_worker('markethistories.ingest', {}, 'west', opts)
     end
 
     it 'enqueues a MarketHistoryDedupeWorker if the topic is markethistories.ingest for east database' do
       @request.host = 'east.example.com'
-      expect(MarketHistoryDedupeWorker).to receive(:perform_async).with({}, 'east')
-      controller.enqueue_worker('markethistories.ingest', {}, 'east')
+      expect(MarketHistoryDedupeWorker).to receive(:perform_async).with({}, 'east', opts)
+      controller.enqueue_worker('markethistories.ingest', {}, 'east', opts)
     end
 
     # xit 'enqueues a MapDataDedupeWorker if the topic is mapdata.ingest' do

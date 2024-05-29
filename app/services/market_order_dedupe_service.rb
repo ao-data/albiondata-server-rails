@@ -2,9 +2,10 @@ class MarketOrderDedupeService
 
   include Location
 
-  def initialize(data, server_id)
+  def initialize(data, server_id, opts)
     @data = data
     @server_id = server_id
+    @opts = opts
   end
 
   def process
@@ -23,8 +24,13 @@ class MarketOrderDedupeService
       # Send bulk records to NATS
       nats.send('marketorders.deduped.bulk', deduped_records.to_json)
 
+      # logs
+      log = { class: 'MarketOrderDedupeService', method: 'process', data: @data, server_id: @server_id, opts: @opts,
+              deduped_recprds: deduped_records }
+      Sidekiq.logger.info(log.to_json)
+
       # Send bulk records to Sidekiq
-      MarketOrderProcessorWorker.perform_async(deduped_records.to_json, @server_id)
+      MarketOrderProcessorWorker.perform_async(deduped_records.to_json, @server_id, @opts.to_json)
     end
 
     nats.close
@@ -66,9 +72,8 @@ class MarketOrderDedupeService
       end
     end
 
-    puts ''
-    puts "Redis duplicates: #{redis_duplicates}"
-    puts ''
+    log = { class: 'MarketOrderDedupeService', method: 'dedupe', opts: @opts, redis_duplicates: redis_duplicates }
+    Sidekiq.logger.info(log.to_json)
 
     redis_deduped
   end

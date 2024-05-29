@@ -85,27 +85,28 @@ class PowController < ApplicationController
       end
     end
 
-    log_params = params.merge({request_ip: request.ip, user_agent: request.env['HTTP_USER_AGENT']})
+    identifier = params[:identifier] || SecureRandom.uuid
+    user_agent = request.user_agent ||= "unknown"
+    opts = { client_ip: request.ip, user_agent: user_agent, identifier: identifier }
     if ip_good?
+      enqueue_worker(params[:topic], params[:natsmsg], server_id, opts.to_json)
 
-      enqueue_worker(params[:topic], params[:natsmsg], server_id)
-
-      logger.info(log_params.to_json) if ENV['DEBUG'] == "true"
+      logger.info(opts.to_json)
     else
-      logger.warn(log_params.merge({bad_ip: true}).to_json) if ENV['DEBUG'] == "true"
+      logger.warn(opts.merge({bad_ip: true}).to_json)
     end
 
     render json: { message: "OK", status: 200 }
   end
 
-  def enqueue_worker(topic, data, server_id)
+  def enqueue_worker(topic, data, server_id, opts)
     case topic.downcase
     when "goldprices.ingest"
-      GoldDedupeWorker.perform_async(data, server_id)
+      GoldDedupeWorker.perform_async(data, server_id, opts)
     when "marketorders.ingest"
-      MarketOrderDedupeWorker.perform_async(data, server_id)
+      MarketOrderDedupeWorker.perform_async(data, server_id, opts)
     when "markethistories.ingest"
-      MarketHistoryDedupeWorker.perform_async(data, server_id)
+      MarketHistoryDedupeWorker.perform_async(data, server_id, opts)
     # when "mapdata.ingest"
     #   MapDataDedupeWorker.perform_async(data)
     end
