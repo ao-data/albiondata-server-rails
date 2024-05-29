@@ -1,10 +1,11 @@
 class GoldDedupeWorker
   include Sidekiq::Worker
 
-  def perform(data, server_id)
+  def perform(data, server_id, opts)
     Multidb.use(server_id) do
       data = JSON.parse(data)
-      GoldDedupeService.new.dedupe(data, server_id)
+      opts = JSON.parse(opts)
+      GoldDedupeService.new.dedupe(data, server_id, opts)
     end
   end
 end
