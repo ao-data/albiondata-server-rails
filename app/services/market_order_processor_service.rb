@@ -21,6 +21,7 @@ class MarketOrderProcessorService
   def process
     record_data = []
     @orders.each do |order|
+      next unless ["offer", "request"].include?(order["AuctionType"])
       expires = DateTime.parse(order['Expires'])
       expires = DateTime.now + 1.month if expires.year > 2050 # black market expires "never expire", so we fake it
 
