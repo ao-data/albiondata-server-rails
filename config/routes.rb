@@ -32,6 +32,8 @@ Rails.application.routes.draw do
         match "charts/:id", controller: "history", action: "charts", via: :get, :defaults => { :format => 'json' }
 
         match "gold", controller: "gold", action: "index", via: :get, :defaults => { :format => 'json' }
+
+        match "identifier", controller: "identifier", action: "index", via: :get, :defaults => { :format => 'json' }
       end
 
       # resources :stats

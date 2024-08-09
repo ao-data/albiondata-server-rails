@@ -11,6 +11,7 @@ class MarketOrderDedupeService
   def process
     nats = NatsService.new(@server_id)
     nats.send('marketorders.ingest', @data.to_json)
+    IdentifierService.add_identifier_event(@opts, "Received on MarketOrderDedupeService, sent to NATS marketorders.ingest")
 
     deduped_records = dedupe
 
@@ -31,6 +32,7 @@ class MarketOrderDedupeService
 
       # Send bulk records to Sidekiq
       MarketOrderProcessorWorker.perform_async(deduped_records.to_json, @server_id, @opts.to_json)
+      IdentifierService.add_identifier_event(@opts, "From MarketOrderDedupeService, non duplicate prices found, sent to NATS marketorders.deduped, marketorders.deduped.bulk, passed on to MarketOrderProcessorWorker")
     end
 
     nats.close
@@ -74,6 +76,7 @@ class MarketOrderDedupeService
 
     log = { class: 'MarketOrderDedupeService', method: 'dedupe', opts: @opts, redis_duplicates: redis_duplicates }
     Sidekiq.logger.info(log.to_json)
+    IdentifierService.add_identifier_event(@opts, "Received on MarketOrderDedupeService dedupe method, uniques found: #{redis_deduped.length}, duplicates found: #{redis_duplicates}")
 
     redis_deduped
   end
