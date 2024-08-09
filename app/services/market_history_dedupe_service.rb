@@ -49,8 +49,10 @@ class MarketHistoryDedupeService
       MarketHistoryProcessorWorker.perform_async(json_data, server_id, json_opts)
 
       log.merge!(data: data, message: 'data not duplicate')
+      IdentifierService.add_identifier_event(opts, "Received on MarketHistoryDedupeService, not duplicate, sent to MarketHistoryProcessorWorker")
     else
       log.merge!(message: 'data duplicate')
+      IdentifierService.add_identifier_event(opts, "Received on MarketHistoryDedupeService, data is duplicate, so ignored")
     end
 
     Sidekiq.logger.info(log.to_json)

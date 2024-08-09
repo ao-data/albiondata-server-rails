@@ -16,9 +16,11 @@ class GoldDedupeService
       log[:message] = "data not duplicate"
       Sidekiq.logger.info(log.to_json)
       GoldProcessorWorker.perform_async(json_data, server_id, json_opts)
+      IdentifierService.add_identifier_event(opts, 'Received on GoldDedupeService, not duplicate, sent to GoldProcessorWorker')
     else
       log[:message] = "data duplicate"
       Sidekiq.logger.info(log.to_json)
+      IdentifierService.add_identifier_event(opts, 'Received on GoldDedupeService, data is duplicate, so ignored')
     end
 
     nats.close

@@ -34,8 +34,10 @@ class MarketHistoryProcessorService
       log = { class: 'MarketHistoryProcessorService', method: 'process',
               server_id: server_id, opts: opts, record_data: record_data }
       Sidekiq.logger.info(log.to_json)
+      IdentifierService.add_identifier_event(opts, "Received on MarketHistoryProcessorService")
 
       MarketHistory.upsert_all(record_data, update_only: [:item_amount, :silver_amount])
+      IdentifierService.add_identifier_event(opts, "Saved to database from MarketHistoryProcessorService")
     end
   end
 
