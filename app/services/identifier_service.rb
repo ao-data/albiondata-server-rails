@@ -1,5 +1,5 @@
 class IdentifierService
-  def self.add_identifier_event(opts, event, natsmsg = nil, expiration = 600)
+  def self.add_identifier_event(opts, server, event, natsmsg = nil, expiration = 600)
 
     # Ensure opts is a hash
     opts = opts.is_a?(Hash) ? opts : JSON.parse(opts) rescue {}
@@ -10,12 +10,13 @@ class IdentifierService
       return
     end
 
-    key = "IDENTIFIER:#{identifier}"
+    key = build_key(identifier, server)
 
     event_object = {
+      server: server,
       timestamp: Time.now.utc.strftime('%Y-%m-%dT%H:%M:%S'),
-      natsmsg: natsmsg.nil? ? nil : JSON.parse(natsmsg),
-      event: event
+      event: event,
+      natsmsg: natsmsg.nil? ? nil : JSON.parse(natsmsg)
     }
 
     event_json = event_object.to_json
@@ -27,8 +28,8 @@ class IdentifierService
     REDIS['identifier'].expire(key, expiration)
   end
 
-  def self.get_identifier_events(identifier)
-    key = "IDENTIFIER:#{identifier}"
+  def self.get_identifier_events(identifier, server)
+    key = build_key(identifier, server)
 
     response = REDIS['identifier'].lrange(key, 0, -1)
 
@@ -36,4 +37,10 @@ class IdentifierService
 
     parsed_response
   end
+
+  private
+  def self.build_key(identifier, server)
+    "IDENTIFIER:#{server}:#{identifier}"
+  end
+
 end
