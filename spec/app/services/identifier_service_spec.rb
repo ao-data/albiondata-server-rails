@@ -2,6 +2,7 @@ describe IdentifierService, type: :service do
 
   describe '.add_identifier_event' do
     let(:opts) { { identifier: 'test_identifier' } }
+    let(:server) { 'test_server' }
     let(:event) { 'test_event' }
     let(:natsmsg) { nil }
     let(:expiration) { 600 }
@@ -12,7 +13,7 @@ describe IdentifierService, type: :service do
     end
 
     it 'adds an event to the identifier' do
-      described_class.add_identifier_event(opts, event, natsmsg, expiration)
+      described_class.add_identifier_event(opts, server, event, natsmsg, expiration)
 
       key = "IDENTIFIER:#{opts[:identifier]}"
       response = REDIS['identifier'].lrange(key, 0, -1)

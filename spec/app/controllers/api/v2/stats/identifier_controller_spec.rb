@@ -34,13 +34,13 @@ RSpec.describe API::V2::Stats::IdentifierController, :type => :controller do
       end
 
       it "returns the events associated with the identifier" do
-        IdentifierService.add_identifier_event({ identifier: identifier }, 'test_event')
+        IdentifierService.add_identifier_event({ identifier: identifier }, 'test_server', 'test_event')
 
         get :index, format: :json, params: { identifier: identifier }
 
         expect(response).to have_http_status(:success)
         expect(JSON.parse(response.body)).to eq([
-          { "timestamp" => Time.now.utc.strftime('%Y-%m-%dT%H:%M:%S'), "natsmsg" => nil, "event" => 'test_event' }
+          { "server" => "test_server", "timestamp" => Time.now.utc.strftime('%Y-%m-%dT%H:%M:%S'), "natsmsg" => nil, "event" => 'test_event' }
         ])
       end
     end

@@ -52,7 +52,7 @@ class PowController < ApplicationController
     pow_json = REDIS[server_id].get("POW:#{params[:key]}")
     REDIS[server_id].del("POW:#{params[:key]}")
     unless pow_json
-      IdentifierService.add_identifier_event(opts, 'Received on Pow Controller, ignored cause Pow not handed')
+      IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller, ignored cause Pow not handed')
       return render plain: "Pow not handed", status: 902 # This pow was never requested or has expired
     end
     pow = JSON.parse(pow_json)
@@ -60,36 +60,36 @@ class PowController < ApplicationController
     # dont check for supported clients for now
     # return render plain: "Unsupported data client.", status: 905 unless supported_client?
     unless TOPICS.include?(params[:topic])
-      IdentifierService.add_identifier_event(opts, 'Received on Pow Controller, ignored cause Topic not found')
+      IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller, ignored cause Topic not found')
       return render plain: "Topic not found.", status: 404
     end
 
     unless Digest::SHA2.hexdigest("aod^" + params[:solution] + "^" + params[:key]).unpack("B*")[0].start_with?(pow['wanted'])
-      IdentifierService.add_identifier_event(opts, 'Received on Pow Controller, ignored cause Pow not solved correctly')
+      IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller, ignored cause Pow not solved correctly')
       return render plain: "Pow not solved correctly", status: 903
     end
 
     if params[:natsmsg].bytesize > NATS_PAYLOAD_MAX
-      IdentifierService.add_identifier_event(opts, 'Received on Pow Controller, ignored cause Payload too large')
+      IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller, ignored cause Payload too large')
       return render plain: "Payload too large", status: 904
     end
 
     begin
       data = JSON.parse(params[:natsmsg])
     rescue
-      IdentifierService.add_identifier_event(opts, 'Received on Pow Controller, ignored cause Invalid JSON data')
+      IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller, ignored cause Invalid JSON data')
       return render plain: "Invalid JSON data", status: 901
     end
 
     if params[:topic] == "marketorders.ingest" && data['Orders'].count > 50
       logger.warn("Error 904, Too Much Data. ip: #{request.ip}, topic: marketorders.ingest, order count: #{data['Orders'].count}")
-      IdentifierService.add_identifier_event(opts, 'Received on Pow Controller, ignored cause Error 904 Too Much Data')
+      IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller, ignored cause Error 904 Too Much Data')
       return render plain: "Too much data", status: 904
     end
 
     if params[:topic] == "goldprices.ingest" && data['Prices'].count > 673
       logger.warn("Error 904, Too Much Data. ip: #{request.ip}, topic: goldprices.ingest, order count: #{data['Prices'].count}")
-      IdentifierService.add_identifier_event(opts, 'Received on Pow Controller, ignored cause Error 904 Too Much Data')
+      IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller, ignored cause Error 904 Too Much Data')
       return render plain: "Too much data", status: 904
     end
 
@@ -103,7 +103,7 @@ class PowController < ApplicationController
 
       if failed == true
         logger.warn("Error 904, Too Much Data. ip: #{request.ip}, topic: markethistories.ingest, Timescale: #{data['Timescale']}, MarketHistories count: #{data['MarketHistories'].count}")
-        IdentifierService.add_identifier_event(opts, 'Received on Pow Controller, ignored cause Error 904 Too Much Data')
+        IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller, ignored cause Error 904 Too Much Data')
         return render plain: "Too much data", status: 904
       end
     end
@@ -114,7 +114,7 @@ class PowController < ApplicationController
       logger.info(log.to_json)
     else
       logger.warn(log[:opts].merge({bad_ip: true}).to_json)
-      IdentifierService.add_identifier_event(opts, 'Received on Pow Controller, ignored cause Bad IP')
+      IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller, ignored cause Bad IP')
     end
 
     render json: { message: "OK", status: 200 }
@@ -123,13 +123,13 @@ class PowController < ApplicationController
   def enqueue_worker(topic, data, server_id, opts)
     case topic.downcase
     when "goldprices.ingest"
-      IdentifierService.add_identifier_event(opts, 'Received on Pow Controller and enqueued for GoldDedupeWorker', params[:natsmsg])
+      IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller and enqueued for GoldDedupeWorker', params[:natsmsg])
       GoldDedupeWorker.perform_async(data, server_id, opts)
     when "marketorders.ingest"
-      IdentifierService.add_identifier_event(opts, 'Received on Pow Controller and enqueued for MarketOrderDedupeWorker', params[:natsmsg])
+      IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller and enqueued for MarketOrderDedupeWorker', params[:natsmsg])
       MarketOrderDedupeWorker.perform_async(data, server_id, opts)
     when "markethistories.ingest"
-      IdentifierService.add_identifier_event(opts, 'Received on Pow Controller and enqueued for MarketHistoryDedupeWorker', params[:natsmsg])
+      IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller and enqueued for MarketHistoryDedupeWorker', params[:natsmsg])
       MarketHistoryDedupeWorker.perform_async(data, server_id, opts)
     # when "mapdata.ingest"
     #   MapDataDedupeWorker.perform_async(data)

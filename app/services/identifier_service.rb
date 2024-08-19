@@ -1,5 +1,5 @@
 class IdentifierService
-  def self.add_identifier_event(opts, event, natsmsg = nil, expiration = 600)
+  def self.add_identifier_event(opts, server, event, natsmsg = nil, expiration = 600)
 
     # Ensure opts is a hash
     opts = opts.is_a?(Hash) ? opts : JSON.parse(opts) rescue {}
@@ -13,9 +13,10 @@ class IdentifierService
     key = "IDENTIFIER:#{identifier}"
 
     event_object = {
+      server: server,
       timestamp: Time.now.utc.strftime('%Y-%m-%dT%H:%M:%S'),
-      natsmsg: natsmsg.nil? ? nil : JSON.parse(natsmsg),
-      event: event
+      event: event,
+      natsmsg: natsmsg.nil? ? nil : JSON.parse(natsmsg)
     }
 
     event_json = event_object.to_json

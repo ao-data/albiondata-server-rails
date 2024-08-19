@@ -43,9 +43,9 @@ class MarketOrderProcessorService
     log = { class: 'MarketOrderProcessorService', method: 'process', data: @orders,
             server_id: @server_id, opts: @opts, record_data: record_data }
     Sidekiq.logger.info(log.to_json)
-    IdentifierService.add_identifier_event(@opts, "Received on MarketOrderProcessorService")
+    IdentifierService.add_identifier_event(@opts, @server_id, "Received on MarketOrderProcessorService")
 
     MarketOrder.upsert_all(record_data, update_only: [:price, :amount, :expires, :updated_at])
-    IdentifierService.add_identifier_event(@opts, "Saved to database from MarketOrderProcessorService")
+    IdentifierService.add_identifier_event(@opts, @server_id, "Saved to database from MarketOrderProcessorService")
   end
 end
