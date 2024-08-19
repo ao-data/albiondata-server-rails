@@ -10,7 +10,7 @@ class IdentifierService
       return
     end
 
-    key = "IDENTIFIER:#{identifier}"
+    key = build_key(identifier, server)
 
     event_object = {
       server: server,
@@ -28,8 +28,8 @@ class IdentifierService
     REDIS['identifier'].expire(key, expiration)
   end
 
-  def self.get_identifier_events(identifier)
-    key = "IDENTIFIER:#{identifier}"
+  def self.get_identifier_events(identifier, server)
+    key = build_key(identifier, server)
 
     response = REDIS['identifier'].lrange(key, 0, -1)
 
@@ -37,4 +37,10 @@ class IdentifierService
 
     parsed_response
   end
+
+  private
+  def self.build_key(identifier, server)
+    "IDENTIFIER:#{server}:#{identifier}"
+  end
+
 end
