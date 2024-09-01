@@ -11,6 +11,7 @@ RSpec.describe Ipdb, :type => :class do
       allow(ABUSEIPDB_REDIS).to receive(:get).with('apidb-rate-limit-remaining').and_return(9999)
       allow(ABUSEIPDB_REDIS).to receive(:set).with('checked_ip_1.1.1.1', 1, ex: 604800)
       allow(ABUSEIPDB_REDIS).to receive(:set).with('apidb-rate-limit-remaining', 100, ex: 1800)
+      ENV['ABUSEIPDB_SCORE_THRESHOLD'] = '10'
     end
 
     it 'returns false if the ip is in the bad list' do
@@ -66,6 +67,40 @@ RSpec.describe Ipdb, :type => :class do
       allow(Abuseipdb).to receive(:client).and_return(client)
 
       expect(ipdb.check_ip(ip)).to eq(true)
+    end
+
+    it 'returns true if the score is less than or equal to ENV["ABUSEIPDB_SCORE_THRESHOLD"]' do
+      ENV['ABUSEIPDB_SCORE_THRESHOLD'] = '100'
+
+      result = double
+      allow(result).to receive(:body).and_return({ 'data' => { 'abuseConfidenceScore' => 100 } })
+      allow(result).to receive_message_chain(:raw_response, :env, :response_headers).and_return({ 'x-ratelimit-remaining' => 100 })
+
+      check = double
+      allow(check).to receive(:call).with(ipAddress: ip).and_return(result)
+
+      client = double
+      allow(client).to receive(:check).and_return(check)
+      allow(Abuseipdb).to receive(:client).and_return(client)
+
+      expect(ipdb.check_ip(ip)).to eq(true)
+    end
+
+    it 'returns false if the score is greater than ENV["ABUSEIPDB_SCORE_THRESHOLD"]' do
+      ENV['ABUSEIPDB_SCORE_THRESHOLD'] = '100'
+
+      result = double
+      allow(result).to receive(:body).and_return({ 'data' => { 'abuseConfidenceScore' => 101 } })
+      allow(result).to receive_message_chain(:raw_response, :env, :response_headers).and_return({ 'x-ratelimit-remaining' => 100 })
+
+      check = double
+      allow(check).to receive(:call).with(ipAddress: ip).and_return(result)
+
+      client = double
+      allow(client).to receive(:check).and_return(check)
+      allow(Abuseipdb).to receive(:client).and_return(client)
+
+      expect(ipdb.check_ip(ip)).to eq(false)
     end
 
     it 'stores the rate limit remaining' do
