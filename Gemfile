@@ -74,6 +74,7 @@ group :development, :test do
   gem 'simplecov-rcov', '~> 0.3.7'
 
   gem 'rack-test', '~> 2.1'
+  gem 'database_cleaner', '~> 2.0', '>= 2.0.2'
 end
 
 gem 'meta_request', github: 'Nowaker/rails_panel', branch: 'add-support-to-rails-7.1'

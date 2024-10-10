@@ -30,9 +30,20 @@ describe AlbionOnlineUpdateCheckService, type: :service do
   end
 
   describe '#alert_discord' do
+    before do
+      @old_webhook_url = ENV['DISCORD_WEBHOOK_URL']
+      @old_additional_message_content = ENV['ADDITIONAL_MESSAGE_CONTENT']
+
+      ENV['DISCORD_WEBHOOK_URL'] = 'webhook_url'
+      ENV['ADDITIONAL_MESSAGE_CONTENT'] = 'additional_content'
+    end
+
+    after do
+      ENV['DISCORD_WEBHOOK_URL'] = @old_webhook_url
+      ENV['ADDITIONAL_MESSAGE_CONTENT'] = @old_additional_message_content
+    end
+
     it 'sends a message to discord' do
-      expect(ENV).to receive(:[]).with('DISCORD_WEBHOOK_URL').and_return('webhook_url')
-      expect(ENV).to receive(:[]).with('ADDITIONAL_MESSAGE_CONTENT').exactly(2).times.and_return('additional_content')
       expect(HTTParty).to receive(:post).with('webhook_url', body: { content: "Albion Online has been updated to version 1.0.0.additional_content" }.to_json, headers: { 'Content-Type' => 'application/json' })
       described_class.alert_discord('1.0.0')
     end
