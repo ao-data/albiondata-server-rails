@@ -1,7 +1,7 @@
 services:
   mysql:
     image: mariadb:10.5.10
-    container_name: aodata-mysql
+    container_name: mysql
     restart: on-failure
     environment:
       MARIADB_ROOT_PASSWORD: ${MYSQL_ROOT_PWD}
@@ -16,7 +16,7 @@ services:
     image: ruby:3
     build:
       context: .
-    platform: linux/amd64
+#    platform: linux/amd64
     container_name: web
     restart: no
     volumes:
@@ -76,7 +76,7 @@ services:
       DEBUG: "true"
       ADDITIONAL_MESSAGE_CONTENT: ${ADDITIONAL_MESSAGE_CONTENT}
       DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL}
-    # command: './entrypoint.sh web'
+#    command: './entrypoint.sh web'
 #    entrypoint: ./entrypoint.sh sleep
     ports:
       - 3000:3000
