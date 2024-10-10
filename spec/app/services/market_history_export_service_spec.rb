@@ -59,6 +59,7 @@ RSpec.describe MarketHistoryExportService, type: :service do
           "> /tmp/west/market_history_2024_01.sql"
         ]
 
+        allow(described_class).to receive(:delete_month)
         expect(described_class).to receive(:run_cmd).with(expected_cmd)
         expect(described_class).to receive(:run_cmd).with(['gzip', '/tmp/west/market_history_2024_01.sql'])
         described_class.export('west')
@@ -83,9 +84,17 @@ RSpec.describe MarketHistoryExportService, type: :service do
           "> /tmp/west/market_history_2023_12.sql"
         ]
 
+        allow(described_class).to receive(:delete_month)
         expect(described_class).to receive(:run_cmd).with(expected_cmd)
         expect(described_class).to receive(:run_cmd).with(['gzip', '/tmp/west/market_history_2023_12.sql'])
         described_class.export('west', "2023", 12)
+      end
+    end
+
+    describe 'with delete_data set to true' do
+      it 'calls delete_month' do
+        expect(described_class).to receive(:delete_month).with('west', '2024', '01')
+        described_class.export('west', '2024', "01", true)
       end
     end
 
@@ -116,6 +125,7 @@ RSpec.describe MarketHistoryExportService, type: :service do
           ENV["MYSQL_#{region}_EXPORT_PATH"] = instance_variable_get("@old_mysql_#{region.downcase}_export_path")
         end
       end
+
       describe "west" do
         it 'runs the correct commands' do
           Timecop.freeze(DateTime.parse('2024-07-02'))
@@ -135,6 +145,7 @@ RSpec.describe MarketHistoryExportService, type: :service do
             "> /tmp/west_path/market_history_2024_01.sql"
           ]
 
+          allow(described_class).to receive(:delete_month)
           expect(described_class).to receive(:run_cmd).with(expected_cmd)
           expect(described_class).to receive(:run_cmd).with(['gzip', '/tmp/west_path/market_history_2024_01.sql'])
           described_class.export('west')
@@ -205,6 +216,35 @@ RSpec.describe MarketHistoryExportService, type: :service do
           expect(described_class).to receive(:run_cmd).with(expected_cmd)
           expect(described_class).to receive(:run_cmd).with(['gzip', '/tmp/europe_path/market_history_2024_01.sql'])
           described_class.export('europe')
+        end
+      end
+    end
+  end
+
+  describe '#export_month' do
+    it "returns ['2024', '01'] when the date is July 2024" do
+      Timecop.freeze(DateTime.parse('2024-07-02'))
+      expect(described_class.export_month).to eq(['2024', '01'])
+    end
+
+    it "returns ['2024', '02'] when the date is August 2024" do
+      Timecop.freeze(DateTime.parse('2024-08-02'))
+      expect(described_class.export_month).to eq(['2024', '02'])
+    end
+  end
+
+  describe '#delete_month' do
+    it 'deletes data if delete_data is true' do
+      Timecop.freeze(Time.new(2024, 1, 1)) do
+        Multidb.use(:west) do
+          create(:market_history, timestamp: Time.new(2023, 12, 1))
+          create(:market_history, timestamp: Time.new(2024, 1, 1))
+          create(:market_history, timestamp: Time.new(2024, 2, 1))
+        end
+        described_class.delete_month('west', '2024', '01')
+        Multidb.use(:west) do
+          expect(MarketHistory.count).to eq(2)
+          expect(MarketHistory.where("timestamp between '2024-01-01' and '2024-01-31'").count).to eq(0)
         end
       end
     end
