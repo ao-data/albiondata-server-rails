@@ -1,8 +1,8 @@
 class MarketHistoryExportService
 
   def self.run_cmd(cmd)
-    puts "MarketHistoryExportService::run_cmd: cmd: #{cmd}"
-    `#{cmd}`
+    joined_cmd = cmd.join(' ')
+    `#{joined_cmd}`
   end
 
   def self.export(server_id, year = nil, month = nil)
@@ -45,7 +45,11 @@ class MarketHistoryExportService
 
     host, user, pwd, db, export_dir = server_config[server_id].values
 
+    File.directory?(export_dir) || FileUtils.mkdir_p(export_dir)
     export_filename = "#{export_dir}/market_history_#{start_datetime.strftime('%Y_%m')}.sql"
+
+    File.delete(export_filename) if File.exist?(export_filename)
+    File.delete("#{export_filename}.gz") if File.exist?("#{export_filename}.gz")
 
     cmd = [
       'mysqldump',
@@ -64,7 +68,7 @@ class MarketHistoryExportService
     ]
     run_cmd(cmd)
 
-    cmd = "gzip #{export_filename}"
+    cmd = ['gzip', export_filename]
     run_cmd(cmd)
   end
 end

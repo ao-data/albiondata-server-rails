@@ -119,6 +119,12 @@ GEM
     concurrent-ruby (1.2.3)
     connection_pool (2.4.1)
     crass (1.0.6)
+    database_cleaner (2.0.2)
+      database_cleaner-active_record (>= 2, < 3)
+    database_cleaner-active_record (2.2.0)
+      activerecord (>= 5.a)
+      database_cleaner-core (~> 2.0.0)
+    database_cleaner-core (2.0.1)
     date (3.3.4)
     debug (1.9.1)
       irb (~> 1.10)
@@ -360,6 +366,7 @@ DEPENDENCIES
   ar-multidb!
   bootsnap
   capybara
+  database_cleaner (~> 2.0, >= 2.0.2)
   debug
   factory_bot_rails (~> 6.4, >= 6.4.3)
   ffaker (~> 2.21)
