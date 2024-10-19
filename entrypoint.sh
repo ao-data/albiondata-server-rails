@@ -39,7 +39,7 @@ echo "Running: ${RUN_MODE}"
 cd /rails
 
 case ${RUN_MODE} in
-  coonsole)
+  console)
     check_db
     echo "Service type is console"
     bundle exec rails c
