@@ -1,5 +1,5 @@
 class IdentifierService
-  def self.add_identifier_event(opts, server, event, natsmsg = nil, expiration = 600)
+  def self.add_identifier_event(opts, server, event, natsmsg = nil, expiration = 3600)
 
     # Ensure opts is a hash
     opts = opts.is_a?(Hash) ? opts : JSON.parse(opts) rescue {}
