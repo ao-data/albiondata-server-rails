@@ -1,15 +1,12 @@
 class IdentifierService
-  def self.add_identifier_event(opts, server, event, natsmsg = nil, expiration = 600)
+  def self.add_identifier_event(opts, server, event, natsmsg = nil)
 
     # Ensure opts is a hash
     opts = opts.is_a?(Hash) ? opts : JSON.parse(opts) rescue {}
-
     identifier = opts["identifier"] || opts[:identifier]
+    return if identifier.nil?
 
-    if identifier.nil?
-      return
-    end
-
+    expiration = ENV.fetch('IDENTIFIER_EXPIRATION', 600).to_i
     key = build_key(identifier, server)
 
     event_object = {
@@ -19,10 +16,8 @@ class IdentifierService
       natsmsg: natsmsg.nil? ? nil : JSON.parse(natsmsg)
     }
 
-    event_json = event_object.to_json
-
     # Append the event description to the list associated with the identifier
-    REDIS['identifier'].rpush(key, event_json)
+    REDIS['identifier'].rpush(key, event_object.to_json)
 
     # Set an expiration time for the key
     REDIS['identifier'].expire(key, expiration)
