@@ -1,11 +1,9 @@
 describe IdentifierService, type: :service do
-
   describe '.add_identifier_event' do
     let(:opts) { { identifier: 'test_identifier' } }
     let(:server) { 'test_server' }
     let(:event) { 'test_event' }
     let(:natsmsg) { nil }
-    let(:expiration) { 600 }
 
     before do
       key = "IDENTIFIER:#{opts[:identifier]}"
@@ -13,7 +11,7 @@ describe IdentifierService, type: :service do
     end
 
     it 'adds an event to the identifier' do
-      described_class.add_identifier_event(opts, server, event, natsmsg, expiration)
+      described_class.add_identifier_event(opts, server, event, natsmsg)
 
       key = "IDENTIFIER:#{server}:#{opts[:identifier]}"
       response = REDIS['identifier'].lrange(key, 0, -1)
@@ -27,6 +25,32 @@ describe IdentifierService, type: :service do
         'natsmsg' => nil,
         'event' => event
       )
+    end
+
+    describe 'when there is no IDENTIFIER_EXPIRATION env var set' do
+      it 'sets an expiration time for the key' do
+        described_class.add_identifier_event(opts, server, event, natsmsg)
+
+        key = "IDENTIFIER:#{server}:#{opts[:identifier]}"
+        expiration = REDIS['identifier'].ttl(key)
+
+        expect(expiration).to eq 600
+      end
+    end
+
+    describe 'when there is an IDENTIFIER_EXPIRATION env var set' do
+      before do
+        allow(ENV).to receive(:fetch).with('IDENTIFIER_EXPIRATION', 600).and_return(300)
+      end
+
+      it 'sets an expiration time for the key' do
+        described_class.add_identifier_event(opts, server, event, natsmsg)
+
+        key = "IDENTIFIER:#{server}:#{opts[:identifier]}"
+        expiration = REDIS['identifier'].ttl(key)
+
+        expect(expiration).to eq 300
+      end
     end
   end
 
