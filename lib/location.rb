@@ -25,44 +25,46 @@ module Location
     "fortsterling": 4002,
     "fortsterlingportal": 4301,
     "mountaincross": 4006,
-    "arthursrest": 4300,
     "brecilien": 5003,
-    "smugglersden": 307,
-    "meltwaterbogsmugglersden": 307,
-    "willowshadeicemarshsmugglersden": 320,
-    "springsumpbasinsmugglersden": 321,
-    "runnelveinsinksmugglersden": 341,
-    "willowshadehillssmugglersden": 344,
-    "sunkenboughwoodssmugglersden": 349,
-    "scuttlesinkmarshsmugglersden": 353,
-    "deadpineforestsmugglersden": 1312,
-    "westwealdthicketsmugglersden": 1323,
-    "timberslopegrovesmugglersden": 1339,
-    "timberscarcopsesmugglersden": 1342,
-    "deepwoodcopsesmugglersden": 1343,
-    "driftwoodhollowsmugglersden": 1348,
-    "rivercopsefountsmugglersden": 1359,
-    "drybasinriverbedsmugglersden": 2308,
-    "sunfangravinesmugglersden": 2310,
-    "thirstwatersteppesmugglersden": 2311,
-    "bleachskulldesertsmugglersden": 2333,
-    "farshoreheathsmugglersden": 2336,
-    "slakesandsmesasmugglersden": 2342,
-    "sunfangwastelandsmugglersden": 2344,
-    "dryveinconfluencesmugglersden": 2347,
-    "sunstrandquicksandssmugglersden": 2348,
-    "murdergulchcrosssmugglersden": 3306,
-    "razorrockvergesmugglersden": 3344,
-    "razorrockbanksmugglersden": 3345,
-    "gravemoundknollsmugglersden": 3351,
-    "murdergulchravinesmugglersden": 3355,
-    "highstonelochsmugglersden": 3357,
-    "floatshoalfloesmugglersden": 4313,
-    "iceburnfirthsmugglersden": 4318,
-    "everwinterpeaksmugglersden": 4322,
-    "muntenfellsmugglersden": 4345,
-    "frostspringvolcanosmugglersden": 4351,
-    "whitepeaktundrasmugglersden": 4357,
+    "smugglersnetwork": 307,
+    "morganasrestsmugglersnetwork": 8,
+    "meltwaterbogsmugglersnetwork": 307,
+    "willowshadeicemarshsmugglersnetwork": 320,
+    "springsumpbasinsmugglersnetwork": 321,
+    "runnelveinsinksmugglersnetwork": 341,
+    "willowshadehillssmugglersnetwork": 344,
+    "sunkenboughwoodssmugglersnetwork": 349,
+    "scuttlesinkmarshsmugglersnetwork": 353,
+    "merlynsrestsmugglersnetwork": 1012,
+    "deadpineforestsmugglersnetwork": 1312,
+    "westwealdthicketsmugglersnetwork": 1323,
+    "timberslopegrovesmugglersnetwork": 1339,
+    "timberscarcopsesmugglersnetwork": 1342,
+    "deepwoodcopsesmugglersnetwork": 1343,
+    "driftwoodhollowsmugglersnetwork": 1348,
+    "rivercopsefountsmugglersnetwork": 1359,
+    "drybasinriverbedsmugglersnetwork": 2308,
+    "sunfangravinesmugglersnetwork": 2310,
+    "thirstwatersteppesmugglersnetwork": 2311,
+    "bleachskulldesertsmugglersnetwork": 2333,
+    "farshoreheathsmugglersnetwork": 2336,
+    "slakesandsmesasmugglersnetwork": 2342,
+    "sunfangwastelandsmugglersnetwork": 2344,
+    "dryveinconfluencesmugglersnetwork": 2347,
+    "sunstrandquicksandssmugglersnetwork": 2348,
+    "murdergulchcrosssmugglersnetwork": 3306,
+    "razorrockvergesmugglersnetwork": 3344,
+    "razorrockbanksmugglersnetwork": 3345,
+    "gravemoundknollsmugglersnetwork": 3351,
+    "murdergulchravinesmugglersnetwork": 3355,
+    "highstonelochsmugglersnetwork": 3357,
+    "arthursrestsmugglersnetwork": 4300,
+    "floatshoalfloesmugglersnetwork": 4313,
+    "iceburnfirthsmugglersnetwork": 4318,
+    "everwinterpeaksmugglersnetwork": 4322,
+    "muntenfellsmugglersnetwork": 4345,
+    "frostspringvolcanosmugglersnetwork": 4351,
+    "whitepeaktundrasmugglersnetwork": 4357,
   }
 
   LOCATION_TO_CITY = CITY_TO_LOCATION.invert.transform_keys(&:to_s)
@@ -76,15 +78,15 @@ module Location
     3013 => 3005  # Caerleon2 to Caerleon
   }
 
-  SPLIT_WORDS = ['swamp', 'portal', 'cross', 'market', 'sterling', 'rest', 'smugglers', 'den',
+  SPLIT_WORDS = ['swamp', 'portal', 'cross', 'market', 'sterling', 'rest', 'smugglers', 'network',
                  'bank', 'basin', 'bog', 'confluence', 'copse', 'cross', 'desert', 'fell', 'firth', 'floe', 'forest',
                  'fount', 'grove', 'heath', 'hills', 'hollow', 'icemarsh', 'knoll', 'loch', 'marsh', 'mesa', 'peak',
                  'quicksands', 'ravine', 'riverbed', 'sink', 'steppe', 'thicket', 'tundra', 'verge', 'volcano',
                  'wasteland', 'woods']
 
-  SMUGGLERS_DEN_LOCATIONS = [307, 320, 321, 341, 344, 349, 353, 1312, 1323, 1339, 1342, 1343, 1348, 1359, 2308, 2310,
-                            2311, 2333, 2336, 2342, 2344, 2347, 2348, 3306, 3344, 3345, 3351, 3355, 3357, 4313, 4318,
-                            4322, 4345, 4351, 4357]
+  SMUGGLERS_NETWORK_LOCATIONS = [8, 307, 320, 321, 341, 344, 349, 353, 1012, 1312, 1323, 1339, 1342, 1343, 1348, 1359,
+                             2308, 2310, 2311, 2333, 2336, 2342, 2344, 2347, 2348, 3306, 3344, 3345, 3351, 3355,
+                             3357, 4300, 4313, 4318, 4322, 4345, 4351, 4357]
 
   def location_to_city(location)
     LOCATION_TO_CITY[location.to_s] || location.to_s.to_sym
@@ -107,8 +109,8 @@ module Location
 
     # check if locations array includes any SMUGGLERS_DEN_LOCATIONS, if so, replace only those locations
     # with the entire SMUGGLERS_DEN_LOCATIONS array
-    unless (locations & SMUGGLERS_DEN_LOCATIONS).empty?
-      locations = locations - (locations & SMUGGLERS_DEN_LOCATIONS) + SMUGGLERS_DEN_LOCATIONS
+    unless (locations & SMUGGLERS_NETWORK_LOCATIONS).empty?
+      locations = locations - (locations & SMUGGLERS_NETWORK_LOCATIONS) + SMUGGLERS_NETWORK_LOCATIONS
     end
     
     locations

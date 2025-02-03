@@ -181,13 +181,13 @@ RSpec.describe MarketDataService, :type => :service do
 
     context 'smugglers dens' do
       it 'returns the correct number of results' do
-        create(:market_order_new_offer_low, location: Location::SMUGGLERS_DEN_LOCATIONS[0])
-        create(:market_order_new_offer_low, location: Location::SMUGGLERS_DEN_LOCATIONS[1])
-        create(:market_order_new_offer_low, location: Location::SMUGGLERS_DEN_LOCATIONS[2])
-        create(:market_order_new_offer_low, location: Location::SMUGGLERS_DEN_LOCATIONS[3])
-        result = subject.get_stats({id: 'T4_BAG', locations: Location::SMUGGLERS_DEN_LOCATIONS[0].to_s, qualities: '1'})
+        create(:market_order_new_offer_low, location: Location::SMUGGLERS_NETWORK_LOCATIONS[0])
+        create(:market_order_new_offer_low, location: Location::SMUGGLERS_NETWORK_LOCATIONS[1])
+        create(:market_order_new_offer_low, location: Location::SMUGGLERS_NETWORK_LOCATIONS[2])
+        create(:market_order_new_offer_low, location: Location::SMUGGLERS_NETWORK_LOCATIONS[3])
+        result = subject.get_stats({id: 'T4_BAG', locations: Location::SMUGGLERS_NETWORK_LOCATIONS[0].to_s, qualities: '1'})
 
-        expect(result.length).to eq(Location::SMUGGLERS_DEN_LOCATIONS.length)
+        expect(result.length).to eq(Location::SMUGGLERS_NETWORK_LOCATIONS.length)
       end
     end
     it 'doesnt return 2 of the same item_id for thetford and a T7 item' do
