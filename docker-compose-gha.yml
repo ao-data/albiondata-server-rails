@@ -72,6 +72,7 @@ services:
       DEBUG: "true"
       ADDITIONAL_MESSAGE_CONTENT: ${ADDITIONAL_MESSAGE_CONTENT}
       DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL}
+      IDENTIFIER_EXPIRATION: ${IDENTIFIER_EXPIRATION}
     entrypoint: ./entrypoint.sh rspec
     ports:
       - 3000:3000
