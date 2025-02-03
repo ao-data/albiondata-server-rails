@@ -1,6 +1,6 @@
 namespace :aodp do
-  desc "Parse Smuggler's Den IDs"
-  task parse_smuggers_den_ids: :environment do
+  desc "Parse Smuggler's Network IDs"
+  task parse_smuggers_network_ids: :environment do
 
     branch = "master"
     url = "https://raw.githubusercontent.com/ao-data/ao-bin-dumps/refs/heads/#{branch}/formatted/world.txt"
@@ -9,14 +9,14 @@ namespace :aodp do
     ids = []
     data.each do |line|
       parts = line.split(':').map(&:strip)
-      next unless parts[0].include?("BLACKBANK-")
+      next unless parts[0].include?("BLACKBANK-") || parts[1].ends_with?("Rest")
       id = parts[0].gsub("BLACKBANK-", "")
       ids << id
     end
 
-    # output int list of smugglers den locations
+    # output int list of smugglers network locations
     puts "\n\n\n\n\n"
-    puts "IDs for SMUGGERS_DEN_LOCATIONS in locations.rb:\n#{ids.sort.map(&:to_i).join(", ")}"
+    puts "IDs for SMUGGERS_NETWORK_LOCATIONS in locations.rb:\n#{ids.sort.map(&:to_i).join(", ")}"
 
     # output list of items to add to CITY_TO_LOCATION
     puts "\n\nAdditional cities for CITY_TO_LOCATION in locations.rb: "
@@ -37,8 +37,8 @@ namespace :aodp do
             second_words << word unless second_words.include?(word)
           end
 
-          # output this smuggler den's 'city to location' data
-          puts "\"#{parts[1].gsub("'", "").gsub(" ", "").downcase}smugglersden\": #{id.to_i},"
+          # output this smuggler network's 'city to location' data
+          puts "\"#{parts[1].gsub("'", "").gsub(" ", "").downcase}smugglersnetwork\": #{id.to_i},"
 
           break
         end

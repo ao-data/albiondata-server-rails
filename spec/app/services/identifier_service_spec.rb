@@ -34,7 +34,7 @@ describe IdentifierService, type: :service do
         key = "IDENTIFIER:#{server}:#{opts[:identifier]}"
         expiration = REDIS['identifier'].ttl(key)
 
-        expect(expiration).to eq 600
+        expect(expiration).to eq 86400
       end
     end
 
