@@ -2,7 +2,7 @@ namespace :aodp do
   desc "Parse Smuggler's Den IDs"
   task parse_smuggers_den_ids: :environment do
 
-    branch = "update/20250130-staging"
+    branch = "master"
     url = "https://raw.githubusercontent.com/ao-data/ao-bin-dumps/refs/heads/#{branch}/formatted/world.txt"
     data = HTTParty.get(url).body.split("\n")
 

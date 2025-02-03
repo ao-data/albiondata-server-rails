@@ -95,8 +95,6 @@ module Location
   end
 
   def get_locations(params)
-    puts params
-
     default_locations = [3005, 7, 4002, 1002, 2004, 3008, 3003, 5003]
     locations = params[:locations]
 
