@@ -56,6 +56,16 @@ RSpec.describe Location, :type => :module do
       expect(get_locations(params)).to eq([3008, 3005])
     end
 
+    it 'returns string converted locations all smugglers dens' do
+      params = { locations: 'Deadpine Forest Smugglers Den'}
+      expect(get_locations(params)).to eq(Location::SMUGGLERS_DEN_LOCATIONS)
+    end
+
+    it 'returns all smugglers dens when there is a \' in "smugglers"' do
+      params = { locations: "Deadpine Forest Smuggler's Den"}
+      expect(get_locations(params)).to eq(Location::SMUGGLERS_DEN_LOCATIONS)
+    end
+
     it 'returns string converted locations if locations is an array' do
       params = { locations: ['martlock', 'caerleon2']}
       expect(get_locations(params)).to eq([3008, 3005])
@@ -68,8 +78,12 @@ RSpec.describe Location, :type => :module do
   end
 
   describe '#humanize_city' do
-    it 'returns a humanized city name' do
+    it 'returns a humanized city name "martlock"' do
       expect(humanize_city('martlock')).to eq('Martlock')
+    end
+
+    it 'returns a humanized city name for "murdergulchravinesmugglersden"' do
+      expect(humanize_city('murdergulchravinesmugglersden')).to eq('Murdergulch Ravine Smugglers Den')
     end
 
     it 'returns a humanized city name with multiple words' do

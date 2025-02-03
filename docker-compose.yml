@@ -76,6 +76,7 @@ services:
       DEBUG: "true"
       ADDITIONAL_MESSAGE_CONTENT: ${ADDITIONAL_MESSAGE_CONTENT}
       DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL}
+      IDENTIFIER_EXPIRATION: ${IDENTIFIER_EXPIRATION}
 #    command: './entrypoint.sh web'
 #    entrypoint: ./entrypoint.sh sleep
     ports:
