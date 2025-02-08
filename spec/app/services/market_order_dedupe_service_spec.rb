@@ -114,7 +114,7 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
       end
     end
 
-    context 'when order has LocationId equal to 0' do
+    context 'when order has a LocationId that is not a valid market locationId' do
       before do
         data['Orders'].first['LocationId'] = 0
       end

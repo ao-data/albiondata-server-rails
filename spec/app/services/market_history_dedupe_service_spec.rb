@@ -18,7 +18,7 @@ describe MarketHistoryDedupeService, type: :service do
       expect(subject.dedupe(data, 'west', opts)).to eq(nil)
     end
 
-    it 'returns nil if LocationId is 0' do
+    it 'returns nil if LocationId is not a valid market locationId' do
       data = { 'LocationId' => 0 }
       expect(subject.dedupe(data, 'west', opts)).to eq(nil)
     end
