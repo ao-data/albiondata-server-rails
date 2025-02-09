@@ -97,9 +97,9 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
       end
 
       it 'does not merge non-portal locations' do
-        data['Orders'].first['LocationId'] = 5000
+        data['Orders'].first['LocationId'] = 3005
         result = subject.dedupe
-        expect(result.first['LocationId']).to eq(5000)
+        expect(result.first['LocationId']).to eq(3005)
       end
     end
 
