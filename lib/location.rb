@@ -88,6 +88,9 @@ module Location
                              2308, 2310, 2311, 2333, 2336, 2342, 2344, 2347, 2348, 3306, 3344, 3345, 3351, 3355,
                              3357, 4300, 4313, 4318, 4322, 4345, 4351, 4357]
 
+  # Used in multiple services to validate location ids
+  VALID_LOCATIONS = (CITY_TO_LOCATION.values + PORTAL_TO_CITY.keys + SMUGGLERS_NETWORK_LOCATIONS).uniq
+
   def location_to_city(location)
     LOCATION_TO_CITY[location.to_s] || location.to_s.to_sym
   end
