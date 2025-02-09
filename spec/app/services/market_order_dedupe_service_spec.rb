@@ -24,8 +24,8 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
   let(:subject) { described_class.new(data, 'west', opts) }
 
   before do
-    allow(REDIS['west']).to receive(:get).and_return(nil)
-    allow(REDIS['west']).to receive(:set)
+    keys = REDIS['west'].keys('RECORD_SHA256:*')
+    REDIS['west'].del(keys)
   end
 
   describe '#process' do

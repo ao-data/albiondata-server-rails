@@ -1,7 +1,12 @@
 describe MarketHistoryDedupeService, type: :service do
 
-  describe '.process' do
+  describe '.dedupe' do
     let(:opts) { { 'baz' => 'qux' } }
+
+    before do
+      keys = REDIS['west'].keys('HISTORY_RECORD_SHA256:*')
+      REDIS['west'].del(keys)
+    end
 
     it 'does not process if the sha256 hash is found in redis' do
       data = { 'foo' => 'bar' }
@@ -13,19 +18,22 @@ describe MarketHistoryDedupeService, type: :service do
       subject.dedupe(data, 'west', opts)
     end
 
-    it 'returns nil if AlbionId is 0' do
+    it 'does not call MarketHistoryProcessorWorker if AlbionId is 0' do
       data = { 'AlbionId' => 0 }
-      expect(subject.dedupe(data, 'west', opts)).to eq(nil)
+      expect(MarketHistoryProcessorWorker).to_not receive(:perform_async)
+      subject.dedupe(data, 'west', opts)
     end
 
-    it 'returns nil if LocationId is not a valid market locationId' do
-      data = { 'LocationId' => 0 }
-      expect(subject.dedupe(data, 'west', opts)).to eq(nil)
-    end
-
-    it 'returns nil if LocationId is not a numeric' do
+    it 'does not call MarketHistoryProcessorWorker if LocationId is not a numeric' do
       data = { 'LocationId' => '3005' }
-      expect(subject.dedupe(data, 'west', opts)).to eq(nil)
+      expect(MarketHistoryProcessorWorker).to_not receive(:perform_async)
+      subject.dedupe(data, 'west', opts)
+    end
+
+    it 'does not call MarketHistoryProcessorWorker if LocationId is not a valid market locationId' do
+      data = { 'LocationId' => 0 }
+      expect(MarketHistoryProcessorWorker).to_not receive(:perform_async)
+      subject.dedupe(data, 'west', opts)
     end
 
     it 'returns a StandardError if the AlbionID is not found in redis' do
