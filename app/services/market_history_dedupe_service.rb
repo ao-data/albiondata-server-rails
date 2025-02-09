@@ -30,7 +30,7 @@ class MarketHistoryDedupeService
     if REDIS[server_id].get("HISTORY_RECORD_SHA256:#{sha256}").nil?
       REDIS[server_id].set("HISTORY_RECORD_SHA256:#{sha256}", '1', ex: 600)
       return if data['AlbionId'] == 0 # sometimes the client sends us 0 for the numeric item id, we trash this data
-      return if data['LocationId'] == 0 || !data['LocationId'].is_a?(Numeric)  # sometimes the client sends us 0 for the numeric location id, or a string, we trash this data
+      return if !data['LocationId'].is_a?(Numeric) || (!CITY_TO_LOCATION.has_value?(data['LocationId'].to_i) && !PORTAL_TO_CITY.has_key?(data['LocationId'].to_i)) # we only want to process numeric location ids from known cities or portals
 
       item_id = REDIS[server_id].hget('ITEM_IDS', data['AlbionId'])
       raise StandardError.new('MarketHistoryProcessorService: Item ID not found in redis.') if item_id.nil?

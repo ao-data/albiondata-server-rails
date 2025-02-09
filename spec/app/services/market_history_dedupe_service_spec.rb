@@ -18,7 +18,7 @@ describe MarketHistoryDedupeService, type: :service do
       expect(subject.dedupe(data, 'west', opts)).to eq(nil)
     end
 
-    it 'returns nil if LocationId is 0' do
+    it 'returns nil if LocationId is not a valid market locationId' do
       data = { 'LocationId' => 0 }
       expect(subject.dedupe(data, 'west', opts)).to eq(nil)
     end
@@ -67,8 +67,8 @@ describe MarketHistoryDedupeService, type: :service do
     end
 
     it 'will not convert the LocationId if it is not a portal' do
-      data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 1234, 'MarketHistories' => [] }
-      expected_data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 1234, 'MarketHistories' => [], 'AlbionIdString' => 'SOME_ITEM_ID', }
+      data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [] }
+      expected_data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [], 'AlbionIdString' => 'SOME_ITEM_ID', }
       allow(REDIS['west']).to receive(:get).and_return(nil)
       allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
 
@@ -82,8 +82,8 @@ describe MarketHistoryDedupeService, type: :service do
     end
 
     it 'corrects the price of the MarketHistories' do
-      data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 1234, 'MarketHistories' => [{ 'SilverAmount' => '123456' }] }
-      expected_data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 1234, 'MarketHistories' => [{ 'SilverAmount' => 12 }] , 'AlbionIdString' => 'SOME_ITEM_ID', }
+      data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [{ 'SilverAmount' => '123456' }] }
+      expected_data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [{ 'SilverAmount' => 12 }] , 'AlbionIdString' => 'SOME_ITEM_ID', }
       allow(REDIS['west']).to receive(:get).and_return(nil)
       allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
 
