@@ -59,7 +59,8 @@ class MarketOrderDedupeService
         if REDIS[@server_id].get("RECORD_SHA256:#{sha256}").nil?
           REDIS[@server_id].set("RECORD_SHA256:#{sha256}", '1', ex: 600)
 
-          next if !order['LocationId'].is_a?(Numeric) || (!CITY_TO_LOCATION.values.include?(order['LocationId'].to_i) && !PORTAL_TO_CITY.has_key?(order['LocationId'].to_i))
+          next unless order['LocationId'].is_a?(Numeric)
+          next unless VALID_LOCATIONS.include?(order['LocationId'])
 
           # Hack since albion seems to be multiplying every price by 10000
           order['UnitPriceSilver'] /= 10000
