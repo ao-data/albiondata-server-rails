@@ -11,6 +11,9 @@ class Ipdb
   end
 
   def check_ip(ip)
+    # Always assume IP is okay if we have no API key defined
+    return true if api_key.blank?
+
     # return false if the ip is in the bad list
     is_bad = ABUSEIPDB_REDIS.sismember(BAD_IPS_KEY, ip)
     return false if is_bad
