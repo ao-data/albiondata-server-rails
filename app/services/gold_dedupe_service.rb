@@ -8,7 +8,7 @@ class GoldDedupeService
 
     log = { class: 'GoldDedupeService', method: 'dedupe', data: data, server_id: server_id, opts: opts }
     sha256 = Digest::SHA256.hexdigest(json_data)
-    metrics = { server_id: server_id, duplicate: false }
+    metrics = { server_id: server_id, duplicate: 0, non_duplicate: 1 }
     if REDIS[server_id].get("GOLD_RECORD_SHA256:#{sha256}").nil?
       REDIS[server_id].set("GOLD_RECORD_SHA256:#{sha256}", '1', ex: 600)
 
@@ -22,7 +22,7 @@ class GoldDedupeService
       log[:message] = "data duplicate"
       Sidekiq.logger.info(log.to_json)
 
-      metrics[:duplicate] = true
+      metrics = { server_id: server_id, duplicate: 1, non_duplicate: 0 }
 
       IdentifierService.add_identifier_event(opts, server_id, 'Received on GoldDedupeService, data is duplicate, ignored')
     end

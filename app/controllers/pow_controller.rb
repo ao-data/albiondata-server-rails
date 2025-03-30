@@ -40,6 +40,10 @@ class PowController < ApplicationController
   def index
     challange = { wanted: SecureRandom.hex(POW_RANDOMNESS).unpack("B*")[0][0..POW_DIFFICULITY-1], key: SecureRandom.hex(POW_RANDOMNESS) }
     REDIS[server_id].set("POW:#{challange[:key]}", {wanted: challange[:wanted]}.to_json, ex: POW_EXPIRE_SECONDS)
+
+    metrics = {server_id: server_id, client_ip: request.ip}
+    ActiveSupport::Notifications.instrument('metrics.pow_request', metrics)
+
     render json: challange.to_json
   end
 
@@ -48,11 +52,17 @@ class PowController < ApplicationController
     user_agent = request.user_agent ||= "unknown"
     opts = { client_ip: request.ip, user_agent: user_agent, identifier: identifier }
     log = { class: 'PowController', method: 'reply', params: params, opts: opts }
+    metrics = {server_id: server_id, client_ip: request.ip}
+    metric_name = 'metrics.pow_response'
 
     pow_json = REDIS[server_id].get("POW:#{params[:key]}")
     REDIS[server_id].del("POW:#{params[:key]}")
     unless pow_json
       IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller, ignored cause Pow not handed')
+
+      metrics[:action] = 'pow_not_requested'
+      ActiveSupport::Notifications.instrument(metric_name, metrics)
+
       return render plain: "Pow not handed", status: 902 # This pow was never requested or has expired
     end
     pow = JSON.parse(pow_json)
@@ -61,16 +71,28 @@ class PowController < ApplicationController
     # return render plain: "Unsupported data client.", status: 905 unless supported_client?
     unless TOPICS.include?(params[:topic])
       IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller, ignored cause Topic not found')
+
+      metrics[:action] = 'invalid_topic'
+      ActiveSupport::Notifications.instrument(metric_name, metrics)
+
       return render plain: "Topic not found.", status: 404
     end
 
     unless Digest::SHA2.hexdigest("aod^" + params[:solution] + "^" + params[:key]).unpack("B*")[0].start_with?(pow['wanted'])
       IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller, ignored cause Pow not solved correctly')
+
+      metrics[:action] = 'pow_solved_incorrectly'
+      ActiveSupport::Notifications.instrument(metric_name, metrics)
+
       return render plain: "Pow not solved correctly", status: 903
     end
 
     if params[:natsmsg].bytesize > NATS_PAYLOAD_MAX
       IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller, ignored cause Payload too large')
+
+      metrics[:action] = 'invalid_payload'
+      ActiveSupport::Notifications.instrument(metric_name, metrics)
+
       return render plain: "Payload too large", status: 904
     end
 
@@ -78,18 +100,30 @@ class PowController < ApplicationController
       data = JSON.parse(params[:natsmsg])
     rescue
       IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller, ignored cause Invalid JSON data')
+
+      metrics[:action] = 'invalid_json'
+      ActiveSupport::Notifications.instrument(metric_name, metrics)
+
       return render plain: "Invalid JSON data", status: 901
     end
 
     if params[:topic] == "marketorders.ingest" && data['Orders'].count > 50
       logger.warn("Error 904, Too Much Data. ip: #{request.ip}, topic: marketorders.ingest, order count: #{data['Orders'].count}")
       IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller, ignored cause Error 904 Too Much Data')
+
+      metrics[:action] = 'data_too_large'
+      ActiveSupport::Notifications.instrument(metric_name, metrics)
+
       return render plain: "Too much data", status: 904
     end
 
     if params[:topic] == "goldprices.ingest" && data['Prices'].count > 673
       logger.warn("Error 904, Too Much Data. ip: #{request.ip}, topic: goldprices.ingest, order count: #{data['Prices'].count}")
       IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller, ignored cause Error 904 Too Much Data')
+
+      metrics[:action] = 'data_too_large'
+      ActiveSupport::Notifications.instrument(metric_name, metrics)
+
       return render plain: "Too much data", status: 904
     end
 
@@ -104,18 +138,25 @@ class PowController < ApplicationController
       if failed == true
         logger.warn("Error 904, Too Much Data. ip: #{request.ip}, topic: markethistories.ingest, Timescale: #{data['Timescale']}, MarketHistories count: #{data['MarketHistories'].count}")
         IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller, ignored cause Error 904 Too Much Data')
+
+        metrics[:action] = 'data_too_large'
+        ActiveSupport::Notifications.instrument(metric_name, metrics)
+
         return render plain: "Too much data", status: 904
       end
     end
 
     if ip_good?
       enqueue_worker(params[:topic], params[:natsmsg], server_id, opts.to_json)
-
+      metrics[:action] = 'data_accepted'
       logger.info(log.to_json)
     else
       logger.warn(log[:opts].merge({bad_ip: true}).to_json)
+      metrics[:action] = 'bad_ip'
       IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller, ignored cause Bad IP')
     end
+
+    ActiveSupport::Notifications.instrument(metric_name, metrics)
 
     render json: { message: "OK", status: 200 }
   end

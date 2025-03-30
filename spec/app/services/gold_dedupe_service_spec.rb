@@ -62,14 +62,14 @@ describe GoldDedupeService, type: :service do
     describe 'metrics' do
       it 'sends an activesupport notification with duplicate false' do
         allow(REDIS['west']).to receive(:get).and_return(nil)
-        expected_payload = { server_id: 'west', duplicate: false }
+        expected_payload = { server_id: 'west', duplicate: 0, non_duplicate: 1 }
         expect(ActiveSupport::Notifications).to receive(:instrument).with('metrics.gold_dedupe_service', expected_payload)
         subject.dedupe(data, server_id, opts)
       end
 
       it 'sends an activesupport notification with duplicate true' do
         allow(REDIS['west']).to receive(:get).and_return('1')
-        expected_payload = { server_id: 'west', duplicate: true }
+        expected_payload = { server_id: 'west', duplicate: 1, non_duplicate: 0 }
         expect(ActiveSupport::Notifications).to receive(:instrument).with('metrics.gold_dedupe_service', expected_payload)
         subject.dedupe(data, server_id, opts)
       end

@@ -42,6 +42,7 @@ describe MarketHistoryDedupeService, type: :service do
       subject.dedupe(data, 'west', opts)
     end
 
+<<<<<<< HEAD
     it 'it does not call MarketHistoryProcessorWorker if LocationId is a random word' do
       data = { 'AlbionId' => 1234, 'LocationId' => 'pizza', 'MarketHistories' => [] }
       expect(MarketHistoryProcessorWorker).to_not receive(:perform_async)
@@ -58,6 +59,16 @@ describe MarketHistoryDedupeService, type: :service do
       data = { 'AlbionId' => 1234, 'LocationId' => 'LOTSOFSTUFF@6969', 'MarketHistories' => [] }
       expect(MarketHistoryProcessorWorker).to_not receive(:perform_async)
       subject.dedupe(data, 'west', opts)
+=======
+    it 'returns nil if LocationId is not a valid market locationId' do
+      data['LocationId'] = 9999
+      expect(subject.dedupe(data, 'west', opts)).to eq(nil)
+    end
+
+    it 'returns nil if LocationId is not a numeric' do
+      data['LocationId'] = 'foo'
+      expect(subject.dedupe(data, 'west', opts)).to eq(nil)
+>>>>>>> bdb967e (metrics part 2)
     end
 
     it 'it calls MarketHistoryProcessorWorker if LocationId is a valid numeric' do
