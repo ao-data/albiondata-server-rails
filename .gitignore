@@ -37,6 +37,7 @@
 /mysqlbackup
 /mysqldata
 /redisdata
+/influxdbdata
 
 .idea
 coverage
