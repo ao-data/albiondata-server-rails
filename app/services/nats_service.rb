@@ -27,6 +27,10 @@ class NatsService
     @nats.publish(topic, data)
   end
 
+  def opts
+    @opts ||= { client_ip: '0.0.0.0', user_agent: 'nats_service', identifier: SecureRandom.uuid }.to_json
+  end
+
   def listen
     server = case @server_id
              when 'west'
@@ -60,17 +64,17 @@ class NatsService
 
     nats.subscribe('marketorders.ingest') do |msg|
       puts "Receiving market order data from NATS"
-      MarketOrderDedupeWorker.perform_async(msg.data, @server_id)
+      MarketOrderDedupeWorker.perform_async(msg.data, @server_id, opts)
     end
 
     nats.subscribe('goldprices.ingest') do |msg|
       puts "Receiving gold price data from NATS"
-      GoldDedupeWorker.perform_async(msg.data, @server_id)
+      GoldDedupeWorker.perform_async(msg.data, @server_id, opts)
     end
 
     nats.subscribe('markethistories.ingest') do |msg|
       puts "Receiving market history data from NATS"
-      MarketHistoryDedupeWorker.perform_async(msg.data, @server_id)
+      MarketHistoryDedupeWorker.perform_async(msg.data, @server_id, opts)
     end
 
     while true
