@@ -119,6 +119,7 @@ GEM
     concurrent-ruby (1.2.3)
     connection_pool (2.4.1)
     crass (1.0.6)
+    csv (3.3.3)
     database_cleaner (2.0.2)
       database_cleaner-active_record (>= 2, < 3)
     database_cleaner-active_record (2.2.0)
@@ -159,6 +160,8 @@ GEM
       actionpack (>= 6.0.0)
       activesupport (>= 6.0.0)
       railties (>= 6.0.0)
+    influxdb-client (3.2.0)
+      csv
     io-console (0.7.2)
     irb (1.11.2)
       rdoc
@@ -372,6 +375,7 @@ DEPENDENCIES
   ffaker (~> 2.21)
   httparty (~> 0.21.0)
   importmap-rails
+  influxdb-client (~> 3.2)
   jbuilder
   meta_request!
   nats-pure (~> 2.2, >= 2.2.1)
