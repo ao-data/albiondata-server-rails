@@ -69,6 +69,7 @@ class MarketOrderDedupeService
     # remove duplicates found in redis, 10 minute based for NATS subscribers
     redis_duplicates = 0
     redis_deduped = []
+    metrics = { server_id: @server_id, locations: {}}
     @data['Orders'].each do |order|
       begin
         sha256 = Digest::SHA256.hexdigest(order.to_s)
@@ -78,8 +79,19 @@ class MarketOrderDedupeService
           # Hack since albion seems to be multiplying every price by 10000
           order['UnitPriceSilver'] /= 10000
 
+          # merge portals to parent city
+          order['LocationId'] = PORTAL_TO_CITY[order['LocationId']] if PORTAL_TO_CITY.has_key?(order['LocationId'])
+
+          # add to metrics for location
+          metrics[:locations][order['LocationId']] = { duplicates: 0, non_duplicates: 0 } if metrics[:locations][order['LocationId']].nil?
+          metrics[:locations][order['LocationId']][:non_duplicates] += 1
+
           redis_deduped << order
         else
+          # add to metrics for location
+          metrics[:locations][order['LocationId']] = { duplicates: 0, non_duplicates: 0 } if metrics[:locations][order['LocationId']].nil?
+          metrics[:locations][order['LocationId']][:duplicates] += 1
+
           redis_duplicates += 1
         end
       end
@@ -88,6 +100,8 @@ class MarketOrderDedupeService
     log = { class: 'MarketOrderDedupeService', method: 'dedupe', opts: @opts, redis_duplicates: redis_duplicates }
     Sidekiq.logger.info(log.to_json)
     IdentifierService.add_identifier_event(@opts, @server_id, "Received on MarketOrderDedupeService dedupe method, uniques found: #{redis_deduped.length}, duplicates found: #{redis_duplicates}")
+
+    ActiveSupport::Notifications.instrument("metrics.market_order_dedupe_service", metrics)
 
     redis_deduped
   end
