@@ -71,8 +71,6 @@ class MarketHistoryDedupeService
       IdentifierService.add_identifier_event(opts, server_id, "Received on MarketHistoryDedupeService, data is duplicate, ignored")
     end
 
-    puts metrics
-
     ActiveSupport::Notifications.instrument('metrics.market_history_dedupe_service', metrics)
 
     Sidekiq.logger.info(log.to_json)
