@@ -21,10 +21,12 @@ describe MarketHistoryDedupeService, type: :service do
     end
 
     it 'returns nil if LocationId is not a valid market locationId' do
+      data['LocationId'] = 9999
       expect(subject.dedupe(data, 'west', opts)).to eq(nil)
     end
 
     it 'returns nil if LocationId is not a numeric' do
+      data['LocationId'] = 'foo'
       expect(subject.dedupe(data, 'west', opts)).to eq(nil)
     end
 
@@ -121,10 +123,11 @@ describe MarketHistoryDedupeService, type: :service do
       end
 
       it 'sends an activesupport notification' do
-        data = { 'foo' => 'bar', 'AlbionId' => 3005, 'LocationId' => 3005, 'MarketHistories' => [{ 'SilverAmount' => '234567' }] }
+        data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [{ 'SilverAmount' => '234567' }] }
         expected_payload = { server_id: 'west', locations: {3005 => { duplicates: 0, non_duplicates: 1 }} }
         expect(ActiveSupport::Notifications).to receive(:instrument).with('metrics.market_history_dedupe_service', expected_payload)
         allow(REDIS['west']).to receive(:get).and_return(nil)
+        allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
         subject.dedupe(data, 'west', opts)
       end
     end
