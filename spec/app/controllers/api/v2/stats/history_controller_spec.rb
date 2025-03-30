@@ -34,7 +34,6 @@ RSpec.describe API::V2::Stats::HistoryController, :type => :controller do
         get :show, format: :xml, params: {id: 'T4_BAG'}
 
         expect(response).to have_http_status(:success)
-        puts response.body
         expected_result = <<-EOD
 <?xml version="1.0"?>
 <ArrayOfMarketHistoriesResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
