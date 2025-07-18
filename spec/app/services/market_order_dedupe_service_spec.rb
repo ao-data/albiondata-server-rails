@@ -101,6 +101,12 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
         result = subject.dedupe
         expect(result.first['LocationId']).to eq(3005)
       end
+
+      it 'sends an activesupport notification' do
+        expected_payload = { server_id: 'west', locations: {1002 => { duplicates: 0, non_duplicates: 1 }} }
+        expect(ActiveSupport::Notifications).to receive(:instrument).with('metrics.market_order_dedupe_service', expected_payload)
+        subject.dedupe
+      end
     end
 
     context 'when order is a duplicate' do
@@ -111,6 +117,12 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
       it 'does not add order to deduped list' do
         result = subject.dedupe
         expect(result).to be_empty
+      end
+
+      it 'sends an activesupport notification' do
+        expected_payload = { server_id: 'west', locations: {1002 => { duplicates: 1, non_duplicates: 0 }} }
+        expect(ActiveSupport::Notifications).to receive(:instrument).with('metrics.market_order_dedupe_service', expected_payload)
+        subject.dedupe
       end
     end
 
