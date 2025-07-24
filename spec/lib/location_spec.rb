@@ -95,4 +95,46 @@ RSpec.describe Location, :type => :module do
     end
   end
 
+  describe '#parse_location_integer' do
+    it 'returns portal city for numeric portal locations' do
+      expect(parse_location_integer(3013)).to eq(3005)
+    end
+  
+    it 'returns location for valid numeric locations' do
+      expect(parse_location_integer(3005)).to eq(3005)
+    end
+  
+    it 'returns nil for invalid numeric locations' do
+      expect(parse_location_integer(9999)).to be_nil
+    end
+  
+    it 'handles Auction2 locations' do
+      expect(parse_location_integer('3013-Auction2')).to eq(3005)
+    end
+  
+    it 'handles HellDen locations' do
+      expect(parse_location_integer('0000-HellDen')).to eq(7)
+    end
+  
+    it 'handles locations with @ prefix' do
+      expect(parse_location_integer('LOTSOFSTUFF@3005')).to eq(3005)
+    end
+  
+    it 'handles BLACKBANK locations' do
+      expect(parse_location_integer('BLACKBANK-2311')).to eq(2311)
+    end
+  
+    it 'handles BLACKBANK locations with @ prefix' do
+      expect(parse_location_integer('LOTSOFSTUFF@BLACKBANK-2311')).to eq(2311)
+    end
+  
+    it 'returns nil for non-numeric strings' do
+      expect(parse_location_integer('pizza')).to be_nil
+    end
+  
+    it 'returns nil for nil input' do
+      expect(parse_location_integer(nil)).to be_nil
+    end
+end
+
 end

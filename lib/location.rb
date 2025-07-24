@@ -125,11 +125,8 @@ module Location
         id.gsub!('BLACKBANK-', '')
     end
 
-    int_id = begin
-      Integer(id, 10)
-    rescue ArgumentError, TypeError
-      return nil
-    end
+    return nil unless id.is_a?(String) && id.match?(/\A\d+\z/)
+    int_id = id.to_i
 
     PORTAL_TO_CITY[int_id] || (VALID_LOCATIONS.include?(int_id) ? int_id : nil)
   end

@@ -59,12 +59,12 @@ class MarketOrderDedupeService
         if REDIS[@server_id].get("RECORD_SHA256:#{sha256}").nil?
           REDIS[@server_id].set("RECORD_SHA256:#{sha256}", '1', ex: 600)
 
-          # Hack since albion seems to be multiplying every price by 10000
-          order['UnitPriceSilver'] /= 10000
-
           # Parse and validate location
           order['LocationId'] = parse_location_integer(order['LocationId'])
           next if order['LocationId'].nil?
+
+          # Hack since albion seems to be multiplying every price by 10000
+          order['UnitPriceSilver'] /= 10000
 
           redis_deduped << order
         else
