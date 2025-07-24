@@ -31,14 +31,15 @@ class MarketHistoryDedupeService
       REDIS[server_id].set("HISTORY_RECORD_SHA256:#{sha256}", '1', ex: 600)
 
       return if data['AlbionId'] == 0 # sometimes the client sends us 0 for the numeric item id, we trash this data
-      return unless data['LocationId'].is_a?(Numeric)
-      return unless VALID_LOCATIONS.include?(data['LocationId'])
 
       item_id = REDIS[server_id].hget('ITEM_IDS', data['AlbionId'])
       raise StandardError.new('MarketHistoryProcessorService: Item ID not found in redis.') if item_id.nil?
 
       data['AlbionIdString'] = item_id
-      data['LocationId'] = PORTAL_TO_CITY[data['LocationId']] if PORTAL_TO_CITY.has_key?(data['LocationId'])
+
+      # Parse and validate location
+      data['LocationId'] = parse_location_integer(data['LocationId'])
+      return if data['LocationId'].nil?
 
       data['MarketHistories'].each do |history|
         history['SilverAmount'] = history['SilverAmount'].to_i / 10000
