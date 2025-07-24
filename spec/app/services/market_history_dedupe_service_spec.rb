@@ -2,10 +2,16 @@ describe MarketHistoryDedupeService, type: :service do
 
   describe '.dedupe' do
     let(:opts) { { 'baz' => 'qux' } }
+    let(:nats) { double('nats', send: nil, close: nil) }
 
     before do
       keys = REDIS['west'].keys('HISTORY_RECORD_SHA256:*')
-      REDIS['west'].del(keys)
+      REDIS['west'].del(keys) if keys.any?
+
+      allow(NatsService).to receive(:new).and_return(nats)
+      allow(REDIS['west']).to receive(:get).and_return(nil)
+      allow(REDIS['west']).to receive(:set)
+      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
     end
 
     it 'does not process if the sha256 hash is found in redis' do
@@ -26,172 +32,72 @@ describe MarketHistoryDedupeService, type: :service do
 
     it 'does not call MarketHistoryProcessorWorker if LocationId is a random word' do
       data = { 'AlbionId' => 1234, 'LocationId' => 'pizza', 'MarketHistories' => [] }
-      allow(REDIS['west']).to receive(:get).and_return(nil)
-      allow(REDIS['west']).to receive(:set)
-      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
-      
-      nats = double
-      allow(nats).to receive(:send)
-      allow(nats).to receive(:close)
-      allow(NatsService).to receive(:new).and_return(nats)
-      
       expect(MarketHistoryProcessorWorker).to_not receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
     it 'does not call MarketHistoryProcessorWorker if LocationId is not a valid market locationId' do
       data = { 'AlbionId' => 1234, 'LocationId' => 0, 'MarketHistories' => [] }
-      allow(REDIS['west']).to receive(:get).and_return(nil)
-      allow(REDIS['west']).to receive(:set)
-      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
-      
-      nats = double
-      allow(nats).to receive(:send)
-      allow(nats).to receive(:close)
-      allow(NatsService).to receive(:new).and_return(nats)
-      
       expect(MarketHistoryProcessorWorker).to_not receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end 
 
     it 'does not call MarketHistoryProcessorWorker if LocationId has @ and a invalid numeric' do
       data = { 'AlbionId' => 1234, 'LocationId' => 'LOTSOFSTUFF@6969', 'MarketHistories' => [] }
-      allow(REDIS['west']).to receive(:get).and_return(nil)
-      allow(REDIS['west']).to receive(:set)
-      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
-      
-      nats = double
-      allow(nats).to receive(:send)
-      allow(nats).to receive(:close)
-      allow(NatsService).to receive(:new).and_return(nats)
-      
       expect(MarketHistoryProcessorWorker).to_not receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
     it 'calls MarketHistoryProcessorWorker if LocationId is a valid numeric' do
       data = { 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [] }
-      allow(REDIS['west']).to receive(:get).and_return(nil)
-      allow(REDIS['west']).to receive(:set)
-      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
-      
-      nats = double
-      allow(nats).to receive(:send)
-      allow(nats).to receive(:close)
-      allow(NatsService).to receive(:new).and_return(nats)
-      
       expect(MarketHistoryProcessorWorker).to receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
     it 'calls MarketHistoryProcessorWorker if LocationId is a valid numeric (portal)' do
       data = { 'AlbionId' => 1234, 'LocationId' => 301, 'MarketHistories' => [] }
-      allow(REDIS['west']).to receive(:get).and_return(nil)
-      allow(REDIS['west']).to receive(:set)
-      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
-      
-      nats = double
-      allow(nats).to receive(:send)
-      allow(nats).to receive(:close)
-      allow(NatsService).to receive(:new).and_return(nats)
-      
       expect(MarketHistoryProcessorWorker).to receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
     it 'calls MarketHistoryProcessorWorker if LocationId is not a numeric' do
       data = { 'AlbionId' => 1234, 'LocationId' => '3005', 'MarketHistories' => [] }
-      allow(REDIS['west']).to receive(:get).and_return(nil)
-      allow(REDIS['west']).to receive(:set)
-      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
-      
-      nats = double
-      allow(nats).to receive(:send)
-      allow(nats).to receive(:close)
-      allow(NatsService).to receive(:new).and_return(nats)
-      
       expect(MarketHistoryProcessorWorker).to receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
     it 'calls MarketHistoryProcessorWorker if LocationId is a HellDens locationId' do
       data = { 'AlbionId' => 1234, 'LocationId' => '0000-HellDen', 'MarketHistories' => [] }
-      allow(REDIS['west']).to receive(:get).and_return(nil)
-      allow(REDIS['west']).to receive(:set)
-      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
-      
-      nats = double
-      allow(nats).to receive(:send)
-      allow(nats).to receive(:close)
-      allow(NatsService).to receive(:new).and_return(nats)
-      
       expect(MarketHistoryProcessorWorker).to receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
     it 'calls MarketHistoryProcessorWorker if LocationId is a Blackbank locationId' do
       data = { 'AlbionId' => 1234, 'LocationId' => 'BLACKBANK-2311', 'MarketHistories' => [] }
-      allow(REDIS['west']).to receive(:get).and_return(nil)
-      allow(REDIS['west']).to receive(:set)
-      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
-      
-      nats = double
-      allow(nats).to receive(:send)
-      allow(nats).to receive(:close)
-      allow(NatsService).to receive(:new).and_return(nats)
-      
       expect(MarketHistoryProcessorWorker).to receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
     it 'calls MarketHistoryProcessorWorker if LocationId is a Blackbank locationId with @' do
       data = { 'AlbionId' => 1234, 'LocationId' => 'LOTSOFSTUFF@BLACKBANK-2311', 'MarketHistories' => [] }
-      allow(REDIS['west']).to receive(:get).and_return(nil)
-      allow(REDIS['west']).to receive(:set)
-      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
-      
-      nats = double
-      allow(nats).to receive(:send)
-      allow(nats).to receive(:close)
-      allow(NatsService).to receive(:new).and_return(nats)
-      
       expect(MarketHistoryProcessorWorker).to receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
     it 'calls MarketHistoryProcessorWorker if LocationId has @ and a valid numeric' do
       data = { 'AlbionId' => 1234, 'LocationId' => 'LOTSOFSTUFF@0008', 'MarketHistories' => [] }
-      allow(REDIS['west']).to receive(:get).and_return(nil)
-      allow(REDIS['west']).to receive(:set)
-      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
-      
-      nats = double
-      allow(nats).to receive(:send)
-      allow(nats).to receive(:close)
-      allow(NatsService).to receive(:new).and_return(nats)
-      
       expect(MarketHistoryProcessorWorker).to receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
     it 'calls MarketHistoryProcessorWorker if LocationId is Caerleon second market (3013-Auction2)' do
       data = { 'AlbionId' => 1234, 'LocationId' => '3013-Auction2', 'MarketHistories' => [] }
-      allow(REDIS['west']).to receive(:get).and_return(nil)
-      allow(REDIS['west']).to receive(:set)
-      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
-      
-      nats = double
-      allow(nats).to receive(:send)
-      allow(nats).to receive(:close)
-      allow(NatsService).to receive(:new).and_return(nats)
-      
       expect(MarketHistoryProcessorWorker).to receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
     it 'returns a StandardError if the AlbionID is not found in redis' do
       data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005 }
-      allow(REDIS['west']).to receive(:get).and_return(nil)
       allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return(nil)
       expect { subject.dedupe(data, 'west', opts) }.to raise_error(StandardError)
     end
@@ -199,15 +105,10 @@ describe MarketHistoryDedupeService, type: :service do
     it 'sends data to NatsService and MarketHistoryProcessorWorker' do
       data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [] }
       expected_data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [], 'AlbionIdString' => 'SOME_ITEM_ID' }
-      allow(REDIS['west']).to receive(:get).and_return(nil)
-      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
-
-      nats = double
+      
       expect(nats).to receive(:send).with('markethistories.ingest', data.to_json)
       expect(nats).to receive(:send).with('markethistories.deduped', expected_data.to_json)
-      allow(nats).to receive(:close)
-      allow(NatsService).to receive(:new).with('west').and_return(nats)
-
+      
       expect(MarketHistoryProcessorWorker).to receive(:perform_async).with(expected_data.to_json, 'west', opts.to_json)
       subject.dedupe(data, 'west', opts)
     end
@@ -215,14 +116,7 @@ describe MarketHistoryDedupeService, type: :service do
     it 'will convert the LocationId to the city id if it is a portal' do
       data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3013, 'MarketHistories' => [] }
       expected_data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [], 'AlbionIdString' => 'SOME_ITEM_ID', }
-      allow(REDIS['west']).to receive(:get).and_return(nil)
-      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
-
-      nats = double
-      allow(nats).to receive(:send)
-      allow(nats).to receive(:close)
-      allow(NatsService).to receive(:new).and_return(nats)
-
+      
       expect(MarketHistoryProcessorWorker).to receive(:perform_async).with(expected_data.to_json, 'west', opts.to_json)
       subject.dedupe(data, 'west', opts)
     end
@@ -230,14 +124,7 @@ describe MarketHistoryDedupeService, type: :service do
     it 'will not convert the LocationId if it is not a portal' do
       data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [] }
       expected_data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [], 'AlbionIdString' => 'SOME_ITEM_ID', }
-      allow(REDIS['west']).to receive(:get).and_return(nil)
-      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
-
-      nats = double
-      allow(nats).to receive(:send)
-      allow(nats).to receive(:close)
-      allow(NatsService).to receive(:new).and_return(nats)
-
+      
       expect(MarketHistoryProcessorWorker).to receive(:perform_async).with(expected_data.to_json, 'west', opts.to_json)
       subject.dedupe(data, 'west', opts)
     end
@@ -245,20 +132,13 @@ describe MarketHistoryDedupeService, type: :service do
     it 'corrects the price of the MarketHistories' do
       data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [{ 'SilverAmount' => '123456' }] }
       expected_data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [{ 'SilverAmount' => 12 }] , 'AlbionIdString' => 'SOME_ITEM_ID', }
-      allow(REDIS['west']).to receive(:get).and_return(nil)
-      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
-
-      nats = double
-      allow(nats).to receive(:send)
-      allow(nats).to receive(:close)
-      allow(NatsService).to receive(:new).and_return(nats)
-
+      
       expect(MarketHistoryProcessorWorker).to receive(:perform_async).with(expected_data.to_json, 'west', opts.to_json)
       subject.dedupe(data, 'west', opts)
     end
 
     it 'logs with duplicate message' do
-      data = { 'foo' => 'bar' }
+      data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [] }
       json_data = data.to_json
       sha256 = Digest::SHA256.hexdigest(json_data)
       allow(REDIS['west']).to receive(:get).with("HISTORY_RECORD_SHA256:#{sha256}").and_return('1')
@@ -269,9 +149,7 @@ describe MarketHistoryDedupeService, type: :service do
     it 'logs with not duplicate message' do
       data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [] }
       expected_data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [], 'AlbionIdString' => 'SOME_ITEM_ID' }
-      allow(REDIS['west']).to receive(:get).and_return(nil)
-      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
-
+      
       expected_log = { class: 'MarketHistoryDedupeService', method: 'dedupe', server_id: 'west', opts: opts, data: expected_data, message: 'data not duplicate' }
       expect(Sidekiq.logger).to receive(:info).with(expected_log.to_json)
       subject.dedupe(data, 'west', opts)
