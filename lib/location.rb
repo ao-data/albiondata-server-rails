@@ -79,14 +79,14 @@ module Location
   }
 
   # This is to be used with HellDens, WATCHOUT it converts Black Market to Caerleon Market!
-  CITY_TO_MARKET = {
-  "0000" => '0007', # Thetford to Thetford Market
-  "1000" => '1002', # Lymhurst to Lymhurst Market
-  "2000" => '2004', # Bridgewatch to Bridgewatch Market
-  "3004" => '3008', # Martlock to Martlock Market
-  "3003" => '3005', # Caerleon to Caerleon Market
-  "4000" => '4002', # Fort Sterling to Fort Sterling Market
-  "5000" => '5003'  # Brecilien to Brecilien Market
+  HELLDEN_TO_MARKET = {
+  "0000-HellDen" => '0007', # Thetford to Thetford Market
+  "1000-HellDen" => '1002', # Lymhurst to Lymhurst Market
+  "2000-HellDen" => '2004', # Bridgewatch to Bridgewatch Market
+  "3004-HellDen" => '3008', # Martlock to Martlock Market
+  "3003-HellDen" => '3005', # Caerleon to Caerleon Market
+  "4000-HellDen" => '4002', # Fort Sterling to Fort Sterling Market
+  "5000-HellDen" => '5003'  # Brecilien to Brecilien Market
   }  
 
   SPLIT_WORDS = ['swamp', 'portal', 'cross', 'market', 'sterling', 'rest', 'smugglers', 'network',
@@ -113,16 +113,15 @@ module Location
     id = location.dup
 
     case
-      when id.include?('-Auction2')
+      when id.end_with?('-Auction2')
         id.gsub!('-Auction2', '')
-      when id.include?('-HellDen')
-        id.gsub!('-HellDen', '')
-        id = CITY_TO_MARKET[id]
+      when id.end_with?('-HellDen')
+        id = HELLDEN_TO_MARKET[id]
         return nil unless id
       when id.include?('@')
         id = id.split('@', 2).last
         id.gsub!('BLACKBANK-', '') if id.include?('BLACKBANK-')
-      when id.include?('BLACKBANK-')
+      when id.start_with?('BLACKBANK-')
         id.gsub!('BLACKBANK-', '')
     end
 
