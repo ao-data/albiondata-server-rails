@@ -59,14 +59,12 @@ class MarketOrderDedupeService
         if REDIS[@server_id].get("RECORD_SHA256:#{sha256}").nil?
           REDIS[@server_id].set("RECORD_SHA256:#{sha256}", '1', ex: 600)
 
-          next unless order['LocationId'].is_a?(Numeric)
-          next unless VALID_LOCATIONS.include?(order['LocationId'])
+          # Parse and validate location
+          order['LocationId'] = parse_location_integer(order['LocationId'])
+          next if order['LocationId'].nil?
 
           # Hack since albion seems to be multiplying every price by 10000
           order['UnitPriceSilver'] /= 10000
-
-          # merge portals to parent city
-          order['LocationId'] = PORTAL_TO_CITY[order['LocationId']] if PORTAL_TO_CITY.has_key?(order['LocationId'])
 
           redis_deduped << order
         else

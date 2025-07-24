@@ -24,15 +24,168 @@ describe MarketHistoryDedupeService, type: :service do
       subject.dedupe(data, 'west', opts)
     end
 
-    it 'does not call MarketHistoryProcessorWorker if LocationId is not a numeric' do
-      data = { 'LocationId' => '3005' }
+    it 'does not call MarketHistoryProcessorWorker if LocationId is a random word' do
+      data = { 'AlbionId' => 1234, 'LocationId' => 'pizza', 'MarketHistories' => [] }
+      allow(REDIS['west']).to receive(:get).and_return(nil)
+      allow(REDIS['west']).to receive(:set)
+      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
+      
+      nats = double
+      allow(nats).to receive(:send)
+      allow(nats).to receive(:close)
+      allow(NatsService).to receive(:new).and_return(nats)
+      
       expect(MarketHistoryProcessorWorker).to_not receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
     it 'does not call MarketHistoryProcessorWorker if LocationId is not a valid market locationId' do
-      data = { 'LocationId' => 0 }
+      data = { 'AlbionId' => 1234, 'LocationId' => 0, 'MarketHistories' => [] }
+      allow(REDIS['west']).to receive(:get).and_return(nil)
+      allow(REDIS['west']).to receive(:set)
+      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
+      
+      nats = double
+      allow(nats).to receive(:send)
+      allow(nats).to receive(:close)
+      allow(NatsService).to receive(:new).and_return(nats)
+      
       expect(MarketHistoryProcessorWorker).to_not receive(:perform_async)
+      subject.dedupe(data, 'west', opts)
+    end 
+
+    it 'does not call MarketHistoryProcessorWorker if LocationId has @ and a invalid numeric' do
+      data = { 'AlbionId' => 1234, 'LocationId' => 'LOTSOFSTUFF@6969', 'MarketHistories' => [] }
+      allow(REDIS['west']).to receive(:get).and_return(nil)
+      allow(REDIS['west']).to receive(:set)
+      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
+      
+      nats = double
+      allow(nats).to receive(:send)
+      allow(nats).to receive(:close)
+      allow(NatsService).to receive(:new).and_return(nats)
+      
+      expect(MarketHistoryProcessorWorker).to_not receive(:perform_async)
+      subject.dedupe(data, 'west', opts)
+    end
+
+    it 'calls MarketHistoryProcessorWorker if LocationId is a valid numeric' do
+      data = { 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [] }
+      allow(REDIS['west']).to receive(:get).and_return(nil)
+      allow(REDIS['west']).to receive(:set)
+      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
+      
+      nats = double
+      allow(nats).to receive(:send)
+      allow(nats).to receive(:close)
+      allow(NatsService).to receive(:new).and_return(nats)
+      
+      expect(MarketHistoryProcessorWorker).to receive(:perform_async)
+      subject.dedupe(data, 'west', opts)
+    end
+
+    it 'calls MarketHistoryProcessorWorker if LocationId is a valid numeric (portal)' do
+      data = { 'AlbionId' => 1234, 'LocationId' => 301, 'MarketHistories' => [] }
+      allow(REDIS['west']).to receive(:get).and_return(nil)
+      allow(REDIS['west']).to receive(:set)
+      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
+      
+      nats = double
+      allow(nats).to receive(:send)
+      allow(nats).to receive(:close)
+      allow(NatsService).to receive(:new).and_return(nats)
+      
+      expect(MarketHistoryProcessorWorker).to receive(:perform_async)
+      subject.dedupe(data, 'west', opts)
+    end
+
+    it 'calls MarketHistoryProcessorWorker if LocationId is not a numeric' do
+      data = { 'AlbionId' => 1234, 'LocationId' => '3005', 'MarketHistories' => [] }
+      allow(REDIS['west']).to receive(:get).and_return(nil)
+      allow(REDIS['west']).to receive(:set)
+      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
+      
+      nats = double
+      allow(nats).to receive(:send)
+      allow(nats).to receive(:close)
+      allow(NatsService).to receive(:new).and_return(nats)
+      
+      expect(MarketHistoryProcessorWorker).to receive(:perform_async)
+      subject.dedupe(data, 'west', opts)
+    end
+
+    it 'calls MarketHistoryProcessorWorker if LocationId is a HellDens locationId' do
+      data = { 'AlbionId' => 1234, 'LocationId' => '0000-HellDen', 'MarketHistories' => [] }
+      allow(REDIS['west']).to receive(:get).and_return(nil)
+      allow(REDIS['west']).to receive(:set)
+      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
+      
+      nats = double
+      allow(nats).to receive(:send)
+      allow(nats).to receive(:close)
+      allow(NatsService).to receive(:new).and_return(nats)
+      
+      expect(MarketHistoryProcessorWorker).to receive(:perform_async)
+      subject.dedupe(data, 'west', opts)
+    end
+
+    it 'calls MarketHistoryProcessorWorker if LocationId is a Blackbank locationId' do
+      data = { 'AlbionId' => 1234, 'LocationId' => 'BLACKBANK-2311', 'MarketHistories' => [] }
+      allow(REDIS['west']).to receive(:get).and_return(nil)
+      allow(REDIS['west']).to receive(:set)
+      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
+      
+      nats = double
+      allow(nats).to receive(:send)
+      allow(nats).to receive(:close)
+      allow(NatsService).to receive(:new).and_return(nats)
+      
+      expect(MarketHistoryProcessorWorker).to receive(:perform_async)
+      subject.dedupe(data, 'west', opts)
+    end
+
+    it 'calls MarketHistoryProcessorWorker if LocationId is a Blackbank locationId with @' do
+      data = { 'AlbionId' => 1234, 'LocationId' => 'LOTSOFSTUFF@BLACKBANK-2311', 'MarketHistories' => [] }
+      allow(REDIS['west']).to receive(:get).and_return(nil)
+      allow(REDIS['west']).to receive(:set)
+      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
+      
+      nats = double
+      allow(nats).to receive(:send)
+      allow(nats).to receive(:close)
+      allow(NatsService).to receive(:new).and_return(nats)
+      
+      expect(MarketHistoryProcessorWorker).to receive(:perform_async)
+      subject.dedupe(data, 'west', opts)
+    end
+
+    it 'calls MarketHistoryProcessorWorker if LocationId has @ and a valid numeric' do
+      data = { 'AlbionId' => 1234, 'LocationId' => 'LOTSOFSTUFF@0008', 'MarketHistories' => [] }
+      allow(REDIS['west']).to receive(:get).and_return(nil)
+      allow(REDIS['west']).to receive(:set)
+      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
+      
+      nats = double
+      allow(nats).to receive(:send)
+      allow(nats).to receive(:close)
+      allow(NatsService).to receive(:new).and_return(nats)
+      
+      expect(MarketHistoryProcessorWorker).to receive(:perform_async)
+      subject.dedupe(data, 'west', opts)
+    end
+
+    it 'calls MarketHistoryProcessorWorker if LocationId is Caerleon second market (3013-Auction2)' do
+      data = { 'AlbionId' => 1234, 'LocationId' => '3013-Auction2', 'MarketHistories' => [] }
+      allow(REDIS['west']).to receive(:get).and_return(nil)
+      allow(REDIS['west']).to receive(:set)
+      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
+      
+      nats = double
+      allow(nats).to receive(:send)
+      allow(nats).to receive(:close)
+      allow(NatsService).to receive(:new).and_return(nats)
+      
+      expect(MarketHistoryProcessorWorker).to receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 

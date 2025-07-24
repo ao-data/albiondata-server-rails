@@ -78,6 +78,17 @@ module Location
     3013 => 3005  # Caerleon2 to Caerleon
   }
 
+  # This is to be used with HellDens, WATCHOUT it converts Black Market to Caerleon Market!
+  HELLDEN_TO_MARKET = {
+  "0000-HellDen" => '0007', # Thetford to Thetford Market
+  "1000-HellDen" => '1002', # Lymhurst to Lymhurst Market
+  "2000-HellDen" => '2004', # Bridgewatch to Bridgewatch Market
+  "3004-HellDen" => '3008', # Martlock to Martlock Market
+  "3003-HellDen" => '3005', # Caerleon to Caerleon Market
+  "4000-HellDen" => '4002', # Fort Sterling to Fort Sterling Market
+  "5000-HellDen" => '5003'  # Brecilien to Brecilien Market
+  }  
+
   SPLIT_WORDS = ['swamp', 'portal', 'cross', 'market', 'sterling', 'rest', 'smugglers', 'network',
                  'bank', 'basin', 'bog', 'confluence', 'copse', 'cross', 'desert', 'fell', 'firth', 'floe', 'forest',
                  'fount', 'grove', 'heath', 'hills', 'hollow', 'icemarsh', 'knoll', 'loch', 'marsh', 'mesa', 'peak',
@@ -88,8 +99,37 @@ module Location
                              2308, 2310, 2311, 2333, 2336, 2342, 2344, 2347, 2348, 3306, 3344, 3345, 3351, 3355,
                              3357, 4300, 4313, 4318, 4322, 4345, 4351, 4357]
 
-  # Used in multiple services to validate location ids
-  VALID_LOCATIONS = (CITY_TO_LOCATION.values + PORTAL_TO_CITY.keys + SMUGGLERS_NETWORK_LOCATIONS).uniq
+  VALID_LOCATIONS = (CITY_TO_LOCATION.values + SMUGGLERS_NETWORK_LOCATIONS).uniq
+
+  def parse_location_integer(location)
+    return nil unless location.is_a?(String) || location.is_a?(Numeric)
+
+    ## dealing with older clients that send int locations
+    if location.is_a?(Numeric)
+      return PORTAL_TO_CITY[location] if PORTAL_TO_CITY.key?(location)
+      return VALID_LOCATIONS.include?(location) ? location : nil
+    end
+
+    id = location.dup
+
+    case
+      when id.end_with?('-Auction2')
+        id.gsub!('-Auction2', '')
+      when id.end_with?('-HellDen')
+        id = HELLDEN_TO_MARKET[id]
+        return nil unless id
+      when id.include?('@')
+        id = id.split('@', 2).last
+        id.gsub!('BLACKBANK-', '') if id.include?('BLACKBANK-')
+      when id.start_with?('BLACKBANK-')
+        id.gsub!('BLACKBANK-', '')
+    end
+
+    return nil unless id.is_a?(String) && id.match?(/\A\d+\z/)
+    int_id = id.to_i
+
+    PORTAL_TO_CITY[int_id] || (VALID_LOCATIONS.include?(int_id) ? int_id : nil)
+  end
 
   def location_to_city(location)
     LOCATION_TO_CITY[location.to_s] || location.to_s.to_sym

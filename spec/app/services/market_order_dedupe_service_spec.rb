@@ -90,8 +90,14 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
         expect(result.first['UnitPriceSilver']).to eq(249)
       end
 
-      it 'merges portals to parent city' do
+      it 'merges portals to parent city (int)' do
         data['Orders'].first['LocationId'] = 301
+        result = subject.dedupe
+        expect(result.first['LocationId']).to eq(7)
+      end
+
+      it 'merges portals to parent city (string)' do
+        data['Orders'].first['LocationId'] = '301'
         result = subject.dedupe
         expect(result.first['LocationId']).to eq(7)
       end
@@ -125,14 +131,25 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
       end
     end
 
-    context 'when order has non-numeric LocationId' do
+    context 'when order has invalid non-numeric LocationId' do
       before do
-        data['Orders'].first['LocationId'] = '3005'
+        data['Orders'].first['LocationId'] = 'pizza'
       end
 
       it 'skips the order' do
         result = subject.dedupe
         expect(result).to be_empty
+      end
+    end
+
+    context 'when order has valid non-numeric LocationId' do
+      before do
+        data['Orders'].first['LocationId'] = '3005'
+      end
+
+      it 'saves the order' do
+        result = subject.dedupe
+        expect(result.size).to eq(1)
       end
     end
 
