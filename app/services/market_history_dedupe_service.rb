@@ -22,6 +22,7 @@ class MarketHistoryDedupeService
 
     nats = NatsService.new(server_id)
     nats.send('markethistories.ingest', json_data)
+    IdentifierService.add_identifier_event(opts, server_id, "Received on MarketHistoryDedupeService, sent to NATS markethistories.ingest")
 
     sha256 = Digest::SHA256.hexdigest(json_data)
 
