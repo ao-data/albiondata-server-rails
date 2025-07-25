@@ -14,6 +14,16 @@ describe MarketHistoryDedupeService, type: :service do
       allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
     end
 
+    it 'sends to NatsService with parsed LocationId as integer' do
+      data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => '3005', 'MarketHistories' => [] }
+      expect(nats).to receive(:send) do |topic, payload|
+        parsed = JSON.parse(payload)
+        expect(parsed['LocationId']).to eq(3005)
+      end.at_least(:once)
+      allow(MarketHistoryProcessorWorker).to receive(:perform_async)
+      subject.dedupe(data, 'west', opts)
+    end
+
     it 'does not process if the sha256 hash is found in redis' do
       data = { 'foo' => 'bar' }
       json_data = data.to_json

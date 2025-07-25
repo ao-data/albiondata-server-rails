@@ -17,15 +17,15 @@ class MarketHistoryDedupeService
   include Location
 
   def dedupe(data, server_id, opts)
-    json_data = data.to_json
-    json_opts = opts.to_json
-
     # Parse and validate location
     data['LocationId'] = parse_location_integer(data['LocationId'])
     if data['LocationId'].nil?
       IdentifierService.add_identifier_event(opts, server_id, "Received on MarketHistoryDedupeService, invalid LocationId: #{data['LocationId']}")
       return
     end
+
+    json_data = data.to_json
+    json_opts = opts.to_json
 
     nats = NatsService.new(server_id)
     nats.send('markethistories.ingest', json_data)
