@@ -14,7 +14,7 @@ describe MarketHistoryDedupeService, type: :service do
       allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return('SOME_ITEM_ID')
     end
 
-    it 'sends to NatsService with parsed LocationId as integer' do
+    it 'it sends to NatsService with parsed LocationId as integer' do
       data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => '3005', 'MarketHistories' => [] }
       expect(nats).to receive(:send) do |topic, payload|
         parsed = JSON.parse(payload)
@@ -24,7 +24,7 @@ describe MarketHistoryDedupeService, type: :service do
       subject.dedupe(data, 'west', opts)
     end
 
-    it 'does not process if the sha256 hash is found in redis' do
+    it 'it does not process if the sha256 hash is found in redis' do
       data = { 'foo' => 'bar' }
       json_data = data.to_json
       sha256 = Digest::SHA256.hexdigest(json_data)
@@ -34,85 +34,85 @@ describe MarketHistoryDedupeService, type: :service do
       subject.dedupe(data, 'west', opts)
     end
 
-    it 'does not call MarketHistoryProcessorWorker if AlbionId is 0' do
+    it 'it does not call MarketHistoryProcessorWorker if AlbionId is 0' do
       data = { 'AlbionId' => 0 }
       expect(MarketHistoryProcessorWorker).to_not receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
-    it 'does not call MarketHistoryProcessorWorker if LocationId is a random word' do
+    it 'it does not call MarketHistoryProcessorWorker if LocationId is a random word' do
       data = { 'AlbionId' => 1234, 'LocationId' => 'pizza', 'MarketHistories' => [] }
       expect(MarketHistoryProcessorWorker).to_not receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
-    it 'does not call MarketHistoryProcessorWorker if LocationId is not a valid market locationId' do
+    it 'it does not call MarketHistoryProcessorWorker if LocationId is not a valid market locationId' do
       data = { 'AlbionId' => 1234, 'LocationId' => 0, 'MarketHistories' => [] }
       expect(MarketHistoryProcessorWorker).to_not receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end 
 
-    it 'does not call MarketHistoryProcessorWorker if LocationId has @ and a invalid numeric' do
+    it 'it does not call MarketHistoryProcessorWorker if LocationId has @ and a invalid numeric' do
       data = { 'AlbionId' => 1234, 'LocationId' => 'LOTSOFSTUFF@6969', 'MarketHistories' => [] }
       expect(MarketHistoryProcessorWorker).to_not receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
-    it 'calls MarketHistoryProcessorWorker if LocationId is a valid numeric' do
+    it 'it calls MarketHistoryProcessorWorker if LocationId is a valid numeric' do
       data = { 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [] }
       expect(MarketHistoryProcessorWorker).to receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
-    it 'calls MarketHistoryProcessorWorker if LocationId is a valid numeric (portal)' do
+    it 'it calls MarketHistoryProcessorWorker if LocationId is a valid numeric (portal)' do
       data = { 'AlbionId' => 1234, 'LocationId' => 301, 'MarketHistories' => [] }
       expect(MarketHistoryProcessorWorker).to receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
-    it 'calls MarketHistoryProcessorWorker if LocationId is not a numeric' do
+    it 'it calls MarketHistoryProcessorWorker if LocationId is not a numeric' do
       data = { 'AlbionId' => 1234, 'LocationId' => '3005', 'MarketHistories' => [] }
       expect(MarketHistoryProcessorWorker).to receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
-    it 'calls MarketHistoryProcessorWorker if LocationId is a HellDens locationId' do
+    it 'it calls MarketHistoryProcessorWorker if LocationId is a HellDens locationId' do
       data = { 'AlbionId' => 1234, 'LocationId' => '0000-HellDen', 'MarketHistories' => [] }
       expect(MarketHistoryProcessorWorker).to receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
-    it 'calls MarketHistoryProcessorWorker if LocationId is a Blackbank locationId' do
+    it 'it calls MarketHistoryProcessorWorker if LocationId is a Blackbank locationId' do
       data = { 'AlbionId' => 1234, 'LocationId' => 'BLACKBANK-2311', 'MarketHistories' => [] }
       expect(MarketHistoryProcessorWorker).to receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
-    it 'calls MarketHistoryProcessorWorker if LocationId is a Blackbank locationId with @' do
+    it 'it calls MarketHistoryProcessorWorker if LocationId is a Blackbank locationId with @' do
       data = { 'AlbionId' => 1234, 'LocationId' => 'LOTSOFSTUFF@BLACKBANK-2311', 'MarketHistories' => [] }
       expect(MarketHistoryProcessorWorker).to receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
-    it 'calls MarketHistoryProcessorWorker if LocationId has @ and a valid numeric' do
+    it 'it calls MarketHistoryProcessorWorker if LocationId has @ and a valid numeric' do
       data = { 'AlbionId' => 1234, 'LocationId' => 'LOTSOFSTUFF@0008', 'MarketHistories' => [] }
       expect(MarketHistoryProcessorWorker).to receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
-    it 'calls MarketHistoryProcessorWorker if LocationId is Caerleon second market (3013-Auction2)' do
+    it 'it calls MarketHistoryProcessorWorker if LocationId is Caerleon second market (3013-Auction2)' do
       data = { 'AlbionId' => 1234, 'LocationId' => '3013-Auction2', 'MarketHistories' => [] }
       expect(MarketHistoryProcessorWorker).to receive(:perform_async)
       subject.dedupe(data, 'west', opts)
     end
 
-    it 'returns a StandardError if the AlbionID is not found in redis' do
+    it 'it returns a StandardError if the AlbionID is not found in redis' do
       data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005 }
       allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return(nil)
       expect { subject.dedupe(data, 'west', opts) }.to raise_error(StandardError)
     end
 
-    it 'sends data to NatsService and MarketHistoryProcessorWorker' do
+    it 'it sends data to NatsService and MarketHistoryProcessorWorker' do
       data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [] }
       expected_data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [], 'AlbionIdString' => 'SOME_ITEM_ID' }
       
@@ -123,7 +123,7 @@ describe MarketHistoryDedupeService, type: :service do
       subject.dedupe(data, 'west', opts)
     end
 
-    it 'will convert the LocationId to the city id if it is a portal' do
+    it 'it will convert the LocationId to the city id if it is a portal' do
       data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3013, 'MarketHistories' => [] }
       expected_data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [], 'AlbionIdString' => 'SOME_ITEM_ID', }
       
@@ -131,7 +131,7 @@ describe MarketHistoryDedupeService, type: :service do
       subject.dedupe(data, 'west', opts)
     end
 
-    it 'will not convert the LocationId if it is not a portal' do
+    it 'it will not convert the LocationId if it is not a portal' do
       data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [] }
       expected_data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [], 'AlbionIdString' => 'SOME_ITEM_ID', }
       
@@ -139,7 +139,7 @@ describe MarketHistoryDedupeService, type: :service do
       subject.dedupe(data, 'west', opts)
     end
 
-    it 'corrects the price of the MarketHistories' do
+    it 'it corrects the price of the MarketHistories' do
       data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [{ 'SilverAmount' => '123456' }] }
       expected_data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [{ 'SilverAmount' => 12 }] , 'AlbionIdString' => 'SOME_ITEM_ID', }
       
@@ -147,7 +147,7 @@ describe MarketHistoryDedupeService, type: :service do
       subject.dedupe(data, 'west', opts)
     end
 
-    it 'logs with duplicate message' do
+    it 'it logs with duplicate message' do
       data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [] }
       json_data = data.to_json
       sha256 = Digest::SHA256.hexdigest(json_data)
@@ -156,7 +156,7 @@ describe MarketHistoryDedupeService, type: :service do
       subject.dedupe(data, 'west', opts)
     end
 
-    it 'logs with not duplicate message' do
+    it 'it logs with not duplicate message' do
       data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [] }
       expected_data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005, 'MarketHistories' => [], 'AlbionIdString' => 'SOME_ITEM_ID' }
       

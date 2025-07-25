@@ -9,6 +9,22 @@ class MarketOrderDedupeService
   end
 
   def process
+
+    @data['Orders'].each do |order|
+      begin
+          order['LocationId'] = parse_location_integer(order['LocationId'])
+      end
+    end
+
+    # Filter out orders with nil LocationId
+    @data['Orders'] = @data['Orders'].reject { |order| order['LocationId'].nil? }
+    
+    # Return early if no valid orders
+    if @data['Orders'].empty?
+      IdentifierService.add_identifier_event(@opts, @server_id, "Received on MarketOrderDedupeService, no valid orders found")
+      return
+    end
+    
     nats = NatsService.new(@server_id)
     nats.send('marketorders.ingest', @data.to_json)
     IdentifierService.add_identifier_event(@opts, @server_id, "Received on MarketOrderDedupeService, sent to NATS marketorders.ingest")
@@ -58,10 +74,6 @@ class MarketOrderDedupeService
         sha256 = Digest::SHA256.hexdigest(order.to_s)
         if REDIS[@server_id].get("RECORD_SHA256:#{sha256}").nil?
           REDIS[@server_id].set("RECORD_SHA256:#{sha256}", '1', ex: 600)
-
-          # Parse and validate location
-          order['LocationId'] = parse_location_integer(order['LocationId'])
-          next if order['LocationId'].nil?
 
           # Hack since albion seems to be multiplying every price by 10000
           order['UnitPriceSilver'] /= 10000
