@@ -33,6 +33,232 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
       allow(NatsService).to receive(:new).and_return(double(send: nil, close: nil))
     end
 
+    context 'when order has a int LocationId that is not a valid market locationId' do
+      before do
+        data['Orders'].first['LocationId'] = 0
+      end
+
+      after do
+        allow(MarketOrderProcessorWorker).to receive(:perform_async)
+        subject.process
+      end
+
+      it 'it does not call dedupe' do
+        expect(subject).not_to receive(:dedupe)
+      end
+
+      it 'it does not instantiate NatsService' do
+        expect(NatsService).not_to receive(:new)
+      end
+
+      it 'it logs that no valid orders were found' do
+        expect(IdentifierService).to receive(:add_identifier_event).with(
+          opts, 'west', "Received on MarketOrderDedupeService, no valid orders found"
+        )
+      end
+    end    
+
+    context 'when order has a string LocationId that is not a valid market locationId' do
+      before do
+        data['Orders'].first['LocationId'] = 'pizza'
+      end
+
+      after do
+        allow(MarketOrderProcessorWorker).to receive(:perform_async)
+        subject.process
+      end
+
+      it 'it does not call dedupe' do
+        expect(subject).not_to receive(:dedupe)
+      end
+
+      it 'it does not instantiate NatsService' do
+        expect(NatsService).not_to receive(:new)
+      end
+
+      it 'it logs that no valid orders were found' do
+        expect(IdentifierService).to receive(:add_identifier_event).with(
+          opts, 'west', "Received on MarketOrderDedupeService, no valid orders found"
+        )
+      end
+    end
+    
+    context 'when order has valid non-numeric LocationId' do
+      before do
+        data['Orders'].first['LocationId'] = '3005'
+      end
+    
+      after do
+        allow(MarketOrderProcessorWorker).to receive(:perform_async)
+        subject.process
+      end
+    
+      it 'it sends the order to marketorders.ingest with integer LocationId' do
+        nats = double
+        expect(NatsService).to receive(:new).with('west').and_return(nats)
+        expect(nats).to receive(:send).with('marketorders.ingest', anything) do |_, payload|
+          orders = JSON.parse(payload)['Orders']
+          expect(orders.first['LocationId']).to eq(3005)
+        end
+        allow(nats).to receive(:send)
+        expect(nats).to receive(:close)
+      end
+    
+      it 'it sends the order to marketorders.deduped with integer LocationId' do
+        nats = double
+        expect(NatsService).to receive(:new).with('west').and_return(nats)
+        allow(nats).to receive(:send)
+        expect(nats).to receive(:send).with('marketorders.deduped', anything) do |_, payload|
+          order = JSON.parse(payload)
+          expect(order['LocationId']).to eq(3005)
+        end
+        expect(nats).to receive(:close)
+      end
+    
+      it 'it sends the order to marketorders.deduped.bulk with integer LocationId' do
+        nats = double
+        expect(NatsService).to receive(:new).with('west').and_return(nats)
+        allow(nats).to receive(:send)
+        expect(nats).to receive(:send).with('marketorders.deduped.bulk', anything) do |_, payload|
+          orders = JSON.parse(payload)
+          expect(orders.first['LocationId']).to eq(3005)
+        end
+        expect(nats).to receive(:close)
+      end
+    end
+    
+    context 'when order has valid numeric LocationId' do
+      before do
+        data['Orders'].first['LocationId'] = 3005
+      end
+    
+      after do
+        allow(MarketOrderProcessorWorker).to receive(:perform_async)
+        subject.process
+      end
+    
+      it 'it sends the order to marketorders.ingest with integer LocationId' do
+        nats = double
+        expect(NatsService).to receive(:new).with('west').and_return(nats)
+        expect(nats).to receive(:send).with('marketorders.ingest', anything) do |_, payload|
+          orders = JSON.parse(payload)['Orders']
+          expect(orders.first['LocationId']).to eq(3005)
+        end
+        allow(nats).to receive(:send)
+        expect(nats).to receive(:close)
+      end
+    
+      it 'it sends the order to marketorders.deduped with integer LocationId' do
+        nats = double
+        expect(NatsService).to receive(:new).with('west').and_return(nats)
+        allow(nats).to receive(:send)
+        expect(nats).to receive(:send).with('marketorders.deduped', anything) do |_, payload|
+          order = JSON.parse(payload)
+          expect(order['LocationId']).to eq(3005)
+        end
+        expect(nats).to receive(:close)
+      end
+    
+      it 'it sends the order to marketorders.deduped.bulk with integer LocationId' do
+        nats = double
+        expect(NatsService).to receive(:new).with('west').and_return(nats)
+        allow(nats).to receive(:send)
+        expect(nats).to receive(:send).with('marketorders.deduped.bulk', anything) do |_, payload|
+          orders = JSON.parse(payload)
+          expect(orders.first['LocationId']).to eq(3005)
+        end
+        expect(nats).to receive(:close)
+      end
+    end
+    
+    context 'when order has valid non-numeric portal LocationId' do
+      before do
+        data['Orders'].first['LocationId'] = '2301'
+      end
+    
+      after do
+        allow(MarketOrderProcessorWorker).to receive(:perform_async)
+        subject.process
+      end
+    
+      it 'it sends the order to marketorders.ingest with integer LocationId' do
+        nats = double
+        expect(NatsService).to receive(:new).with('west').and_return(nats)
+        expect(nats).to receive(:send).with('marketorders.ingest', anything) do |_, payload|
+          orders = JSON.parse(payload)['Orders']
+          expect(orders.first['LocationId']).to eq(2004)
+        end
+        allow(nats).to receive(:send)
+        expect(nats).to receive(:close)
+      end
+    
+      it 'it sends the order to marketorders.deduped with integer LocationId' do
+        nats = double
+        expect(NatsService).to receive(:new).with('west').and_return(nats)
+        allow(nats).to receive(:send)
+        expect(nats).to receive(:send).with('marketorders.deduped', anything) do |_, payload|
+          order = JSON.parse(payload)
+          expect(order['LocationId']).to eq(2004)
+        end
+        expect(nats).to receive(:close)
+      end
+    
+      it 'it sends the order to marketorders.deduped.bulk with integer LocationId' do
+        nats = double
+        expect(NatsService).to receive(:new).with('west').and_return(nats)
+        allow(nats).to receive(:send)
+        expect(nats).to receive(:send).with('marketorders.deduped.bulk', anything) do |_, payload|
+          orders = JSON.parse(payload)
+          expect(orders.first['LocationId']).to eq(2004)
+        end
+        expect(nats).to receive(:close)
+      end
+    end
+    
+    context 'when order has valid numeric portal LocationId' do
+      before do
+        data['Orders'].first['LocationId'] = 2301
+      end
+    
+      after do
+        allow(MarketOrderProcessorWorker).to receive(:perform_async)
+        subject.process
+      end
+    
+      it 'it sends the order to marketorders.ingest with integer LocationId' do
+        nats = double
+        expect(NatsService).to receive(:new).with('west').and_return(nats)
+        expect(nats).to receive(:send).with('marketorders.ingest', anything) do |_, payload|
+          orders = JSON.parse(payload)['Orders']
+          expect(orders.first['LocationId']).to eq(2004)
+        end
+        allow(nats).to receive(:send)
+        expect(nats).to receive(:close)
+      end
+    
+      it 'it sends the order to marketorders.deduped with integer LocationId' do
+        nats = double
+        expect(NatsService).to receive(:new).with('west').and_return(nats)
+        allow(nats).to receive(:send)
+        expect(nats).to receive(:send).with('marketorders.deduped', anything) do |_, payload|
+          order = JSON.parse(payload)
+          expect(order['LocationId']).to eq(2004)
+        end
+        expect(nats).to receive(:close)
+      end
+    
+      it 'it sends the order to marketorders.deduped.bulk with integer LocationId' do
+        nats = double
+        expect(NatsService).to receive(:new).with('west').and_return(nats)
+        allow(nats).to receive(:send)
+        expect(nats).to receive(:send).with('marketorders.deduped.bulk', anything) do |_, payload|
+          orders = JSON.parse(payload)
+          expect(orders.first['LocationId']).to eq(2004)
+        end
+        expect(nats).to receive(:close)
+      end
+    end
+
     context 'when there are deduped records' do
       before do
         allow(subject).to receive(:dedupe).and_return([{ 'UnitPriceSilver' => 249 }])
@@ -40,7 +266,7 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
         allow(NatsService).to receive(:new).and_return(double(send: nil, close: nil))
       end
 
-      it 'sends deduped records to nats' do
+      it 'it sends deduped records to nats' do
         nats = double
         expect(NatsService).to receive(:new).with('west').and_return(nats)
         expect(nats).to receive(:send).with('marketorders.ingest', data.to_json)
@@ -50,7 +276,7 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
         subject.process
       end
 
-      it 'sends deduped records to MarketOrderProcessorWorker' do
+      it 'it sends deduped records to MarketOrderProcessorWorker' do
         expect(MarketOrderProcessorWorker).to receive(:perform_async).with(subject.dedupe.to_json, 'west', opts.to_json)
         subject.process
       end
@@ -61,7 +287,7 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
         allow(subject).to receive(:dedupe).and_return([])
       end
 
-      it 'does not send any records to MarketOrderProcessorWorker' do
+      it 'it does not send any records to MarketOrderProcessorWorker' do
         expect(MarketOrderProcessorWorker).not_to receive(:perform_async)
         subject.process
       end
@@ -85,27 +311,9 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
 
   describe '#dedupe' do
     context 'when order is not a duplicate' do
-      it 'adjusts unit price silver' do
+      it 'it adjusts unit price silver' do
         result = subject.dedupe
         expect(result.first['UnitPriceSilver']).to eq(249)
-      end
-
-      it 'merges portals to parent city (int)' do
-        data['Orders'].first['LocationId'] = 301
-        result = subject.dedupe
-        expect(result.first['LocationId']).to eq(7)
-      end
-
-      it 'merges portals to parent city (string)' do
-        data['Orders'].first['LocationId'] = '301'
-        result = subject.dedupe
-        expect(result.first['LocationId']).to eq(7)
-      end
-
-      it 'does not merge non-portal locations' do
-        data['Orders'].first['LocationId'] = 3005
-        result = subject.dedupe
-        expect(result.first['LocationId']).to eq(3005)
       end
     end
 
@@ -114,46 +322,13 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
         allow(REDIS['west']).to receive(:get).and_return('1')
       end
 
-      it 'does not add order to deduped list' do
+      it 'it does not add order to deduped list' do
         result = subject.dedupe
         expect(result).to be_empty
       end
     end
 
-    context 'when order has a LocationId that is not a valid market locationId' do
-      before do
-        data['Orders'].first['LocationId'] = 0
-      end
-
-      it 'skips the order' do
-        result = subject.dedupe
-        expect(result).to be_empty
-      end
-    end
-
-    context 'when order has invalid non-numeric LocationId' do
-      before do
-        data['Orders'].first['LocationId'] = 'pizza'
-      end
-
-      it 'skips the order' do
-        result = subject.dedupe
-        expect(result).to be_empty
-      end
-    end
-
-    context 'when order has valid non-numeric LocationId' do
-      before do
-        data['Orders'].first['LocationId'] = '3005'
-      end
-
-      it 'saves the order' do
-        result = subject.dedupe
-        expect(result.size).to eq(1)
-      end
-    end
-
-    it 'sends logs' do
+    it 'it sends logs' do
       expected_log = {
         class: 'MarketOrderDedupeService',
         method: 'dedupe',

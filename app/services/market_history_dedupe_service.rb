@@ -17,11 +17,19 @@ class MarketHistoryDedupeService
   include Location
 
   def dedupe(data, server_id, opts)
+    # Parse and validate location
+    data['LocationId'] = parse_location_integer(data['LocationId'])
+    if data['LocationId'].nil?
+      IdentifierService.add_identifier_event(opts, server_id, "Received on MarketHistoryDedupeService, invalid LocationId: #{data['LocationId']}")
+      return
+    end
+
     json_data = data.to_json
     json_opts = opts.to_json
 
     nats = NatsService.new(server_id)
     nats.send('markethistories.ingest', json_data)
+    IdentifierService.add_identifier_event(opts, server_id, "Received on MarketHistoryDedupeService, sent to NATS markethistories.ingest")
 
     sha256 = Digest::SHA256.hexdigest(json_data)
 
@@ -31,10 +39,6 @@ class MarketHistoryDedupeService
       REDIS[server_id].set("HISTORY_RECORD_SHA256:#{sha256}", '1', ex: 600)
 
       return if data['AlbionId'] == 0 # sometimes the client sends us 0 for the numeric item id, we trash this data
-
-      # Parse and validate location
-      data['LocationId'] = parse_location_integer(data['LocationId'])
-      return if data['LocationId'].nil?
 
       item_id = REDIS[server_id].hget('ITEM_IDS', data['AlbionId'])
       raise StandardError.new('MarketHistoryProcessorService: Item ID not found in redis.') if item_id.nil?
