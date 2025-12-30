@@ -30,5 +30,43 @@ describe GoldProcessorService, type: :service do
       expect(Sidekiq.logger).to receive(:info).with(expected_log)
       subject.process(data, 'west', opts)
     end
+
+    it 'only updates price if it is different' do
+      timestamp = 638486496000000000
+      initial_price = 100
+      timestamp_time = Time.at((timestamp - 621355968000000000)/10000000)
+      
+      # Create initial record
+      gold_price = GoldPrice.create(
+        price: initial_price,
+        timestamp: timestamp_time
+      )
+      
+      # Process with same price - should not call update
+      same_price_data = { 'Prices' => [initial_price], 'Timestamps' => [timestamp] }
+      update_spy = allow_any_instance_of(GoldPrice).to receive(:update).and_call_original
+      subject.process(same_price_data, 'west', opts)
+      
+      # Verify update was not called
+      expect(update_spy).not_to have_received(:update)
+      
+      # Reload and verify price hasn't changed
+      gold_price.reload
+      expect(gold_price.price).to eq(initial_price)
+      
+      # Process with different price - should call update
+      new_price = 200
+      different_price_data = { 'Prices' => [new_price], 'Timestamps' => [timestamp] }
+      # Create a new spy for the second call
+      update_spy2 = allow_any_instance_of(GoldPrice).to receive(:update).and_call_original
+      subject.process(different_price_data, 'west', opts)
+      
+      # Verify update was called
+      expect(update_spy2).to have_received(:update).with(price: new_price)
+      
+      # Reload and verify price was updated
+      gold_price.reload
+      expect(gold_price.price).to eq(new_price)
+    end
   end
 end

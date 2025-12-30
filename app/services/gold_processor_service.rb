@@ -9,7 +9,7 @@ class GoldProcessorService
         timestamp = Time.at((data['Timestamps'][index] - 621355968000000000)/10000000)
         gold_price = GoldPrice.find_by(timestamp: timestamp)
         if gold_price
-          gold_price.update(price: price)
+          gold_price.update(price: price) if gold_price.price != price
         else
           GoldPrice.create(price: price, timestamp: timestamp)
         end
