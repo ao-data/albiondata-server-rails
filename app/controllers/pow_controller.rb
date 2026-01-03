@@ -1,7 +1,7 @@
 class PowController < ApplicationController
   skip_before_action :verify_authenticity_token
 
-  TOPICS = %w(goldprices.ingest marketorders.ingest markethistories.ingest mapdata.ingest)
+  TOPICS = %w(goldprices.ingest marketorders.ingest markethistories.ingest mapdata.ingest banditevent.ingest)
   NATS_URI = ENV['NATS_URI']
 
   # Each ingestion takes 2 REQUEST
@@ -131,6 +131,9 @@ class PowController < ApplicationController
     when "markethistories.ingest"
       IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller and enqueued for MarketHistoryDedupeWorker', params[:natsmsg])
       MarketHistoryDedupeWorker.perform_async(data, server_id, opts)
+    when "banditevent.ingest"
+      IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller and enqueued for BanditEventWorker', params[:natsmsg])
+      BanditEventWorker.perform_async(data, server_id, opts)
     # when "mapdata.ingest"
     #   MapDataDedupeWorker.perform_async(data)
     end
