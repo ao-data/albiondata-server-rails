@@ -9,13 +9,21 @@ class MarketHistoryService
     timescale = params[:'time-scale']&.to_i.in?([1,6,24]) ? params[:'time-scale'].to_i : 1
 
     date_start = if params[:date] && !params[:date].empty?
-                 DateTime.parse(params[:date]) rescue DateTime.strptime(params[:date], "%m-%d-%Y")
+                 begin
+                   DateTime.strptime(params[:date], "%m-%d-%Y")
+                 rescue ArgumentError
+                   DateTime.strptime(params[:date], "%Y-%m-%d")
+                 end
                else
                  30.days.ago
                end
 
     date_end = if params[:end_date] && !params[:end_date].empty?
-                 DateTime.parse(params[:end_date]) rescue DateTime.strptime(params[:end_date], "%m-%d-%Y")
+                 begin
+                   DateTime.strptime(params[:end_date], "%m-%d-%Y")
+                 rescue ArgumentError
+                   DateTime.strptime(params[:end_date], "%Y-%m-%d")
+                 end
                else
                  date_start + 30.days
                end
