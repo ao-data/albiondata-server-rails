@@ -69,6 +69,41 @@ RSpec.describe MarketHistoryService, :type => :service do
       expect{subject.get_stats(params)}.not_to raise_error
     end
 
+    it 'parses date in mm-dd-yyyy format correctly' do
+      params = { id: 'T4_BAG', locations: '3005', qualities: '1', date: '03-09-2024' }
+      expect{subject.get_stats(params)}.not_to raise_error
+    end
+
+    it 'parses end_date in mm-dd-yyyy format correctly' do
+      params = { id: 'T4_BAG', locations: '3005', qualities: '1', end_date: '03-10-2024' }
+      expect{subject.get_stats(params)}.not_to raise_error
+    end
+
+    it 'parses date in yyyy-mm-dd format correctly' do
+      params = { id: 'T4_BAG', locations: '3005', qualities: '1', date: '2024-03-09' }
+      expect{subject.get_stats(params)}.not_to raise_error
+    end
+
+    it 'parses end_date in yyyy-mm-dd format correctly' do
+      params = { id: 'T4_BAG', locations: '3005', qualities: '1', end_date: '2024-03-10' }
+      expect{subject.get_stats(params)}.not_to raise_error
+    end
+
+    it 'parses date and end_date with different formats correctly' do
+      params = { id: 'T4_BAG', locations: '3005', qualities: '1', date: '03-09-2024', end_date: '2024-03-10' }
+      expect{subject.get_stats(params)}.not_to raise_error
+    end
+
+    it 'raises error for invalid date format' do
+      params = { id: 'T4_BAG', locations: '3005', qualities: '1', date: '09/03/2024' }
+      expect{subject.get_stats(params)}.to raise_error(ArgumentError)
+    end
+
+    it 'raises error for invalid end_date format' do
+      params = { id: 'T4_BAG', locations: '3005', qualities: '1', end_date: '10/03/2024' }
+      expect{subject.get_stats(params)}.to raise_error(ArgumentError)
+    end
+
     context 'time-scale 24' do
       let(:timescale) { 24 }
       it 'returns only T4_BAG in location 3005 with quality 1 of 1 record per day' do
@@ -201,7 +236,20 @@ RSpec.describe MarketHistoryService, :type => :service do
     context 'time-scale 1' do
       let(:timescale) { 1 }
 
-      it 'returns only T4_BAG in location 3005 with quality 1 for 25 hours total (1 hour of the next day)' do
+      it 'returns only T4_BAG in location 3005 with quality 1 for 25 hours total (1 hour of the next day) with mm-dd-yyyy format' do
+        params = { id: 'T4_BAG', locations: '3005', qualities: '1', 'time-scale': timescale, date: '03-09-2024', end_date: '03-10-2024'}
+        result = subject.get_stats(params)
+
+        expect(result[0][:location]).to eq('Caerleon')
+        expect(result[0][:item_id]).to eq('T4_BAG')
+        expect(result[0][:quality]).to eq(1)
+        expect(result[0][:data].size).to eq(25)
+        expect(result[0][:data][0][:timestamp]).to eq('2024-03-09T00:00:00')
+        expect(result[0][:data][1][:timestamp]).to eq('2024-03-09T01:00:00')
+        expect(result[0][:data][24][:timestamp]).to eq('2024-03-10T00:00:00')
+      end
+
+      it 'returns only T4_BAG in location 3005 with quality 1 for 25 hours total (1 hour of the next day) with yyyy-mm-dd format' do
         params = { id: 'T4_BAG', locations: '3005', qualities: '1', 'time-scale': timescale, date: '2024-03-09', end_date: '2024-03-10'}
         result = subject.get_stats(params)
 
