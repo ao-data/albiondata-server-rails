@@ -1,6 +1,6 @@
 class BanditEventService
   def process(data, server_id, opts)
-    json_data = data.to_json
+    json_data = data.slice("EventTime").to_json
     json_opts = opts.to_json
 
     nats = NatsService.new(server_id)
