@@ -16,6 +16,8 @@ class MarketOrderDedupeService
       end
     end
 
+    @invalid_location_count = @data['Orders'].count { |o| o['LocationId'].nil? }
+
     # Filter out orders with nil LocationId
     @data['Orders'] = @data['Orders'].reject { |order| order['LocationId'].nil? }
     
@@ -69,7 +71,7 @@ class MarketOrderDedupeService
     # remove duplicates found in redis, 10 minute based for NATS subscribers
     redis_duplicates = 0
     redis_deduped = []
-    metrics = { server_id: @server_id, locations: {}}
+    metrics = { server_id: @server_id, locations: {}, invalid_location_count: @invalid_location_count || 0 }
     @data['Orders'].each do |order|
       begin
         sha256 = Digest::SHA256.hexdigest(order.to_s)
@@ -96,6 +98,17 @@ class MarketOrderDedupeService
         end
       end
     end
+
+    # Business metrics: price ranges from normalized (deduped) orders, auction types from all orders
+    prices = redis_deduped.map { |o| o['UnitPriceSilver'] }.compact
+    if prices.any?
+      metrics[:price_min] = prices.min
+      metrics[:price_max] = prices.max
+      metrics[:price_avg] = (prices.sum.to_f / prices.size).round(2)
+    end
+    auction_types = @data['Orders'].group_by { |o| o['AuctionType'] }
+    metrics[:offer_count] = auction_types['offer']&.size || 0
+    metrics[:request_count] = auction_types['request']&.size || 0
 
     log = { class: 'MarketOrderDedupeService', method: 'dedupe', opts: @opts, redis_duplicates: redis_duplicates }
     Sidekiq.logger.info(log.to_json)

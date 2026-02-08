@@ -42,7 +42,11 @@ class MarketHistoryDedupeService
       return if data['AlbionId'] == 0 # sometimes the client sends us 0 for the numeric item id, we trash this data
 
       item_id = REDIS[server_id].hget('ITEM_IDS', data['AlbionId'])
-      raise StandardError.new('MarketHistoryProcessorService: Item ID not found in redis.') if item_id.nil?
+      if item_id.nil?
+        metrics[:missing_item_id_count] = 1
+        ActiveSupport::Notifications.instrument('metrics.market_history_dedupe_service', metrics)
+        raise StandardError.new('MarketHistoryProcessorService: Item ID not found in redis.')
+      end
 
       data['AlbionIdString'] = item_id
 

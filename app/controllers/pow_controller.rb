@@ -53,7 +53,8 @@ class PowController < ApplicationController
     user_agent = request.user_agent ||= "unknown"
     opts = { client_ip: request.ip, user_agent: user_agent, identifier: identifier }
     log = { class: 'PowController', method: 'reply', params: params, opts: opts }
-    metrics = {server_id: server_id, client_ip: request.ip, user_agent: user_agent}
+    metrics = { server_id: server_id, client_ip: request.ip, user_agent: user_agent }
+    metrics[:payload_size_bytes] = params[:natsmsg].bytesize if params[:natsmsg]
     metric_name = 'metrics.pow_response'
 
     pow_json = REDIS[server_id].get("POW:#{params[:key]}")
@@ -99,6 +100,8 @@ class PowController < ApplicationController
 
     begin
       data = JSON.parse(params[:natsmsg])
+      metrics[:order_count] = data['Orders']&.size
+      metrics[:history_count] = data['MarketHistories']&.size
     rescue
       IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller, ignored cause Invalid JSON data')
 
