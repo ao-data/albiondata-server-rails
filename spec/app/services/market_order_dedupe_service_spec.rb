@@ -329,7 +329,16 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
       end
 
       it 'sends an activesupport notification' do
-        expected_payload = { server_id: 'west', locations: {1002 => { duplicates: 0, non_duplicates: 1 }} }
+        expected_payload = {
+          server_id: 'west',
+          locations: { 1002 => { duplicates: 0, non_duplicates: 1 } },
+          invalid_location_count: 0,
+          price_min: 249,
+          price_max: 249,
+          price_avg: 249.0,
+          offer_count: 1,
+          request_count: 0
+        }
         expect(ActiveSupport::Notifications).to receive(:instrument).with('metrics.market_order_dedupe_service', expected_payload)
         subject.dedupe
       end
@@ -346,7 +355,13 @@ RSpec.describe MarketOrderDedupeService, type: :subject do
       end
 
       it 'sends an activesupport notification' do
-        expected_payload = { server_id: 'west', locations: {1002 => { duplicates: 1, non_duplicates: 0 }} }
+        expected_payload = {
+          server_id: 'west',
+          locations: { 1002 => { duplicates: 1, non_duplicates: 0 } },
+          invalid_location_count: 0,
+          offer_count: 1,
+          request_count: 0
+        }
         expect(ActiveSupport::Notifications).to receive(:instrument).with('metrics.market_order_dedupe_service', expected_payload)
         subject.dedupe
       end

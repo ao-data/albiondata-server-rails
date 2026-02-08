@@ -92,6 +92,7 @@ services:
     depends_on:
       - redis
       - mysql
+      - influxdb
     networks:
       - albiondata
     logging:

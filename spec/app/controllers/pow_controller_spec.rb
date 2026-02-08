@@ -3,6 +3,7 @@ require 'rails_helper'
 RSpec.describe PowController, :type => :controller do
   before do
     @request.host = "west.example.com"
+    @request.env['HTTP_USER_AGENT'] = nil  # so controller reports user_agent as "unknown"
   end
 
   let (:metric) { {server_id: 'west', client_ip: '0.0.0.0', user_agent: 'unknown'} }
@@ -39,7 +40,7 @@ RSpec.describe PowController, :type => :controller do
       expect(ActiveSupport::Notifications).to have_received(:instrument).at_least(:once) do |event, data|
         calls << { event: event, data: data }
       end
-      expect(calls).to include({ event: 'metrics.pow_request', data: metric })
+      expect(calls).to include(a_hash_including(event: 'metrics.pow_request', data: a_hash_including(metric)))
     end
   end
 
@@ -47,6 +48,7 @@ RSpec.describe PowController, :type => :controller do
     let(:pow) { { wanted: '0011', key: 'pow_key' } }
     let(:params) { { topic: 'marketorders.ingest', key: 'pow_key', solution: '0011',
                      natsmsg: { Orders: [] }.to_json , identifier: 'test_identifier' } }
+    let(:reply_metric_base) { metric.merge(payload_size_bytes: params[:natsmsg].bytesize) }
 
     before do
       REDIS['west'].set('POW:pow_key', pow.to_json)
@@ -81,8 +83,8 @@ RSpec.describe PowController, :type => :controller do
         calls << { event: event, data: data }
       end
 
-      metric[:action] = 'invalid_topic'
-      expect(calls).to include({ event: 'metrics.pow_response', data: metric })
+      expected = reply_metric_base.merge(action: 'invalid_topic')
+      expect(calls).to include(a_hash_including(event: 'metrics.pow_response', data: a_hash_including(expected)))
     end
 
     it 'returns a 902 error if the pow was never requested or has expired' do
@@ -102,8 +104,8 @@ RSpec.describe PowController, :type => :controller do
         calls << { event: event, data: data }
       end
 
-      metric[:action] = 'pow_not_requested'
-      expect(calls).to include({ event: 'metrics.pow_response', data: metric })
+      expected = reply_metric_base.merge(action: 'pow_not_requested')
+      expect(calls).to include(a_hash_including(event: 'metrics.pow_response', data: a_hash_including(expected)))
     end
 
     it 'returns a 903 error if the pow was not solved correctly' do
@@ -121,8 +123,8 @@ RSpec.describe PowController, :type => :controller do
         calls << { event: event, data: data }
       end
 
-      metric[:action] = 'pow_solved_incorrectly'
-      expect(calls).to include({ event: 'metrics.pow_response', data: metric })
+      expected = reply_metric_base.merge(action: 'pow_solved_incorrectly')
+      expect(calls).to include(a_hash_including(event: 'metrics.pow_response', data: a_hash_including(expected)))
     end
 
     it 'returns a 904 error if the payload is too large' do
@@ -132,16 +134,16 @@ RSpec.describe PowController, :type => :controller do
 
     it 'sends an activesupport notification if the payload is too large' do
       allow(ActiveSupport::Notifications).to receive(:instrument).and_call_original
-
-      post :reply, params: params.merge(natsmsg: { Orders: [1]*100 }.to_json)
+      request_params = params.merge(natsmsg: { Orders: [1]*100 }.to_json)
+      post :reply, params: request_params
 
       calls = []
       expect(ActiveSupport::Notifications).to have_received(:instrument).at_least(:once) do |event, data|
         calls << { event: event, data: data }
       end
 
-      metric[:action] = 'data_too_large'
-      expect(calls).to include({ event: 'metrics.pow_response', data: metric })
+      expected = metric.merge(payload_size_bytes: request_params[:natsmsg].bytesize, action: 'data_too_large')
+      expect(calls).to include(a_hash_including(event: 'metrics.pow_response', data: a_hash_including(expected)))
     end
 
     it 'returns a 901 error if the JSON data is invalid' do
@@ -151,16 +153,16 @@ RSpec.describe PowController, :type => :controller do
 
     it 'sends an activesupport notification if the JSON data is invalid' do
       allow(ActiveSupport::Notifications).to receive(:instrument).and_call_original
-
-      post :reply, params: params.merge(natsmsg: 'invalid')
+      request_params = params.merge(natsmsg: 'invalid')
+      post :reply, params: request_params
 
       calls = []
       expect(ActiveSupport::Notifications).to have_received(:instrument).at_least(:once) do |event, data|
         calls << { event: event, data: data }
       end
 
-      metric[:action] = 'invalid_json'
-      expect(calls).to include({ event: 'metrics.pow_response', data: metric })
+      expected = metric.merge(payload_size_bytes: request_params[:natsmsg].bytesize, action: 'invalid_json')
+      expect(calls).to include(a_hash_including(event: 'metrics.pow_response', data: a_hash_including(expected)))
     end
 
     context 'when the topic is marketorders.ingest' do
@@ -173,16 +175,16 @@ RSpec.describe PowController, :type => :controller do
 
       it 'sends an activesupport notification if there are more than 50 orders' do
         allow(ActiveSupport::Notifications).to receive(:instrument).and_call_original
-
-        post :reply, params: params.merge(natsmsg: { Orders: [1]*51 }.to_json)
+        request_params = params.merge(natsmsg: { Orders: [1]*51 }.to_json)
+        post :reply, params: request_params
 
         calls = []
         expect(ActiveSupport::Notifications).to have_received(:instrument).at_least(:once) do |event, data|
           calls << { event: event, data: data }
         end
 
-        metric[:action] = 'data_too_large'
-        expect(calls).to include({ event: 'metrics.pow_response', data: metric })
+        expected = metric.merge(payload_size_bytes: request_params[:natsmsg].bytesize, action: 'data_too_large')
+        expect(calls).to include(a_hash_including(event: 'metrics.pow_response', data: a_hash_including(expected)))
       end
     end
 
@@ -196,16 +198,16 @@ RSpec.describe PowController, :type => :controller do
 
       it 'sends an activesupport notification if there are more than 673 prices' do
         allow(ActiveSupport::Notifications).to receive(:instrument).and_call_original
-
-        post :reply, params: params.merge(natsmsg: { Prices: [1]*674 }.to_json)
+        request_params = params.merge(natsmsg: { Prices: [1]*674 }.to_json)
+        post :reply, params: request_params
 
         calls = []
         expect(ActiveSupport::Notifications).to have_received(:instrument).at_least(:once) do |event, data|
           calls << { event: event, data: data }
         end
 
-        metric[:action] = 'data_too_large'
-        expect(calls).to include({ event: 'metrics.pow_response', data: metric })
+        expected = metric.merge(payload_size_bytes: request_params[:natsmsg].bytesize, action: 'data_too_large')
+        expect(calls).to include(a_hash_including(event: 'metrics.pow_response', data: a_hash_including(expected)))
       end
     end
 
@@ -219,16 +221,16 @@ RSpec.describe PowController, :type => :controller do
 
       it 'sends an activesupport notification if there are more than 25 MarketHistories with Timescale 0' do
         allow(ActiveSupport::Notifications).to receive(:instrument).and_call_original
-
-        post :reply, params: params.merge(natsmsg: { Timescale: 0, MarketHistories: [1]*26 }.to_json)
+        request_params = params.merge(natsmsg: { Timescale: 0, MarketHistories: [1]*26 }.to_json)
+        post :reply, params: request_params
 
         calls = []
         expect(ActiveSupport::Notifications).to have_received(:instrument).at_least(:once) do |event, data|
           calls << { event: event, data: data }
         end
 
-        metric[:action] = 'data_too_large'
-        expect(calls).to include({ event: 'metrics.pow_response', data: metric })
+        expected = metric.merge(payload_size_bytes: request_params[:natsmsg].bytesize, action: 'data_too_large')
+        expect(calls).to include(a_hash_including(event: 'metrics.pow_response', data: a_hash_including(expected)))
       end
 
       it 'returns a 904 error if there are more than 29 MarketHistories with Timescale 1' do
@@ -245,7 +247,7 @@ RSpec.describe PowController, :type => :controller do
     it 'does process data if the ip is good' do
       allow(ActiveSupport::Notifications).to receive(:instrument).and_call_original
       allow(controller).to receive(:ip_good?).and_return(true)
-      opts = { client_ip: '0.0.0.0', user_agent: 'Rails Testing', identifier: 'test_identifier' }.to_json
+      opts = { client_ip: '0.0.0.0', user_agent: 'unknown', identifier: 'test_identifier' }.to_json
       expect(controller).to receive(:enqueue_worker).with('marketorders.ingest', { 'Orders' => [] }.to_json, 'west', opts)
       post :reply, params: params
 
@@ -254,8 +256,8 @@ RSpec.describe PowController, :type => :controller do
         calls << { event: event, data: data }
       end
 
-      metric[:action] = 'data_accepted'
-      expect(calls).to include({ event: 'metrics.pow_response', data: metric })
+      expected = reply_metric_base.merge(action: 'data_accepted', order_count: 0, history_count: nil)
+      expect(calls).to include(a_hash_including(event: 'metrics.pow_response', data: a_hash_including(expected)))
     end
 
     it 'does not process data if ip is bad' do
@@ -269,8 +271,8 @@ RSpec.describe PowController, :type => :controller do
         calls << { event: event, data: data }
       end
 
-      metric[:action] = 'bad_ip'
-      expect(calls).to include({ event: 'metrics.pow_response', data: metric })
+      expected = reply_metric_base.merge(action: 'bad_ip')
+      expect(calls).to include(a_hash_including(event: 'metrics.pow_response', data: a_hash_including(expected)))
     end
 
     it 'sets the user agent to unknown if there is no user agent present' do
@@ -281,7 +283,7 @@ RSpec.describe PowController, :type => :controller do
     end
 
     it 'sets the identifier to a new uuid if identifier is not present' do
-      opts = { client_ip: '0.0.0.0', user_agent: 'Rails Testing', identifier: 'new_uuid' }.to_json
+      opts = { client_ip: '0.0.0.0', user_agent: 'unknown', identifier: 'new_uuid' }.to_json
       expect(SecureRandom).to receive(:uuid).and_return('new_uuid')
       expect(controller).to receive(:enqueue_worker).with('marketorders.ingest', { 'Orders' => [] }.to_json, 'west', opts)
       post :reply, params: params.except(:identifier)

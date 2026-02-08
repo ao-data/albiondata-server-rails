@@ -42,7 +42,6 @@ describe MarketHistoryDedupeService, type: :service do
       subject.dedupe(data, 'west', opts)
     end
 
-<<<<<<< HEAD
     it 'it does not call MarketHistoryProcessorWorker if LocationId is a random word' do
       data = { 'AlbionId' => 1234, 'LocationId' => 'pizza', 'MarketHistories' => [] }
       expect(MarketHistoryProcessorWorker).to_not receive(:perform_async)
@@ -53,22 +52,12 @@ describe MarketHistoryDedupeService, type: :service do
       data = { 'AlbionId' => 1234, 'LocationId' => 0, 'MarketHistories' => [] }
       expect(MarketHistoryProcessorWorker).to_not receive(:perform_async)
       subject.dedupe(data, 'west', opts)
-    end 
+    end
 
     it 'it does not call MarketHistoryProcessorWorker if LocationId has @ and a invalid numeric' do
       data = { 'AlbionId' => 1234, 'LocationId' => 'LOTSOFSTUFF@6969', 'MarketHistories' => [] }
       expect(MarketHistoryProcessorWorker).to_not receive(:perform_async)
       subject.dedupe(data, 'west', opts)
-=======
-    it 'returns nil if LocationId is not a valid market locationId' do
-      data['LocationId'] = 9999
-      expect(subject.dedupe(data, 'west', opts)).to eq(nil)
-    end
-
-    it 'returns nil if LocationId is not a numeric' do
-      data['LocationId'] = 'foo'
-      expect(subject.dedupe(data, 'west', opts)).to eq(nil)
->>>>>>> bdb967e (metrics part 2)
     end
 
     it 'it calls MarketHistoryProcessorWorker if LocationId is a valid numeric' do
@@ -124,6 +113,15 @@ describe MarketHistoryDedupeService, type: :service do
       allow(REDIS['west']).to receive(:get).and_return(nil)
       allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return(nil)
       expect { subject.dedupe(data, 'west', opts) }.to raise_error(StandardError)
+    end
+
+    it 'instruments with missing_item_id_count when AlbionID is not found in redis, then raises' do
+      data = { 'foo' => 'bar', 'AlbionId' => 1234, 'LocationId' => 3005 }
+      allow(REDIS['west']).to receive(:get).and_return(nil)
+      allow(REDIS['west']).to receive(:hget).with('ITEM_IDS', 1234).and_return(nil)
+      expected_payload = hash_including(server_id: 'west', locations: {}, missing_item_id_count: 1)
+      expect(ActiveSupport::Notifications).to receive(:instrument).with('metrics.market_history_dedupe_service', expected_payload)
+      expect { subject.dedupe(data, 'west', opts) }.to raise_error(StandardError, /Item ID not found/)
     end
 
     it 'it sends data to NatsService and MarketHistoryProcessorWorker' do
