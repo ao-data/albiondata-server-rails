@@ -23,3 +23,7 @@ Run
 5 - ABUSEIPDB_REDIS_URL
 6 - RACKATTACK_REDIS_URL
 7 - Identifiers
+
+# Bundle update
+
+Run `bundle package --all-platforms` after.

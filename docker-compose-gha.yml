@@ -14,7 +14,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    # platform: linux/amd64
+    platform: linux/amd64
     container_name: web
     restart: no
     environment:

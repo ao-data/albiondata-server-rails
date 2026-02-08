@@ -16,7 +16,7 @@ services:
     image: ruby:3
     build:
       context: .
-    # platform: linux/amd64
+    platform: linux/amd64
     container_name: web
     restart: no
     volumes:
