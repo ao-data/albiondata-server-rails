@@ -1,4 +1,12 @@
-Rack::Attack.cache.store = ActiveSupport::Cache::RedisCacheStore.new(url: ENV['RACKATTACK_REDIS_URL'])
+# Use Redis for Rack::Attack throttle storage when URL is set; otherwise use Rails cache
+# (e.g. during assets:precompile or when Redis is not configured).
+if ENV['RACKATTACK_REDIS_URL'].to_s.strip.present?
+  Rack::Attack.cache.store = ActiveSupport::Cache::RedisCacheStore.new(url: ENV['RACKATTACK_REDIS_URL'])
+elsif defined?(Rails) && Rails.respond_to?(:cache)
+  Rack::Attack.cache.store = Rails.cache
+else
+  Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
+end
 
 Rack::Attack.throttle("pow/1m", limit: ENV['THROTTLE_POW_1MIN'].to_i, period: 1.minute) do |req|
   if req.path == '/pow'
