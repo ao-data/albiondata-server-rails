@@ -5,7 +5,7 @@ RSpec.describe PowController, :type => :controller do
     @request.host = "west.example.com"
   end
 
-  let (:metric) { {server_id: 'west', client_ip: '0.0.0.0'} }
+  let (:metric) { {server_id: 'west', client_ip: '0.0.0.0', user_agent: 'unknown'} }
 
   describe 'GET #index' do
     it 'returns a success response' do

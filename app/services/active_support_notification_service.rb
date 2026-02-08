@@ -68,26 +68,26 @@ class ActiveSupportNotificationService
   end
 
   def self.pow_request(payload)
-    # {"server_id"=>"west", "client_ip"=>"172.21.0.1"}
+    # {"server_id"=>"west", "client_ip"=>"172.21.0.1", "user_agent"=>"..."}
     #
     measurement = 'pow_request'
-    tags = { server_id: payload['server_id'], client_ip: payload['client_ip'] }
+    tags = { server_id: payload['server_id'], client_ip: payload['client_ip'], user_agent: payload['user_agent'] || 'unknown' }
     fields = { metric: 1  }
     write_data(measurement, tags, fields)
   end
 
   def self.pow_response(payload)
-    # {"server_id"=>"west", "client_ip"=>"172.21.0.1", "action"=>"data_accepted" }
-    # {"server_id"=>"west", "client_ip"=>"172.21.0.1", "action"=>"pow_not_requested" }
-    # {"server_id"=>"west", "client_ip"=>"172.21.0.1", "action"=>"invalid_topic" }
-    # {"server_id"=>"west", "client_ip"=>"172.21.0.1", "action"=>"pow_solved_incorrectly" }
-    # {"server_id"=>"west", "client_ip"=>"172.21.0.1", "action"=>"invalid_payload" }
-    # {"server_id"=>"west", "client_ip"=>"172.21.0.1", "action"=>"invalid_json" }
-    # {"server_id"=>"west", "client_ip"=>"172.21.0.1", "action"=>"data_too_large" }
-    # {"server_id"=>"west", "client_ip"=>"172.21.0.1", "action"=>"bad_ip" }
+    # {"server_id"=>"west", "client_ip"=>"172.21.0.1", "user_agent"=>"...", "action"=>"data_accepted" }
+    # {"server_id"=>"west", "client_ip"=>"172.21.0.1", "user_agent"=>"...", "action"=>"pow_not_requested" }
+    # {"server_id"=>"west", "client_ip"=>"172.21.0.1", "user_agent"=>"...", "action"=>"invalid_topic" }
+    # {"server_id"=>"west", "client_ip"=>"172.21.0.1", "user_agent"=>"...", "action"=>"pow_solved_incorrectly" }
+    # {"server_id"=>"west", "client_ip"=>"172.21.0.1", "user_agent"=>"...", "action"=>"invalid_payload" }
+    # {"server_id"=>"west", "client_ip"=>"172.21.0.1", "user_agent"=>"...", "action"=>"invalid_json" }
+    # {"server_id"=>"west", "client_ip"=>"172.21.0.1", "user_agent"=>"...", "action"=>"data_too_large" }
+    # {"server_id"=>"west", "client_ip"=>"172.21.0.1", "user_agent"=>"...", "action"=>"bad_ip" }
 
     measurement = 'pow_response'
-    tags = { server_id: payload['server_id'], action: payload['action'], client_ip: payload['client_ip'] }
+    tags = { server_id: payload['server_id'], action: payload['action'], client_ip: payload['client_ip'], user_agent: payload['user_agent'] || 'unknown' }
     fields = { metric: 1 }
     write_data(measurement, tags, fields)
   end

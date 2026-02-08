@@ -41,7 +41,8 @@ class PowController < ApplicationController
     challange = { wanted: SecureRandom.hex(POW_RANDOMNESS).unpack("B*")[0][0..POW_DIFFICULITY-1], key: SecureRandom.hex(POW_RANDOMNESS) }
     REDIS[server_id].set("POW:#{challange[:key]}", {wanted: challange[:wanted]}.to_json, ex: POW_EXPIRE_SECONDS)
 
-    metrics = {server_id: server_id, client_ip: request.ip}
+    user_agent = request.user_agent || "unknown"
+    metrics = {server_id: server_id, client_ip: request.ip, user_agent: user_agent}
     ActiveSupport::Notifications.instrument('metrics.pow_request', metrics)
 
     render json: challange.to_json
@@ -52,7 +53,7 @@ class PowController < ApplicationController
     user_agent = request.user_agent ||= "unknown"
     opts = { client_ip: request.ip, user_agent: user_agent, identifier: identifier }
     log = { class: 'PowController', method: 'reply', params: params, opts: opts }
-    metrics = {server_id: server_id, client_ip: request.ip}
+    metrics = {server_id: server_id, client_ip: request.ip, user_agent: user_agent}
     metric_name = 'metrics.pow_response'
 
     pow_json = REDIS[server_id].get("POW:#{params[:key]}")
