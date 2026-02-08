@@ -14,7 +14,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    platform: linux/amd64
+    # platform: linux/amd64
     container_name: web
     restart: no
     environment:
@@ -73,6 +73,12 @@ services:
       ADDITIONAL_MESSAGE_CONTENT: ${ADDITIONAL_MESSAGE_CONTENT}
       DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL}
       IDENTIFIER_EXPIRATION: ${IDENTIFIER_EXPIRATION}
+      METRICS_ENABLED: ${METRICS_ENABLED}
+      INFLUXDB_URL: ${INFLUXDB_URL}
+      INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
+      INFLUXDB_ORG: ${INFLUXDB_ORG}
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
+      INFLUXDB_USESSL: ${INFLUXDB_USESSL}
     entrypoint: ./entrypoint.sh rspec
     ports:
       - 3000:3000
