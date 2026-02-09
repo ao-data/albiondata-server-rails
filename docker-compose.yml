@@ -16,7 +16,7 @@ services:
     image: ruby:3
     build:
       context: .
-#    platform: linux/amd64
+    platform: linux/amd64
     container_name: web
     restart: no
     volumes:
@@ -77,6 +77,14 @@ services:
       ADDITIONAL_MESSAGE_CONTENT: ${ADDITIONAL_MESSAGE_CONTENT}
       DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL}
       IDENTIFIER_EXPIRATION: ${IDENTIFIER_EXPIRATION}
+      METRICS_ENABLED: ${METRICS_ENABLED}
+      INFLUXDB_URL: ${INFLUXDB_URL}
+      INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
+      INFLUXDB_ORG: ${INFLUXDB_ORG}
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
+      INFLUXDB_USESSL: ${INFLUXDB_USESSL}
+
+
 #    command: './entrypoint.sh web'
 #    entrypoint: ./entrypoint.sh sleep
     ports:
@@ -84,6 +92,7 @@ services:
     depends_on:
       - redis
       - mysql
+      - influxdb
     networks:
       - albiondata
     logging:
@@ -100,5 +109,20 @@ services:
     command: redis-server --appendonly yes
     networks:
       - albiondata
+
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb2
+    volumes:
+      - ./influxdbdata:/var/lib/influxdb2:rw
+    #    env_file:
+    #      - .env
+    #    entrypoint: ["./entrypoint.sh"]
+    ports:
+      - 8086:8086
+    restart: unless-stopped
+    networks:
+      - albiondata
+
 networks:
   albiondata:

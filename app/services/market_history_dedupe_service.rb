@@ -35,13 +35,18 @@ class MarketHistoryDedupeService
 
     log = { class: 'MarketHistoryDedupeService', method: 'dedupe', server_id: server_id, opts: opts}
 
+    metrics = { server_id: server_id, locations: {}}
     if REDIS[server_id].get("HISTORY_RECORD_SHA256:#{sha256}").nil?
       REDIS[server_id].set("HISTORY_RECORD_SHA256:#{sha256}", '1', ex: 600)
 
       return if data['AlbionId'] == 0 # sometimes the client sends us 0 for the numeric item id, we trash this data
 
       item_id = REDIS[server_id].hget('ITEM_IDS', data['AlbionId'])
-      raise StandardError.new('MarketHistoryProcessorService: Item ID not found in redis.') if item_id.nil?
+      if item_id.nil?
+        metrics[:missing_item_id_count] = 1
+        ActiveSupport::Notifications.instrument('metrics.market_history_dedupe_service', metrics)
+        raise StandardError.new('MarketHistoryProcessorService: Item ID not found in redis.')
+      end
 
       data['AlbionIdString'] = item_id
 
@@ -55,12 +60,22 @@ class MarketHistoryDedupeService
 
       MarketHistoryProcessorWorker.perform_async(json_data, server_id, json_opts)
 
+      # metrics
+      metrics[:locations][data['LocationId']] = { duplicates: 0, non_duplicates: 0 } if metrics[:locations][data['LocationId']].nil?
+      metrics[:locations][data['LocationId']][:non_duplicates] += data['MarketHistories'].length
+
       log.merge!(data: data, message: 'data not duplicate')
       IdentifierService.add_identifier_event(opts, server_id, "Received on MarketHistoryDedupeService, not duplicate, sent to MarketHistoryProcessorWorker")
     else
+      # metrics
+      metrics[:locations][data['LocationId']] = { duplicates: 0, non_duplicates: 0 } if metrics[:locations][data['LocationId']].nil?
+      metrics[:locations][data['LocationId']][:duplicates] += data['MarketHistories'].length
+
       log.merge!(message: 'data duplicate')
       IdentifierService.add_identifier_event(opts, server_id, "Received on MarketHistoryDedupeService, data is duplicate, ignored")
     end
+
+    ActiveSupport::Notifications.instrument('metrics.market_history_dedupe_service', metrics)
 
     Sidekiq.logger.info(log.to_json)
 

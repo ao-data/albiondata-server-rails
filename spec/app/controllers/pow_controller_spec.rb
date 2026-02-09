@@ -3,7 +3,10 @@ require 'rails_helper'
 RSpec.describe PowController, :type => :controller do
   before do
     @request.host = "west.example.com"
+    @request.env['HTTP_USER_AGENT'] = nil  # so controller reports user_agent as "unknown"
   end
+
+  let (:metric) { {server_id: 'west', client_ip: '0.0.0.0', user_agent: 'unknown'} }
 
   describe 'GET #index' do
     it 'returns a success response' do
@@ -27,12 +30,25 @@ RSpec.describe PowController, :type => :controller do
 
       get :index
     end
+
+    it 'sends an activesupport notification' do
+      allow(ActiveSupport::Notifications).to receive(:instrument).and_call_original
+
+      get :index
+
+      calls = []
+      expect(ActiveSupport::Notifications).to have_received(:instrument).at_least(:once) do |event, data|
+        calls << { event: event, data: data }
+      end
+      expect(calls).to include(a_hash_including(event: 'metrics.pow_request', data: a_hash_including(metric)))
+    end
   end
 
   describe 'POST #reply' do
     let(:pow) { { wanted: '0011', key: 'pow_key' } }
     let(:params) { { topic: 'marketorders.ingest', key: 'pow_key', solution: '0011',
                      natsmsg: { Orders: [] }.to_json , identifier: 'test_identifier' } }
+    let(:reply_metric_base) { metric.merge(payload_size_bytes: params[:natsmsg].bytesize) }
 
     before do
       REDIS['west'].set('POW:pow_key', pow.to_json)
@@ -57,10 +73,39 @@ RSpec.describe PowController, :type => :controller do
       expect(response.status).to eq(404)
     end
 
+    it 'sends an activesupport notification if the topic is not found' do
+      allow(ActiveSupport::Notifications).to receive(:instrument).and_call_original
+
+      post :reply, params: params.merge(topic: 'notfound')
+
+      calls = []
+      expect(ActiveSupport::Notifications).to have_received(:instrument).at_least(:once) do |event, data|
+        calls << { event: event, data: data }
+      end
+
+      expected = reply_metric_base.merge(action: 'invalid_topic')
+      expect(calls).to include(a_hash_including(event: 'metrics.pow_response', data: a_hash_including(expected)))
+    end
+
     it 'returns a 902 error if the pow was never requested or has expired' do
       REDIS['west'].del('POW:pow_key')
       post :reply, params: params
       expect(response.status).to eq(902)
+    end
+
+    it 'sends an activesupport notification if the pow was never requested or has expired' do
+      allow(ActiveSupport::Notifications).to receive(:instrument).and_call_original
+
+      REDIS['west'].del('POW:pow_key')
+      post :reply, params: params
+
+      calls = []
+      expect(ActiveSupport::Notifications).to have_received(:instrument).at_least(:once) do |event, data|
+        calls << { event: event, data: data }
+      end
+
+      expected = reply_metric_base.merge(action: 'pow_not_requested')
+      expect(calls).to include(a_hash_including(event: 'metrics.pow_response', data: a_hash_including(expected)))
     end
 
     it 'returns a 903 error if the pow was not solved correctly' do
@@ -68,14 +113,56 @@ RSpec.describe PowController, :type => :controller do
       expect(response.status).to eq(903)
     end
 
+    it 'sends an activesupport notification if the pow was not solved correctly' do
+      allow(ActiveSupport::Notifications).to receive(:instrument).and_call_original
+
+      post :reply, params: params.merge(solution: '0000')
+
+      calls = []
+      expect(ActiveSupport::Notifications).to have_received(:instrument).at_least(:once) do |event, data|
+        calls << { event: event, data: data }
+      end
+
+      expected = reply_metric_base.merge(action: 'pow_solved_incorrectly')
+      expect(calls).to include(a_hash_including(event: 'metrics.pow_response', data: a_hash_including(expected)))
+    end
+
     it 'returns a 904 error if the payload is too large' do
       post :reply, params: params.merge(natsmsg: { Orders: [1]*100 }.to_json)
       expect(response.status).to eq(904)
     end
 
+    it 'sends an activesupport notification if the payload is too large' do
+      allow(ActiveSupport::Notifications).to receive(:instrument).and_call_original
+      request_params = params.merge(natsmsg: { Orders: [1]*100 }.to_json)
+      post :reply, params: request_params
+
+      calls = []
+      expect(ActiveSupport::Notifications).to have_received(:instrument).at_least(:once) do |event, data|
+        calls << { event: event, data: data }
+      end
+
+      expected = metric.merge(payload_size_bytes: request_params[:natsmsg].bytesize, action: 'data_too_large')
+      expect(calls).to include(a_hash_including(event: 'metrics.pow_response', data: a_hash_including(expected)))
+    end
+
     it 'returns a 901 error if the JSON data is invalid' do
       post :reply, params: params.merge(natsmsg: 'invalid')
       expect(response.status).to eq(901)
+    end
+
+    it 'sends an activesupport notification if the JSON data is invalid' do
+      allow(ActiveSupport::Notifications).to receive(:instrument).and_call_original
+      request_params = params.merge(natsmsg: 'invalid')
+      post :reply, params: request_params
+
+      calls = []
+      expect(ActiveSupport::Notifications).to have_received(:instrument).at_least(:once) do |event, data|
+        calls << { event: event, data: data }
+      end
+
+      expected = metric.merge(payload_size_bytes: request_params[:natsmsg].bytesize, action: 'invalid_json')
+      expect(calls).to include(a_hash_including(event: 'metrics.pow_response', data: a_hash_including(expected)))
     end
 
     context 'when the topic is marketorders.ingest' do
@@ -84,6 +171,20 @@ RSpec.describe PowController, :type => :controller do
       it 'returns a 904 error if there are more than 50 orders' do
         post :reply, params: params.merge(natsmsg: { Orders: [1]*51 }.to_json)
         expect(response.status).to eq(904)
+      end
+
+      it 'sends an activesupport notification if there are more than 50 orders' do
+        allow(ActiveSupport::Notifications).to receive(:instrument).and_call_original
+        request_params = params.merge(natsmsg: { Orders: [1]*51 }.to_json)
+        post :reply, params: request_params
+
+        calls = []
+        expect(ActiveSupport::Notifications).to have_received(:instrument).at_least(:once) do |event, data|
+          calls << { event: event, data: data }
+        end
+
+        expected = metric.merge(payload_size_bytes: request_params[:natsmsg].bytesize, action: 'data_too_large')
+        expect(calls).to include(a_hash_including(event: 'metrics.pow_response', data: a_hash_including(expected)))
       end
     end
 
@@ -94,6 +195,20 @@ RSpec.describe PowController, :type => :controller do
         post :reply, params: params.merge(natsmsg: { Prices: [1]*674 }.to_json)
         expect(response.status).to eq(904)
       end
+
+      it 'sends an activesupport notification if there are more than 673 prices' do
+        allow(ActiveSupport::Notifications).to receive(:instrument).and_call_original
+        request_params = params.merge(natsmsg: { Prices: [1]*674 }.to_json)
+        post :reply, params: request_params
+
+        calls = []
+        expect(ActiveSupport::Notifications).to have_received(:instrument).at_least(:once) do |event, data|
+          calls << { event: event, data: data }
+        end
+
+        expected = metric.merge(payload_size_bytes: request_params[:natsmsg].bytesize, action: 'data_too_large')
+        expect(calls).to include(a_hash_including(event: 'metrics.pow_response', data: a_hash_including(expected)))
+      end
     end
 
     context 'when the topic is markethistories.ingest' do
@@ -102,6 +217,20 @@ RSpec.describe PowController, :type => :controller do
       it 'returns a 904 error if there are more than 25 MarketHistories with Timescale 0' do
         post :reply, params: params.merge(natsmsg: { Timescale: 0, MarketHistories: [1]*26 }.to_json)
         expect(response.status).to eq(904)
+      end
+
+      it 'sends an activesupport notification if there are more than 25 MarketHistories with Timescale 0' do
+        allow(ActiveSupport::Notifications).to receive(:instrument).and_call_original
+        request_params = params.merge(natsmsg: { Timescale: 0, MarketHistories: [1]*26 }.to_json)
+        post :reply, params: request_params
+
+        calls = []
+        expect(ActiveSupport::Notifications).to have_received(:instrument).at_least(:once) do |event, data|
+          calls << { event: event, data: data }
+        end
+
+        expected = metric.merge(payload_size_bytes: request_params[:natsmsg].bytesize, action: 'data_too_large')
+        expect(calls).to include(a_hash_including(event: 'metrics.pow_response', data: a_hash_including(expected)))
       end
 
       it 'returns a 904 error if there are more than 29 MarketHistories with Timescale 1' do
@@ -116,16 +245,34 @@ RSpec.describe PowController, :type => :controller do
     end
 
     it 'does process data if the ip is good' do
+      allow(ActiveSupport::Notifications).to receive(:instrument).and_call_original
       allow(controller).to receive(:ip_good?).and_return(true)
-      opts = { client_ip: '0.0.0.0', user_agent: 'Rails Testing', identifier: 'test_identifier' }.to_json
+      opts = { client_ip: '0.0.0.0', user_agent: 'unknown', identifier: 'test_identifier' }.to_json
       expect(controller).to receive(:enqueue_worker).with('marketorders.ingest', { 'Orders' => [] }.to_json, 'west', opts)
       post :reply, params: params
+
+      calls = []
+      expect(ActiveSupport::Notifications).to have_received(:instrument).at_least(:once) do |event, data|
+        calls << { event: event, data: data }
+      end
+
+      expected = reply_metric_base.merge(action: 'data_accepted', order_count: 0, history_count: nil)
+      expect(calls).to include(a_hash_including(event: 'metrics.pow_response', data: a_hash_including(expected)))
     end
 
     it 'does not process data if ip is bad' do
+      allow(ActiveSupport::Notifications).to receive(:instrument).and_call_original
       allow(controller).to receive(:ip_good?).and_return(false)
       expect(controller).not_to receive(:enqueue_worker)
       post :reply, params: params
+
+      calls = []
+      expect(ActiveSupport::Notifications).to have_received(:instrument).at_least(:once) do |event, data|
+        calls << { event: event, data: data }
+      end
+
+      expected = reply_metric_base.merge(action: 'bad_ip')
+      expect(calls).to include(a_hash_including(event: 'metrics.pow_response', data: a_hash_including(expected)))
     end
 
     it 'sets the user agent to unknown if there is no user agent present' do
@@ -136,7 +283,7 @@ RSpec.describe PowController, :type => :controller do
     end
 
     it 'sets the identifier to a new uuid if identifier is not present' do
-      opts = { client_ip: '0.0.0.0', user_agent: 'Rails Testing', identifier: 'new_uuid' }.to_json
+      opts = { client_ip: '0.0.0.0', user_agent: 'unknown', identifier: 'new_uuid' }.to_json
       expect(SecureRandom).to receive(:uuid).and_return('new_uuid')
       expect(controller).to receive(:enqueue_worker).with('marketorders.ingest', { 'Orders' => [] }.to_json, 'west', opts)
       post :reply, params: params.except(:identifier)
