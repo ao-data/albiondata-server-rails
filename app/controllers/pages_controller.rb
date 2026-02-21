@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class PagesController < ApplicationController
-  skip_around_action :run_using_database, only: [:index, :faq, :api, :client, :identifier]
+  skip_around_action :run_using_database, only: [:index, :faq, :api, :client, :identifier, :items]
 
   def index
   end
@@ -30,5 +30,22 @@ class PagesController < ApplicationController
     Rails.logger.error("[PagesController#identifier] #{e.message}")
     @error = "Unable to load identifier data."
     @events = []
+  end
+
+  def items
+    result = AoBinDumpsItemsService.call
+    unless result.success?
+      @items_error = result.error
+      @items_list = []
+      @language_keys = []
+      return
+    end
+
+    @language_keys = result.language_keys
+    @items_list = result.items
+    @query = params[:q].to_s.strip
+    default_lang = @language_keys.include?("EN-US") ? "EN-US" : @language_keys.first
+    @lang = params[:lang].to_s.strip.presence || default_lang
+    @results = AoBinDumpsItemsService.search(@items_list, @query)
   end
 end

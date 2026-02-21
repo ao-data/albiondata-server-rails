@@ -89,22 +89,35 @@
       <p>The best way to get in touch is on the Albion Online Fansites Discord server in <strong>#proj-albiondata</strong> or <strong>#developers</strong>. Invite: <a href="https://discord.gg/TjWdq24" target="_blank" rel="noopener">discord.gg/TjWdq24</a></p>
     </section>
 
-    <section class="content-section" id="is-this-allowed">
-      <h2>Is This Allowed?</h2>
-      <blockquote class="quote">
-        <p>Our position is quite simple. As long as you just look and analyze we are ok with it. The moment you modify or manipulate something or somehow interfere with our services we will react (e.g. perma-ban, take legal action, whatever).</p>
-        <footer class="quote__approvals">
-          <span class="quote__approval">
-            <%= image_tag "maddave-approval.png", alt: "", class: "quote__approval-img" %>
-            — MadDave, 2017, Technical Lead at Sandbox Interactive for Albion Online
-          </span>
-          <span class="quote__approval">
-            <%= image_tag "sirisli-approval.png", alt: "", class: "quote__approval-img" %>
-            — SirisLi, 2025, Community Manager
-          </span>
-        </footer>
-      </blockquote>
-    </section>
+    <div data-controller="image-modal">
+      <section class="content-section" id="is-this-allowed">
+        <h2>Is This Allowed?</h2>
+        <blockquote class="quote">
+          <p>Our position is quite simple. As long as you just look and analyze we are ok with it. The moment you modify or manipulate something or somehow interfere with our services we will react (e.g. perma-ban, take legal action, whatever).</p>
+          <footer class="quote__approvals">
+            <span class="quote__approval">
+              <button type="button" class="quote__approval-btn" data-action="click->image-modal#open" data-image-src="<%= image_path('maddave-approval.png') %>" aria-label="View full size">
+                <%= image_tag "maddave-approval.png", alt: "", class: "quote__approval-img" %>
+              </button>
+              — MadDave, 2017, Technical Lead at Sandbox Interactive for Albion Online
+            </span>
+            <span class="quote__approval">
+              <button type="button" class="quote__approval-btn" data-action="click->image-modal#open" data-image-src="<%= image_path('sirisli-approval.png') %>" aria-label="View full size">
+                <%= image_tag "sirisli-approval.png", alt: "", class: "quote__approval-img" %>
+              </button>
+              — SirisLi, 2025, Community Manager
+            </span>
+          </footer>
+        </blockquote>
+      </section>
+      <div data-image-modal-target="overlay" class="image-modal" role="dialog" aria-modal="true" aria-label="Full size image" hidden>
+        <button type="button" class="image-modal__backdrop" data-action="click->image-modal#close" aria-label="Close"></button>
+        <div class="image-modal__content">
+          <button type="button" class="image-modal__close" data-action="click->image-modal#close" aria-label="Close">&times;</button>
+          <img data-image-modal-target="fullImage" class="image-modal__img" src="" alt="Full size approval" tabindex="-1">
+        </div>
+      </div>
+    </div>
   </main>
 
   <footer class="site-footer">

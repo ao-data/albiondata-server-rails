@@ -19,6 +19,7 @@ Rails.application.routes.draw do
   get "client-faq", to: "pages#faq", as: :client_faq
   get "api", to: "pages#api", as: :api_info
   get "identifier", to: "pages#identifier", as: :identifier
+  get "items", to: "pages#items", as: :items
 
   if Rails.env.development? || Rails.env.test?
     match "/test", controller: "application", action: "test", via: :get, :defaults => { :format => 'json' }

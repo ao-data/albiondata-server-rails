@@ -67,6 +67,7 @@ group :development, :test do
 
   gem 'ffaker', '~> 2.21'
   gem 'rspec-rails', '~> 6.1', '>= 6.1.1'
+  gem 'rails-controller-testing'
   gem 'factory_bot_rails', '~> 6.4', '>= 6.4.3'
 
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
