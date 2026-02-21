@@ -1,0 +1,7 @@
+<nav class="site-nav">
+  <%= link_to "Home", root_path, class: ("active" if current == :root) %>
+  <%= link_to "Client", client_path, class: ("active" if current == :client) %>
+  <%= link_to "Client FAQ", client_faq_path, class: ("active" if current == :client_faq) %>
+  <%= link_to "Identifier", identifier_path, class: ("active" if current == :identifier) %>
+  <%= link_to "API", api_info_path, class: ("active" if current == :api) %>
+</nav>

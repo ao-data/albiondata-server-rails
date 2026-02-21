@@ -1,0 +1,80 @@
+<div class="page identifier-page">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <h1 class="site-title"><%= link_to "The Albion Online Data Project", root_path %></h1>
+      <p class="site-tagline">Realtime market and gold data for Albion Online</p>
+      <%= render "nav", current: :identifier %>
+    </div>
+  </header>
+
+  <div class="disclaimer banner">
+    <p><strong>These tools are not affiliated with Albion Online or Sandbox Interactive GmbH.</strong></p>
+  </div>
+
+  <main class="main-content">
+    <h2 class="page-title">Identifier lookup</h2>
+    <p class="lead">Enter a client identifier (GUID) to view events recorded for that identifier across all servers. Data is retained for a limited time.</p>
+
+    <section class="content-section identifier-form-section">
+      <h2>Look up identifier</h2>
+      <%= form_with url: identifier_path, method: :get, local: true, class: "identifier-form" do |f| %>
+        <div class="identifier-form__row">
+          <div class="identifier-form__field">
+            <label for="identifier" class="identifier-form__label">Identifier (GUID)</label>
+            <input type="text" id="identifier" name="identifier" class="identifier-form__input" placeholder="e.g. 550e8400-e29b-41d4-a716-446655440000" value="<%= @identifier %>" autocomplete="off">
+          </div>
+        </div>
+        <button type="submit" class="btn btn--primary identifier-form__submit">Look up</button>
+      <% end %>
+    </section>
+
+    <% if @error.present? %>
+      <section class="content-section identifier-error">
+        <p class="identifier-error__message"><%= @error %></p>
+      </section>
+    <% end %>
+
+    <% if @identifier.present? && !@error %>
+      <section class="content-section identifier-results">
+        <h2>Results for <code class="identifier-results__guid"><%= @identifier %></code></h2>
+        <% if @events.blank? %>
+          <p class="identifier-results__empty">No events found for this identifier. The client may not have submitted data recently, or the identifier may be incorrect.</p>
+        <% else %>
+          <p class="identifier-results__count"><%= @events.size %> event<%= "s" if @events.size != 1 %></p>
+          <div class="identifier-events">
+            <table class="identifier-events__table">
+              <thead>
+                <tr>
+                  <th>Time (UTC)</th>
+                  <th>Server</th>
+                  <th>Event</th>
+                  <th>NATS message</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @events.each do |ev| %>
+                  <tr>
+                    <td class="identifier-events__time"><%= ev["timestamp"] %></td>
+                    <td class="identifier-events__server"><%= ev["server"] %></td>
+                    <td class="identifier-events__event"><%= ev["event"] %></td>
+                    <td class="identifier-events__natsmsg">
+                      <% if ev["natsmsg"].present? %>
+                        <pre class="identifier-events__pre"><%= JSON.pretty_generate(ev["natsmsg"]) %></pre>
+                      <% else %>
+                        <span class="identifier-events__muted">—</span>
+                      <% end %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% end %>
+      </section>
+    <% end %>
+  </main>
+
+  <footer class="site-footer">
+    <p><%= link_to "The Albion Online Data Project", root_path %></p>
+  </footer>
+</div>

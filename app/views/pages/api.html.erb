@@ -1,0 +1,85 @@
+<div class="page api-page">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <h1 class="site-title"><%= link_to "The Albion Online Data Project", root_path %></h1>
+      <p class="site-tagline">Realtime market and gold data for Albion Online</p>
+      <%= render "nav", current: :api %>
+    </div>
+  </header>
+
+  <div class="disclaimer banner">
+    <p><strong>These tools are not affiliated with Albion Online or Sandbox Interactive GmbH.</strong></p>
+  </div>
+
+  <main class="main-content">
+    <h2 class="page-title">API Info</h2>
+    <p class="lead">Market data can be retrieved through the API.</p>
+
+    <section class="content-section">
+      <h2>API host URLs</h2>
+      <p>These are the <strong>base URLs</strong>—the beginning of every API request. Choose the host for the game server you want (Americas, Asia, or Europe), then <strong>append one of the endpoint paths</strong> from the section below to get the data you need.</p>
+      <p class="api-url-example">For example: <code>https://west.albion-online-data.com</code> + <code>/api/v2/stats/prices/T4_BAG.json?locations=Caerleon</code> → <code>https://west.albion-online-data.com/api/v2/stats/prices/T4_BAG.json?locations=Caerleon</code></p>
+      <ul class="code-list">
+        <li>Americas (West): <code>https://west.albion-online-data.com</code></li>
+        <li>Asia (East): <code>https://east.albion-online-data.com</code></li>
+        <li>Europe: <code>https://europe.albion-online-data.com</code></li>
+      </ul>
+    </section>
+
+    <section class="content-section">
+      <h2>API endpoints</h2>
+      <p>Swagger documentation is available for the API. Item IDs can be found in the formatted metadata <%= link_to "items.txt", "https://github.com/ao-data/ao-bin-dumps/blob/master/formatted/items.txt", target: "_blank", rel: "noopener" %> or <%= link_to "items.json", "https://github.com/ao-data/ao-bin-dumps/blob/master/formatted/items.json", target: "_blank", rel: "noopener" %> files. Location IDs or string names can be found in <%= link_to "world.txt", "https://github.com/ao-data/ao-bin-dumps/blob/master/formatted/world.txt", target: "_blank", rel: "noopener" %> or <%= link_to "world.json", "https://github.com/ao-data/ao-bin-dumps/blob/master/formatted/world.json", target: "_blank", rel: "noopener" %>.</p>
+      <p>For the URLs below, <code>.json</code> is optional and is the default. For XML, replace <code>.json</code> with <code>.xml</code>.</p>
+
+      <h3>Current prices</h3>
+      <dl class="api-endpoint-list">
+        <dt>Table view</dt>
+        <dd><code>/api/v2/stats/view/{item_ids}?locations=Caerleon,Bridgewatch&qualities=2</code></dd>
+        <dt>JSON</dt>
+        <dd><code>/api/v2/stats/prices/{item_ids}.json?locations=Caerleon,Bridgewatch&qualities=2</code></dd>
+      </dl>
+
+      <h3>Historical prices (sell orders only)</h3>
+      <p class="api-endpoint-note">Use <code>time-scale</code> to choose aggregation: <code>1</code> = hourly, <code>6</code> = 6-hour, <code>24</code> = daily.</p>
+      <dl class="api-endpoint-list">
+        <dt>Date range (e.g. 6-hour buckets)</dt>
+        <dd><code>/api/v2/stats/history/{item_ids}.json?date=2-5-2020&end_date=2-12-2020&locations=Caerleon&qualities=2&time-scale=6</code></dd>
+        <dt>Hourly</dt>
+        <dd><code>/api/v2/stats/history/{item_ids}.json?time-scale=1</code></dd>
+        <dt>Daily</dt>
+        <dd><code>/api/v2/stats/history/{item_ids}.json?time-scale=24</code></dd>
+        <dt>Charts (date range)</dt>
+        <dd><code>/api/v2/stats/charts/{item_ids}.json?date=2-5-2020&end_date=2-12-2020&locations=Caerleon&qualities=2&time-scale=6</code></dd>
+      </dl>
+
+      <h3>Gold prices</h3>
+      <dl class="api-endpoint-list">
+        <dt>Over time (date range)</dt>
+        <dd><code>/api/v2/stats/gold.json?date=2-5-2020&end_date=2-12-2020</code></dd>
+        <dt>Most recent X prices</dt>
+        <dd><code>/api/v2/stats/gold.json?count=2</code></dd>
+      </dl>
+    </section>
+
+    <section class="content-section">
+      <h2>Rate limits</h2>
+      <ul>
+        <li>180 requests per 1 minute</li>
+        <li>300 requests per 5 minutes</li>
+      </ul>
+    </section>
+
+    <section class="content-section">
+      <h2>Getting all the data</h2>
+      <p>You can request a lot of data in a single call by combining the items and locations you need. Keep in mind:</p>
+      <ul>
+        <li>There is a <strong>4096 character limit</strong> for the URL length—you can fit many items and all locations in one request if you stay under this limit.</li>
+        <li>If you run a service that continually hits the API, please use <strong>Gzip compression</strong>. Server and bandwidth are not free, and using compression helps keep the project sustainable as usage grows.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p><%= link_to "The Albion Online Data Project", root_path %></p>
+  </footer>
+</div>

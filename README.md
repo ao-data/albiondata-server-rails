@@ -23,6 +23,7 @@ Run
 5 - ABUSEIPDB_REDIS_URL
 6 - RACKATTACK_REDIS_URL
 7 - Identifiers
+8 - Rails cache (RAILS_CACHE_REDIS_URL)
 
 # Bundle update
 

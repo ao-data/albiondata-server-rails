@@ -14,7 +14,11 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   # Defines the root path route ("/")
-  # root "posts#index"
+  root "pages#index"
+  get "client", to: "pages#client", as: :client
+  get "client-faq", to: "pages#faq", as: :client_faq
+  get "api", to: "pages#api", as: :api_info
+  get "identifier", to: "pages#identifier", as: :identifier
 
   if Rails.env.development? || Rails.env.test?
     match "/test", controller: "application", action: "test", via: :get, :defaults => { :format => 'json' }
