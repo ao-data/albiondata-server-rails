@@ -28,6 +28,13 @@
   --transition: 0.2s var(--ease);
 }
 
+/* Layout: body uses site background so no white border around content */
+html,
+body {
+  background: var(--page-bg);
+  margin: 0;
+}
+
 /* Base page */
 .page.home-page,
 .page.faq-page,
