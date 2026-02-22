@@ -22,14 +22,26 @@
       </p>
     </section>
 
-    <% if @unique_agents_stats %>
+    <% if @unique_agents_stats || @duplicate_items_stats %>
       <%= content_for :head do %>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
       <% end %>
+    <% end %>
+    <% if @unique_agents_stats %>
       <section class="content-section stats-card" data-controller="stats-chart">
         <script type="application/json" data-stats-chart-target="dataSource"><%= raw @unique_agents_stats.to_json %></script>
         <h2>Unique clients over time</h2>
         <p class="stats-card__description">Distinct client IPs per 15 minutes by server (last 24 hours).</p>
+        <div class="stats-card__chart-wrap">
+          <canvas data-stats-chart-target="canvas" width="800" height="300"></canvas>
+        </div>
+      </section>
+    <% end %>
+    <% if @duplicate_items_stats %>
+      <section class="content-section stats-card" data-controller="stats-chart" data-stats-chart-y-label-value="Orders">
+        <script type="application/json" data-stats-chart-target="dataSource"><%= raw @duplicate_items_stats.to_json %></script>
+        <h2>Duplicate items sent by clients</h2>
+        <p class="stats-card__description">Market order duplicates vs non-duplicates per 15 minutes by server (last 24 hours, UTC).</p>
         <div class="stats-card__chart-wrap">
           <canvas data-stats-chart-target="canvas" width="800" height="300"></canvas>
         </div>

@@ -2,6 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["canvas", "dataSource"]
+  static values = { yLabel: { type: String, default: "Unique agents" } }
 
   connect() {
     if (typeof window.Chart === "undefined") return
@@ -62,7 +63,7 @@ export default class extends Controller {
           },
           y: {
             beginAtZero: true,
-            title: { display: true, text: "Unique agents" }
+            title: { display: true, text: this.yLabelValue }
           }
         }
       }

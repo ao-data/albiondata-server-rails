@@ -4,7 +4,8 @@ class PagesController < ApplicationController
   skip_around_action :run_using_database, only: [:index, :faq, :api, :client, :developer, :identifier, :items, :third_party_tools]
 
   def index
-    @unique_agents_stats = UniqueAgentsStatsService.call
+    @unique_agents_stats = WebsiteStatsService::UniqueAgents.call
+    @duplicate_items_stats = WebsiteStatsService::DuplicateItems.call
   end
 
   def faq
