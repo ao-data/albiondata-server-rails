@@ -77,6 +77,16 @@
         <li>If you run a service that continually hits the API, please use <strong>Gzip compression</strong>. Server and bandwidth are not free, and using compression helps keep the project sustainable as usage grows.</li>
       </ul>
     </section>
+
+    <section class="content-section">
+      <h2>Spreadsheets</h2>
+      <p>Many people find it useful to load these APIs in spreadsheets such as Microsoft Excel or Google Sheets. There is no single best way to do this, but some of the common ways are as follows:</p>
+      <ul>
+        <li><strong>Excel Power Query</strong> — Use Power Query to connect to the API URLs and pull data into Excel.</li>
+        <li><%= link_to "Google Sheets IMPORTXML", "https://support.google.com/docs/answer/3093342?hl=en", target: "_blank", rel: "noopener" %> — For XML endpoints. Example: <code>=IMPORTXML("https://west.albion-online-data.com/api/v2/stats/prices/T4_BAG.xml?locations=Caerleon&qualities=2","//ArrayOfMarketResponse/MarketResponse")</code></li>
+        <li><%= link_to "Google Sheets ImportJSON (third-party script)", "https://github.com/bradjasper/ImportJSON", target: "_blank", rel: "noopener" %> — For JSON endpoints. Example: <code>=ImportJSON("https://west.albion-online-data.com/api/v2/stats/prices/T4_BAG.json?locations=Caerleon&qualities=2", "", "noHeaders")</code>.<br>Note: Some people have noticed issues with ImportJSON and repeating rows.</li>
+      </ul>
+    </section>
   </main>
 
   <footer class="site-footer">

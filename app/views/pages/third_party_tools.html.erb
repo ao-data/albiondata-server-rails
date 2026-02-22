@@ -1,0 +1,46 @@
+<div class="page third-party-tools-page">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <h1 class="site-title"><%= link_to "The Albion Online Data Project", root_path %></h1>
+      <p class="site-tagline">Realtime market and gold data for Albion Online</p>
+      <%= render "nav", current: :third_party_tools %>
+    </div>
+  </header>
+
+  <div class="disclaimer banner">
+    <p><strong>These tools are not affiliated with Albion Online or Sandbox Interactive GmbH.</strong></p>
+  </div>
+
+  <main class="main-content">
+    <h2 class="page-title">3rd Party Tools</h2>
+    <p class="lead">The best way to make use of the data stored by AODP is by using the tools that are built on it:</p>
+
+    <section class="content-section">
+      <ul class="project-list">
+        <li><%= link_to "Albion Free Market", "https://albionfreemarket.com/", target: "_blank", rel: "noopener" %> is a platform where you can assess market prices, discover cost-effective gear and simulate crafting outcomes. It's brought to you by the JP CodeCraft team.</li>
+        <li><%= link_to "Tools4Albion", "https://www.tools4albion.com/", target: "_blank", rel: "noopener" %> provides calculators for crafting, farming, and reprocessing. Has a lot of useful information for users and developers alike.</li>
+        <li><%= link_to "AlbionOnline2d", "https://www.albiononline2d.com/en/market", target: "_blank", rel: "noopener" %> pulls the latest information from the database and shows different selling metrics for the Auction Houses.</li>
+        <li><%= link_to "Farm Profit Calculator", "http://aofarm.skyline969.ca/", target: "_blank", rel: "noopener" %> utilizes market data to provide a guide to the best farming options for you based on current prices.</li>
+        <li><%= link_to "Albion Helper", "https://forum.albiononline.com/index.php/Thread/174675-Beta-Albion-Helper-Discord-Market-Bot-Crafting-Calculator/#post1270471", target: "_blank", rel: "noopener" %> (forked from Albion Assistant) A discord bot to retrieve prices from Albion Online Data Project APIs. Maintained by Discord User Divined#9833.</li>
+        <li><%= link_to "Albionix Tools", "https://albionix.app/", target: "_blank", rel: "noopener" %> is a calculator for Transporting Item profitability and some market analysis. Maintained by Discord User Kytavian#4406.</li>
+        <li><%= link_to "Albion Online Tools", "https://albiononlinetools.com/", target: "_blank", rel: "noopener" %> is a site with a bunch of tools for Albion Online users. Maintained by Discord User legita.</li>
+        <li><%= link_to "Albion Online Grind", "https://albiononlinegrind.com/", target: "_blank", rel: "noopener" %> offers a multifaceted toolkit that empowers you to manage islands efficiently, organise your stored items seamlessly, create visual Avalonian road maps, stay on top of important timers, calculate item enchantments with ease, and maximise farming profits. And much more. Maintained by Discord User ummahusla.</li>
+      </ul>
+    </section>
+
+    <section class="content-section">
+      <h2>Sites / Projects not related to AODP</h2>
+      <ul class="project-list">
+        <li><%= link_to "Albion Online Stats - DPS tracker", "https://github.com/mazurwiktor/albion-online-stats", target: "_blank", rel: "noopener" %></li>
+      </ul>
+    </section>
+
+    <section class="content-section">
+      <p>If you have a project you'd like to have listed here, create a pull request on the server/website github repo <%= link_to "here", "https://github.com/ao-data/albiondata-server-rails/blob/main/app/views/pages/third_party_tools.html.erb", target: "_blank", rel: "noopener" %>.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p><%= link_to "The Albion Online Data Project", root_path %></p>
+  </footer>
+</div>

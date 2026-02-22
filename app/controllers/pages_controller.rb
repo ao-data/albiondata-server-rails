@@ -1,15 +1,22 @@
 # frozen_string_literal: true
 
 class PagesController < ApplicationController
-  skip_around_action :run_using_database, only: [:index, :faq, :api, :client, :identifier, :items]
+  skip_around_action :run_using_database, only: [:index, :faq, :api, :client, :developer, :identifier, :items, :third_party_tools]
 
   def index
+    @unique_agents_stats = UniqueAgentsStatsService.call
   end
 
   def faq
   end
 
   def api
+  end
+
+  def third_party_tools
+  end
+
+  def developer
   end
 
   def client

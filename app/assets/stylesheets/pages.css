@@ -33,8 +33,10 @@
 .page.faq-page,
 .page.api-page,
 .page.client-page,
+.page.developer-page,
 .page.identifier-page,
-.page.items-page {
+.page.items-page,
+.page.third-party-tools-page {
   min-height: 100vh;
   background: var(--page-bg);
   color: var(--page-text);
@@ -272,6 +274,18 @@
   margin-bottom: 0;
 }
 
+.content-section .data-view-options {
+  margin-top: 0.5em;
+}
+
+.content-section .data-view-options li {
+  margin-bottom: 1em;
+}
+
+.content-section .data-view-options li:last-child {
+  margin-bottom: 0;
+}
+
 .content-section a {
   color: var(--link);
   text-decoration: none;
@@ -379,6 +393,23 @@
   line-height: 1.65;
 }
 
+.hero__cta {
+  text-align: center;
+}
+
+/* Stats card */
+.stats-card__description {
+  color: var(--page-text-muted);
+  font-size: 0.9375rem;
+  margin: 0 0 var(--space);
+}
+
+.stats-card__chart-wrap {
+  margin-top: var(--space);
+  max-width: 100%;
+  min-height: 280px;
+}
+
 .hero .btn {
   display: inline-flex;
   align-items: center;
@@ -419,6 +450,42 @@
   background: rgba(48, 54, 61, 0.5);
   border-color: var(--card-border);
   text-decoration: none;
+}
+
+/* Discord button — Discord brand (Blurple) */
+.contact-discord-cta {
+  margin: 0.75em 0 0 !important;
+  text-align: center;
+}
+
+.btn--discord {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65em 1.35em;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  text-decoration: none;
+  color: #fff !important;
+  background: #5865F2;
+  border: none;
+  transition: transform var(--transition), background var(--transition), box-shadow var(--transition);
+  box-shadow: 0 2px 8px rgba(88, 101, 242, 0.35);
+}
+
+.btn--discord:hover {
+  background: #4752c4;
+  color: #fff !important;
+  text-decoration: none;
+  border: none;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(88, 101, 242, 0.4);
+}
+
+.btn--discord__icon {
+  flex-shrink: 0;
 }
 
 /* Client page — download CTA */
@@ -727,6 +794,25 @@
   display: inline-flex;
   align-items: flex-start;
   gap: 0.5rem;
+}
+
+.quote__approval-meta {
+  display: inline;
+}
+
+.quote__source-link {
+  font-size: 0.875em;
+  color: var(--page-text-muted);
+  white-space: nowrap;
+}
+
+.quote__source-link::before {
+  content: " · ";
+  color: var(--page-text-muted);
+}
+
+.quote__source-link:hover {
+  color: var(--link-hover);
 }
 
 .quote__approval-img {

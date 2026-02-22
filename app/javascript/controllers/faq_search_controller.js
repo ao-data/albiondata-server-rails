@@ -4,6 +4,11 @@ export default class extends Controller {
   static targets = ["query", "section", "empty"]
 
   connect() {
+    const params = new URLSearchParams(window.location.search)
+    const search = params.get("search")
+    if (search) {
+      this.queryTarget.value = search
+    }
     this.filter()
   }
 

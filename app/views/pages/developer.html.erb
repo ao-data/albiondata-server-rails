@@ -1,0 +1,71 @@
+<div class="page developer-page">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <h1 class="site-title"><%= link_to "The Albion Online Data Project", root_path %></h1>
+      <p class="site-tagline">Realtime market and gold data for Albion Online</p>
+      <%= render "nav", current: :developer %>
+    </div>
+  </header>
+
+  <div class="disclaimer banner">
+    <p><strong>These tools are not affiliated with Albion Online or Sandbox Interactive GmbH.</strong></p>
+  </div>
+
+  <main class="main-content">
+    <h2 class="page-title">Developer Information</h2>
+    <p class="lead">If you're building something to consume the data published by the Albion Data Project, here are some things you will need to know.</p>
+
+    <section class="content-section">
+      <h2>NATS Connection Strings</h2>
+      <ul class="code-list">
+        <li>Americas: <code>nats://public:thenewalbiondata@nats.albion-online-data.com:4222</code></li>
+        <li>Asia: <code>nats://public:thenewalbiondata@nats.albion-online-data.com:24222</code></li>
+        <li>Europe: <code>nats://public:thenewalbiondata@nats.albion-online-data.com:34222</code></li>
+      </ul>
+    </section>
+
+    <section class="content-section">
+      <h2>NATS Topics</h2>
+      <ul>
+        <li><code>goldprices.ingest</code> — all gold prices from data clients (including duplicates)</li>
+        <li><code>marketorders.ingest</code> — all orders from data clients (including duplicates)</li>
+        <li><code>markethistories.ingest</code> — all histories from data clients (including duplicates)</li>
+        <li><code>goldprices.deduped</code> — deduped gold prices</li>
+        <li><code>marketorders.deduped</code> — deduped market orders</li>
+        <li><code>markethistories.deduped</code> — deduped market histories</li>
+      </ul>
+      <p>Data message structure: <a href="https://github.com/ao-data/albiondata-client/tree/master/lib" target="_blank" rel="noopener">albiondata-client/lib</a></p>
+
+      <aside class="callout">
+        <p><strong>Duplicate messages:</strong> Data is deduplicated over a 10-minute window. As a subscriber you should only get the same message once every 5 minutes. New subscribers may have missed previous messages. For market orders, track the last time an order was seen and after not seeing it for X hours, remove it as probably completed.</p>
+      </aside>
+
+      <aside class="callout">
+        <p><strong>Market History timestamps</strong> are in ticks. To convert to epoch: <code>(ticks / 10000) - 62136892800000</code>. Example: <code>(638181504000000000 / 10000) - 62136892800000</code> → <code>1681257600000</code>. Use <a href="https://www.unixtimestamp.com/" target="_blank" rel="noopener">unixtimestamp.com</a> for human-readable conversion.</p>
+      </aside>
+    </section>
+
+    <section class="content-section">
+      <h2>Database Table Exports</h2>
+      <p>Daily table dumps are available at:</p>
+      <ul>
+        <li>West / Americas — <a href="https://www.albion-online-data.com/database/" target="_blank" rel="noopener">albion-online-data.com/database/</a></li>
+        <li>East / Asia — <a href="https://www.albion-online-data.com/database-east/" target="_blank" rel="noopener">albion-online-data.com/database-east/</a></li>
+        <li>Europe — <a href="https://www.albion-online-data.com/database-europe/" target="_blank" rel="noopener">albion-online-data.com/database-europe/</a></li>
+      </ul>
+    </section>
+
+    <section class="content-section">
+      <h2>Albion Data Projects</h2>
+      <ul class="project-list">
+        <li><a href="https://github.com/ao-data/albiondata-client" target="_blank" rel="noopener">albiondata-client</a> — The client everyone runs to capture data.</li>
+        <li><a href="https://github.com/ao-data/albion-data-website" target="_blank" rel="noopener">albion-data-website</a> — This website.</li>
+        <li><a href="https://github.com/ao-data/albiondata-server-rails" target="_blank" rel="noopener">albiondata-server-rails</a> — The backend server.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p><%= link_to "The Albion Online Data Project", root_path %></p>
+  </footer>
+</div>
