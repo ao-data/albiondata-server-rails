@@ -1,0 +1,137 @@
+<div class="page faq-page">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <h1 class="site-title"><%= link_to "The Albion Online Data Project", root_path %></h1>
+      <p class="site-tagline">Realtime market and gold data for Albion Online</p>
+      <%= render "nav", current: :client_faq %>
+    </div>
+  </header>
+
+  <div class="disclaimer banner">
+    <p><strong>These tools are not affiliated with Albion Online or Sandbox Interactive GmbH.</strong></p>
+  </div>
+
+  <main class="main-content" data-controller="faq-search">
+    <h2 class="page-title">Client FAQ</h2>
+
+    <div class="faq-search">
+      <label for="faq-search-input" class="faq-search__label">Search client FAQ</label>
+      <input type="search" id="faq-search-input" class="faq-search__input" placeholder="e.g. 902, install, error, Discord…" autocomplete="off" data-faq-search-target="query" data-action="input->faq-search#filter">
+    </div>
+
+    <p class="faq-search__empty" hidden data-faq-search-target="empty">No questions match your search. Try different words.</p>
+
+    <section class="content-section faq-section" data-faq-search-target="section">
+      <h3>What is the Albion Data client?</h3>
+      <p>The Albion Data client is a small application you run while playing Albion Online. It monitors network traffic for the game, extracts market and gold price data, and uploads it to the project's servers. That data is then distributed to websites and tools that display or use it.</p>
+    </section>
+
+    <section class="content-section faq-section" data-faq-search-target="section">
+      <h3>How do I install and run the client?</h3>
+      <p>Download the latest release from <a href="https://github.com/ao-data/albiondata-client/releases" target="_blank" rel="noopener">GitHub</a>, extract it, and run the client while Albion Online is running. The client will upload market data from the markets you open in game. No configuration is required for basic use.</p>
+    </section>
+
+    <section class="content-section faq-section" data-faq-search-target="section">
+      <h3>Client immediately disappears when loading</h3>
+      <p>Running the client from the command line keeps the window open so you can see error messages.</p>
+      <ul class="client-platform-list">
+        <li><strong>Windows:</strong> Press <kbd>Win</kbd>+<kbd>R</kbd>, enter <code>"C:\Program Files\Albion Data Client\albiondata-client.exe"</code>, then view the output.</li>
+        <li><strong>MacOS:</strong> Open Terminal (<kbd>Cmd</kbd>+<kbd>Space</kbd>, type <code>terminal</code>), run <code>/path/to/albiondata-client</code>, then view the output.</li>
+        <li><strong>Linux:</strong> Open a terminal, run <code>/path/to/albiondata-client</code>, then view the output.</li>
+      </ul>
+    </section>
+
+    <section class="content-section faq-section" data-faq-search-target="section">
+      <h3>Client crashing — device/adapter errors</h3>
+      <p>Errors such as "No such device exists", "Error opening adapter: The system cannot find the device specified. (20)", or "You don't have permission to capture on that device" (Linux/MacOS) mean the client cannot attach to the network interface used by Albion Online.</p>
+      <p><strong>Fix:</strong> Tell the client which adapter to use with the <code>-l</code> (lowercase L) option and your adapter's physical (MAC) address.</p>
+      <ul class="client-platform-list">
+        <li><strong>Windows:</strong> Open a command prompt → run <code>ipconfig.exe /all</code> → find the adapter that gives you connectivity and note its <strong>Physical Address</strong>. Then start the client with <code>"C:\Program Files\Albion Data Client\albiondata-client.exe" -l "B4-2E-99-31-90-E2"</code> (use your address).</li>
+        <li><strong>MacOS:</strong> Open a terminal → run <code>ifconfig</code> → find the adapter and its physical address. Start the client with <code>/path/to/albiondata-client -l "14:7D:DA:DB:C6:29"</code> (use your address).</li>
+        <li><strong>Linux:</strong> Same as MacOS: <code>ifconfig</code>, find the physical address, then <code>/path/to/albiondata-client -l "7E-13-57-B4-C4-3B"</code> (use your address).</li>
+      </ul>
+      <p class="client-ref">Windows: the <strong>Physical Address</strong> appears in <code>ipconfig /all</code> output. Example:</p>
+      <figure class="client-figure">
+        <%= image_tag "client/ipconfig.png", alt: "ipconfig /all output showing Physical Address for the network adapter", class: "client-figure__img" %>
+        <figcaption class="client-figure__caption">Finding Physical Address in <code>ipconfig /all</code> (Windows)</figcaption>
+      </figure>
+      <p class="client-ref">MacOS and Linux: run <code>ifconfig</code> and find the physical (MAC) address for your active adapter. Examples:</p>
+      <div class="client-figures client-figures--two">
+        <figure class="client-figure">
+          <%= image_tag "macos-ifconfig.png", alt: "ifconfig output on MacOS showing physical address", class: "client-figure__img" %>
+          <figcaption class="client-figure__caption"><code>ifconfig</code> (MacOS)</figcaption>
+        </figure>
+        <figure class="client-figure">
+          <%= image_tag "linux-ifconfig.png", alt: "ifconfig output on Linux showing physical address", class: "client-figure__img" %>
+          <figcaption class="client-figure__caption"><code>ifconfig</code> (Linux)</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="content-section faq-section" data-faq-search-target="section">
+      <h3>MacOS / Linux: need sudo</h3>
+      <p>Running the client with <code>sudo</code> is the simplest option. To avoid full sudo, you can use a dedicated capture group (based on <a href="https://github.com/bettercap/bettercap/issues/783#issuecomment-1021912001" target="_blank" rel="noopener">this approach</a>). Replace <code>/path/to/albiondata-client</code> with the actual path to your client; <code>aod</code> = "Albion Online Data".</p>
+      <pre class="client-pre"><code># Add a capture group and add yourself to it
+sudo groupadd aod
+sudo usermod -a -G aod $USER
+
+# Change the group of the client and set permissions
+sudo chgrp aod /path/to/albiondata-client
+sudo chmod 750 /path/to/albiondata-client</code></pre>
+      <p class="client-ref">See also the <a href="https://github.com/regner/albiondata-client/issues/125" target="_blank" rel="noopener">original developer discussion</a>.</p>
+    </section>
+
+    <section class="content-section faq-section" data-faq-search-target="section">
+      <h3>Why don't I see the data I'm uploading?</h3>
+      <p>The client only uploads market orders that you actually load in game. If you need a specific item or city's prices, open that market in Albion Online and browse the orders. Once loaded, the client sends the data and it becomes visible in the feed and on sites that use our data.</p>
+    </section>
+
+    <section class="content-section faq-section" data-faq-search-target="section">
+      <h3>Encryption</h3>
+      <p>In January 2024, SBI made changes to market data. All accounts were receiving encrypted data making the AODP client unable to capture live market data. We worked with a community manager at SBI; they (SBI, not the community manager) decided to allow many accounts to receive unencrypted market data again. However, unencrypted data is based on some combination of variables that we are not aware of. We believe it involves multiple data points including the character/toon you are using, your overall account, the game server you're on, playtime, founder status, if you spent IRL money on gold (legally via their site), etc.</p>
+      <figure class="client-figure">
+        <%= image_tag "client-encryption.png", alt: "Encrypted market data message shown in the client", class: "client-figure__img" %>
+        <figcaption class="client-figure__caption">Encrypted data message</figcaption>
+      </figure>
+      <p>If you are getting the highlighted message in the image above, no, there is nothing we (AODP) can do. Please don't send a message in Discord, because you'll get the same answer as you see here. You can reach out to SBI; you may or may not have any luck with a support ticket, but expect no changes.</p>
+      <p>If "it worked 2 hours ago" and you changed characters/toons or which game server you're on and now "it doesn't work now", that's why.</p>
+      <p>If you are getting the highlighted message above, market history and gold history are still sent to the AODP server; only live market data is not sent.</p>
+    </section>
+
+    <section class="content-section faq-section" data-faq-search-target="section">
+      <h3>Client receives "HTTP Error while proving pow. returned 902"</h3>
+      <p>This means the POW either expired or doesn't exist.</p>
+      <p>This means your Albion Online Data client is taking too long to send data to our servers. This is slowed down on purpose because we ask your computer to do some math that our server already has the answer to. We needed to add this because bad actors/spammers were sending us bad data and this slowed them down. With that, we wanted to make sure we didn't eat up all CPU cycles on your machine, so we limit it to 25% CPU.</p>
+      <p>If you wish to bypass this and let your entire CPU be consumed while searching Albion Online markets, you can add the <code>-no-limit</code> parameter when running the Albion Online Data client manually. But… (read next section)</p>
+    </section>
+
+    <section class="content-section faq-section" data-faq-search-target="section">
+      <h3>Client receives "403 Forbidden" message</h3>
+      <p>This means you have requested POW and/or sent POW result with data very fast recently. The rate limits can be found <a href="https://github.com/ao-data/albiondata-gate/blob/main/config.rb">here</a>, in the REQUEST_LIMITS section. Note, everything is x2 because to send 1 successful chunk of data, your Albion Online Data client must request a POW then submit the POW result + data. So, for example, per_minute is 270*2, which means you can send 270 chunks of data per minute before being throttled.</p>
+    </section>
+
+    <section class="content-section faq-section" data-faq-search-target="section">
+      <h3>How do I disable the client starting with Windows?</h3>
+      <ol class="client-steps">
+        <li>Open <strong>Task Scheduler</strong>.</li>
+        <li>Click <strong>Task Scheduler Library</strong> in the left pane.</li>
+        <li>Find the task named <strong>Albion Data Client</strong>.</li>
+        <li>Right-click it and choose <strong>Disable</strong>.</li>
+      </ol>
+    </section>
+
+    <section class="content-section faq-section" data-faq-search-target="section">
+      <h3>Am I allowed to use the client?</h3>
+      <p>Yes. Sandbox Interactive (Albion Online) has stated that analyzing and viewing data in this way is acceptable. You must not modify, manipulate, or interfere with the game or our services. For the full statement, see the <a href="https://forum.albiononline.com/index.php/Thread/51604-Is-it-allowed-to-scan-your-internet-trafic-and-pick-up-logs/" target="_blank" rel="noopener">forum thread</a> and our <%= link_to "Is This Allowed?", root_path(anchor: "is-this-allowed") %> section on the home page.</p>
+    </section>
+
+    <section class="content-section faq-section" data-faq-search-target="section">
+      <h3>Where can I get more help?</h3>
+      <p>The best place to ask questions or report issues is the Albion Online Fansites Discord server, in <strong>#proj-albiondata</strong> or <strong>#developers</strong>. Invite link: <a href="https://discord.gg/TjWdq24" target="_blank" rel="noopener">discord.gg/TjWdq24</a>.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p><%= link_to "The Albion Online Data Project", root_path %></p>
+  </footer>
+</div>

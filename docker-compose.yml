@@ -16,7 +16,7 @@ services:
     image: ruby:3
     build:
       context: .
-    platform: linux/amd64
+    # platform: linux/amd64
     container_name: web
     restart: no
     volumes:
@@ -64,6 +64,7 @@ services:
       ABUSEIPDB_API_KEY: ${ABUSEIPDB_API_KEY}
       ABUSEIPDB_SCORE_THRESHOLD: ${ABUSEIPDB_SCORE_THRESHOLD}
       RACKATTACK_REDIS_URL: ${RACKATTACK_REDIS_URL}
+      RAILS_CACHE_REDIS_URL: ${RAILS_CACHE_REDIS_URL:-redis://redis:6379/8}
       THROTTLE_API_1MIN: ${THROTTLE_API_1MIN}
       THROTTLE_API_5MIN: ${THROTTLE_API_5MIN}
       THROTTLE_POW_1MIN: ${THROTTLE_POW_1MIN}

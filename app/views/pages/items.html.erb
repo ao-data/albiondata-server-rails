@@ -1,0 +1,88 @@
+<div class="page items-page">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <h1 class="site-title"><%= link_to "The Albion Online Data Project", root_path %></h1>
+      <p class="site-tagline">Realtime market and gold data for Albion Online</p>
+      <%= render "nav", current: :items %>
+    </div>
+  </header>
+
+  <div class="disclaimer banner">
+    <p><strong>These tools are not affiliated with Albion Online or Sandbox Interactive GmbH.</strong></p>
+  </div>
+
+  <main class="main-content">
+    <h2 class="page-title">Items</h2>
+    <p class="lead">Item list from the <%= link_to "ao-bin-dumps", "https://github.com/ao-data/ao-bin-dumps", target: "_blank", rel: "noopener" %> project. Search by item ID (UniqueName), index, or display name in any supported language. Data is cached for one hour.</p>
+
+    <% if @items_error.present? %>
+      <section class="content-section items-error">
+        <p class="items-error__message"><%= @items_error %></p>
+      </section>
+    <% else %>
+      <section class="content-section items-form-section">
+        <h2>Search items</h2>
+        <%= form_with url: items_path, method: :get, local: true, class: "items-form" do %>
+          <div class="items-form__row">
+            <div class="items-form__field">
+              <label for="q" class="items-form__label">Search by item ID or display name</label>
+              <input type="search" id="q" name="q" class="items-form__input" placeholder="e.g. T4_BAG, 8, Bag, Tasche…" value="<%= @query %>" autocomplete="off">
+            </div>
+            <% if @language_keys.any? %>
+              <div class="items-form__field items-form__field--lang">
+                <label for="lang" class="items-form__label">Display name language</label>
+                <select id="lang" name="lang" class="items-form__select">
+                  <option value="">All / First available</option>
+                  <% @language_keys.each do |code| %>
+                    <option value="<%= code %>" <%= "selected" if @lang == code %>><%= human_language_name(code) %></option>
+                  <% end %>
+                </select>
+              </div>
+            <% end %>
+          </div>
+          <button type="submit" class="btn btn--primary items-form__submit">Search</button>
+        <% end %>
+      </section>
+
+      <section class="content-section items-results">
+        <h2>Results</h2>
+        <% if @query.blank? %>
+          <p class="items-results__hint">Enter a search term to find items by UniqueName, Index, or localized display name.</p>
+        <% elsif @results.empty? %>
+          <p class="items-results__empty">No items match "<%= @query %>".</p>
+        <% else %>
+          <p class="items-results__count"><%= @results.size %> item<%= "s" if @results.size != 1 %></p>
+          <div class="items-table-wrap">
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th>Index</th>
+                  <th>UniqueName</th>
+                  <th>Display name</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @results.first(1000).each do |item| %>
+                  <tr>
+                    <td class="items-table__index"><%= item["Index"] %></td>
+                    <td class="items-table__unique"><code><%= item["UniqueName"] %></code></td>
+                    <td class="items-table__name">
+                      <%= display_name_for_item(item, @lang, @language_keys) %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+          <% if @results.size > 1000 %>
+            <p class="items-results__truncated">Showing first 1,000 of <%= @results.size %> results.</p>
+          <% end %>
+        <% end %>
+      </section>
+    <% end %>
+  </main>
+
+  <footer class="site-footer">
+    <p><%= link_to "The Albion Online Data Project", root_path %></p>
+  </footer>
+</div>

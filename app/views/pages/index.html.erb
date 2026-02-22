@@ -1,0 +1,117 @@
+<div class="page home-page">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <h1 class="site-title"><%= link_to "The Albion Online Data Project", root_path %></h1>
+      <p class="site-tagline">Realtime market and gold data for Albion Online</p>
+      <%= render "nav", current: :root %>
+    </div>
+  </header>
+
+  <div class="disclaimer banner">
+    <p><strong>These tools are not affiliated with Albion Online or Sandbox Interactive GmbH.</strong></p>
+  </div>
+
+  <main class="main-content">
+    <section class="content-section hero">
+      <h2>Welcome to the Albion Data Project</h2>
+      <p class="lead">The goal of this project is to collect and distribute realtime information for Albion Online. This is achieved with a downloadable client that monitors network traffic specifically for Albion Online, identifies the relevant information, and then ships it off to a central server which distributes the information to anyone who wants it.</p>
+      <p class="lead">If you would like to help the Albion Data Project, and all the web sites and applications that use the data provided by it, then the best thing you can do is download our client and run it whenever you're playing Albion Online.</p>
+        <p class="lead">Note that the client can only upload the market orders that you load in game, so be sure to browse the market for the prices that you need. When a price is uploaded, it is visible in the data immediately.</p>
+      <p class="hero__cta">
+        <a href="https://github.com/ao-data/albiondata-client/releases" class="btn btn--primary" target="_blank" rel="noopener">Download the client</a>
+      </p>
+    </section>
+
+    <% if @unique_agents_stats || @duplicate_items_stats %>
+      <%= content_for :head do %>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+      <% end %>
+    <% end %>
+    <% if @unique_agents_stats %>
+      <section class="content-section stats-card" data-controller="stats-chart">
+        <script type="application/json" data-stats-chart-target="dataSource"><%= raw @unique_agents_stats.to_json %></script>
+        <h2>Unique clients over time</h2>
+        <p class="stats-card__description">Distinct client IPs per 15 minutes by server (last 24 hours).</p>
+        <div class="stats-card__chart-wrap">
+          <canvas data-stats-chart-target="canvas" width="800" height="300"></canvas>
+        </div>
+      </section>
+    <% end %>
+    <% if @duplicate_items_stats %>
+      <section class="content-section stats-card" data-controller="stats-chart" data-stats-chart-y-label-value="Orders">
+        <script type="application/json" data-stats-chart-target="dataSource"><%= raw @duplicate_items_stats.to_json %></script>
+        <h2>Duplicate items sent by clients</h2>
+        <p class="stats-card__description">Market order duplicates vs non-duplicates per 15 minutes by server (last 24 hours, UTC).</p>
+        <div class="stats-card__chart-wrap">
+          <canvas data-stats-chart-target="canvas" width="800" height="300"></canvas>
+        </div>
+      </section>
+    <% end %>
+
+    <section class="content-section">
+      <h2>Where Can I View The Data I Upload?</h2>
+      <p>Your uploads feed into the project’s live data. You can use that data in two main ways:</p>
+      <ul class="data-view-options">
+        <li>
+          <strong><%= link_to "API", api_info_path %></strong> — Query market and gold data programmatically. Use our REST API to fetch current prices, historical stats, and more for any item and location. Ideal if you’re building an app, script, or integration.
+        </li>
+        <li>
+          <strong><%= link_to "3rd party tools", third_party_tools_path %></strong> — Use sites and apps that already consume our data. Browse market prices, crafting calculators, farming guides, and other tools built on the Albion Data Project—no API knowledge required.
+        </li>
+      </ul>
+    </section>
+
+    <section class="content-section">
+      <h2>Contact Us</h2>
+      <p>The best way to get in touch is on the Albion Online Data Project Discord server in <strong>#General</strong>.</p>
+      <p class="contact-discord-cta">
+        <a href="https://discord.gg/Btmh7ct3" class="btn btn--discord" target="_blank" rel="noopener">
+          <svg class="btn--discord__icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+          </svg>
+          Join us on Discord
+        </a>
+      </p>
+    </section>
+
+    <div data-controller="image-modal">
+      <section class="content-section" id="is-this-allowed">
+        <h2>Is This Allowed?</h2>
+        <blockquote class="quote">
+          <p>Our position is quite simple. As long as you just look and analyze we are ok with it. The moment you modify or manipulate something or somehow interfere with our services we will react (e.g. perma-ban, take legal action, whatever).</p>
+          <footer class="quote__approvals">
+            <span class="quote__approval">
+              <button type="button" class="quote__approval-btn" data-action="click->image-modal#open" data-image-src="<%= image_path('maddave-approval.png') %>" aria-label="View full size">
+                <%= image_tag "maddave-approval.png", alt: "", class: "quote__approval-img" %>
+              </button>
+              <span class="quote__approval-meta">
+                — MadDave, 2017, Ex-Technical Lead at Sandbox Interactive for Albion Online
+                <%= link_to "Forum post", "https://forum.albiononline.com/index.php/Thread/51604-Is-it-allowed-to-scan-your-internet-trafic-and-pick-up-logs/?postID=512670#post512670", class: "quote__source-link", target: "_blank", rel: "noopener" %>
+              </span>
+            </span>
+            <span class="quote__approval">
+              <button type="button" class="quote__approval-btn" data-action="click->image-modal#open" data-image-src="<%= image_path('sirisli-approval.png') %>" aria-label="View full size">
+                <%= image_tag "sirisli-approval.png", alt: "", class: "quote__approval-img" %>
+              </button>
+              <span class="quote__approval-meta">
+                — SirisLi, 2025, Community Manager
+                <%= link_to "Forum post", "https://forum.albiononline.com/index.php/Thread/206875-Albion-Market-API-Encryption/?postID=1409736#post1409736", class: "quote__source-link", target: "_blank", rel: "noopener" %>
+              </span>
+            </span>
+          </footer>
+        </blockquote>
+      </section>
+      <div data-image-modal-target="overlay" class="image-modal" role="dialog" aria-modal="true" aria-label="Full size image" hidden>
+        <button type="button" class="image-modal__backdrop" data-action="click->image-modal#close" aria-label="Close"></button>
+        <div class="image-modal__content">
+          <button type="button" class="image-modal__close" data-action="click->image-modal#close" aria-label="Close">&times;</button>
+          <img data-image-modal-target="fullImage" class="image-modal__img" src="" alt="Full size approval" tabindex="-1">
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>The Albion Online Data Project</p>
+  </footer>
+</div>
