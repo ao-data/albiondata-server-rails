@@ -36,13 +36,31 @@
       </ul>
       <p>Data message structure: <a href="https://github.com/ao-data/albiondata-client/tree/master/lib" target="_blank" rel="noopener">albiondata-client/lib</a></p>
 
-      <aside class="callout">
-        <p><strong>Duplicate messages:</strong> Data is deduplicated over a 10-minute window. As a subscriber you should only get the same message once every 5 minutes. New subscribers may have missed previous messages. For market orders, track the last time an order was seen and after not seeing it for X hours, remove it as probably completed.</p>
+      <aside>
+        <p><strong>Duplicate messages</strong></p>
+        <ul>
+          <li>Data is deduplicated over a 5-minute window. As a subscriber you should only get the same message once every 5 minutes.</li>
+          <li>New subscribers may have missed previous messages.</li>
+          <li>For market orders: track the last time an order was seen; after not seeing it for X hours, remove it as probably completed.</li>
+        </ul>
       </aside>
+    </section>
 
-      <aside class="callout">
-        <p><strong>Market History timestamps</strong> are in ticks. To convert to epoch: <code>(ticks / 10000) - 62136892800000</code>. Example: <code>(638181504000000000 / 10000) - 62136892800000</code> → <code>1681257600000</code>. Use <a href="https://www.unixtimestamp.com/" target="_blank" rel="noopener">unixtimestamp.com</a> for human-readable conversion.</p>
-      </aside>
+    <section class="content-section" id="timestamps">
+      <h2>Timestamps</h2>
+      <p>Note: Timestamps on Market History data and Bandit Event are in <strong>ticks</strong>. To convert ticks to epoch (a more common time format), use:</p>
+      <p><code>(ticks - 621355968000000000) / 10000000</code></p>
+      <p>Example: <code>(638181504000000000 - 621355968000000000) / 10000000</code> → <code>1682553600</code>. Use <a href="https://www.unixtimestamp.com/" target="_blank" rel="noopener">unixtimestamp.com</a> to convert <code>1682553600</code> to a human-readable format (e.g. <code>2023-04-27 00:00:00 UTC</code>). This should be enough to convert timestamps in your language of choice.</p>
+    </section>
+
+    <section class="content-section">
+      <h2>Bandit Event</h2>
+      <p>Message schema: <code>{"EventTime"=>639057896373527168, "AdvanceNotice"=>true}</code></p>
+      <ul>
+        <li><strong>AdvanceNotice true</strong> — the event has not started yet. <code>EventTime</code> is when the event <strong>starts</strong>.</li>
+        <li><strong>AdvanceNotice false</strong> — <code>EventTime</code> is when the event <strong>ends</strong>.</li>
+      </ul>
+      <p><code>EventTime</code> is in C# ticks (see <a href="#timestamps">Timestamps</a> above for conversion).</p>
     </section>
 
     <section class="content-section">
