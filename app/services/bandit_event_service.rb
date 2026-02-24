@@ -10,9 +10,9 @@ class BanditEventService
 
     client_ip = opts.is_a?(Hash) ? (opts['client_ip'] || opts[:client_ip]) : nil
     event_time = data.key?('EventTime') ? data['EventTime'] : data[:EventTime]
-    advance_notice = data.key?('AdvanceNotice') ? data['AdvanceNotice'] : data[:AdvanceNotice]
+    phase = data.key?('Phase') ? data['Phase'] : data[:Phase]
 
-    if client_ip.nil? || event_time.nil? || advance_notice.nil?
+    if client_ip.nil? || event_time.nil? || phase.nil?
       IdentifierService.add_identifier_event(opts, server_id, 'Received on BanditEventService, missing event fields or client ip, ignored')
       return
     end
@@ -29,7 +29,7 @@ class BanditEventService
       return
     end
 
-    key = "event:#{event_time}:#{advance_notice}:ips"
+    key = "event:#{event_time}:#{phase}:ips"
     redis = REDIS[server_id]
     redis.sadd(key, client_ip)
     redis.expire(key, BANDIT_EVENT_IP_TTL_SECONDS)
