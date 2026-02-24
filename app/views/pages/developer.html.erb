@@ -55,10 +55,11 @@
 
     <section class="content-section">
       <h2>Bandit Event</h2>
-      <p>Message schema: <code>{"EventTime"=>639057896373527168, "AdvanceNotice"=>true}</code></p>
+      <p>Message schema: <code>{"EventTime"=>639057896373527168, "Phase"=>1}</code></p>
       <ul>
-        <li><strong>AdvanceNotice true</strong> — the event has not started yet. <code>EventTime</code> is when the event <strong>starts</strong>.</li>
-        <li><strong>AdvanceNotice false</strong> — <code>EventTime</code> is when the event <strong>ends</strong>.</li>
+        <li><strong>Phase 1</strong> — the event has not started yet. <code>EventTime</code> is when the event <strong>starts</strong>.</li>
+        <li><strong>Phase 2</strong> — <code>EventTime</code> is when the event <strong>escalates</strong>.</li>
+        <li><strong>Phase 3</strong> — <code>EventTime</code> is when the event <strong>ends</strong>.</li>
       </ul>
       <p><code>EventTime</code> is in C# ticks (see <a href="#timestamps">Timestamps</a> above for conversion).</p>
     </section>

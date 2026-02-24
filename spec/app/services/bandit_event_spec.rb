@@ -4,7 +4,7 @@ describe BanditEventService, type: :service do
     let(:server_id) { 'west' }
     let(:now) { Time.utc(2026, 2, 2, 12, 0, 0) }
     let(:event_time_ticks) { BanditEventService::CSHARP_TICKS_UNIX_EPOCH + (now.to_i * BanditEventService::CSHARP_TICKS_PER_SECOND) }
-    let(:data) { { 'EventTime' => event_time_ticks, 'AdvanceNotice' => 1 } }
+    let(:data) { { 'EventTime' => event_time_ticks, 'Phase' => 1 } }
     let(:opts) { { 'client_ip' => '1.2.3.4', 'identifier' => 'abc' } }
     let(:redis) { instance_double(Redis) }
 
@@ -44,8 +44,8 @@ describe BanditEventService, type: :service do
       subject.process(data, server_id, opts)
     end
 
-    it 'accepts false AdvanceNotice values' do
-      data_with_false = { 'EventTime' => event_time_ticks, 'AdvanceNotice' => false }
+    it 'accepts int Phase values' do
+      data_with_false = { 'EventTime' => event_time_ticks, 'Phase' => 1 }
 
       expect(redis).to receive(:sadd).with("event:#{event_time_ticks}:false:ips", opts['client_ip'])
       expect(IdentifierService).to receive(:add_identifier_event).with(opts, server_id, /below threshold/)
@@ -54,7 +54,7 @@ describe BanditEventService, type: :service do
     end
 
     it 'ignores events with invalid EventTime ticks' do
-      bad_data = { 'EventTime' => 'not-a-tick', 'AdvanceNotice' => 1 }
+      bad_data = { 'EventTime' => 'not-a-tick', 'Phase' => 1 }
 
       expect(REDIS).not_to receive(:[])
       expect(IdentifierService).to receive(:add_identifier_event).with(opts, server_id, /invalid EventTime/)
@@ -66,7 +66,7 @@ describe BanditEventService, type: :service do
       now = Time.utc(2026, 2, 2, 12, 0, 0)
       allow(Time).to receive(:now).and_return(now)
       past_ticks = BanditEventService::CSHARP_TICKS_UNIX_EPOCH + ((now.to_i - 1) * BanditEventService::CSHARP_TICKS_PER_SECOND)
-      past_data = { 'EventTime' => past_ticks, 'AdvanceNotice' => 1 }
+      past_data = { 'EventTime' => past_ticks, 'Phase' => 1 }
 
       expect(REDIS).not_to receive(:[])
       expect(IdentifierService).to receive(:add_identifier_event).with(opts, server_id, /EventTime out of allowed window/)
@@ -79,7 +79,7 @@ describe BanditEventService, type: :service do
       allow(Time).to receive(:now).and_return(now)
       future_seconds = (now + 6.hours).to_i
       future_ticks = BanditEventService::CSHARP_TICKS_UNIX_EPOCH + (future_seconds * BanditEventService::CSHARP_TICKS_PER_SECOND)
-      future_data = { 'EventTime' => future_ticks, 'AdvanceNotice' => 1 }
+      future_data = { 'EventTime' => future_ticks, 'Phase' => 1 }
 
       expect(REDIS).not_to receive(:[])
       expect(IdentifierService).to receive(:add_identifier_event).with(opts, server_id, /EventTime out of allowed window/)
