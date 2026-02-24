@@ -9,7 +9,7 @@ services:
     networks:
       - albiondata
   web:
-    image: albiondata-server-rails
+#    image: albiondata-server-rails
 #    image: ruby:3
     build:
       context: .
