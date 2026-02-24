@@ -45,12 +45,12 @@ describe BanditEventService, type: :service do
     end
 
     it 'accepts int Phase values' do
-      data_with_false = { 'EventTime' => event_time_ticks, 'Phase' => 1 }
+      data_with_int_phase = { 'EventTime' => event_time_ticks, 'Phase' => 1 }
 
-      expect(redis).to receive(:sadd).with("event:#{event_time_ticks}:false:ips", opts['client_ip'])
+      expect(redis).to receive(:sadd).with("event:#{event_time_ticks}:1:ips", opts['client_ip'])
       expect(IdentifierService).to receive(:add_identifier_event).with(opts, server_id, /below threshold/)
 
-      subject.process(data_with_false, server_id, opts)
+      subject.process(data_with_int_phase, server_id, opts)
     end
 
     it 'ignores events with invalid EventTime ticks' do
