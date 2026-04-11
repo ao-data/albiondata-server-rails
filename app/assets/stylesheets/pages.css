@@ -96,7 +96,17 @@ body {
   font-size: 0.875rem;
 }
 
-/* Nav — pill tabs */
+/* Nav — hamburger button (mobile only) */
+.nav-hamburger {
+  display: none;
+}
+
+/* Nav — backdrop (mobile only) */
+.nav-backdrop {
+  display: none;
+}
+
+/* Nav — pill tabs (desktop) */
 .site-nav {
   margin-top: calc(var(--space) * 0.6);
   display: inline-flex;
@@ -131,6 +141,167 @@ body {
 .site-nav a.active:hover {
   color: var(--page-bg);
   background: var(--accent-dim);
+}
+
+/* Mobile nav — hamburger + slide-in drawer */
+@media (max-width: 640px) {
+  /* Compress header to a single row.
+     backdrop-filter must be removed on mobile — it creates a new containing
+     block that traps position:fixed children (the drawer) inside the header. */
+  .site-header {
+    padding: 0 var(--space);
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    position: relative;
+    text-align: center;
+  }
+
+  /* Hide tagline on mobile */
+  .site-tagline {
+    display: none;
+  }
+
+  /* Title fills the row, centered */
+  .site-title {
+    flex: 1;
+    margin: 0;
+    text-align: center;
+    font-size: 1rem;
+  }
+
+  /* Wrapper sits at the left of the flex row */
+  .site-nav-wrapper {
+    flex-shrink: 0;
+  }
+
+  /* Hamburger button */
+  .nav-hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    background: none;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 9px 10px;
+    color: var(--page-text);
+    transition: background var(--transition), border-color var(--transition);
+    position: relative;
+    z-index: 200;
+  }
+
+  .nav-hamburger:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(48, 54, 61, 1);
+  }
+
+  .nav-hamburger span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: currentColor;
+    border-radius: 2px;
+    transition: transform 0.25s var(--ease), opacity 0.2s var(--ease);
+    transform-origin: center;
+  }
+
+  /* Bars → X when open */
+  .site-nav-wrapper.is-open .nav-hamburger span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  .site-nav-wrapper.is-open .nav-hamburger span:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  .site-nav-wrapper.is-open .nav-hamburger span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  /* Dimmed backdrop */
+  .nav-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    z-index: 98;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s var(--ease);
+  }
+
+  .site-nav-wrapper.is-open .nav-backdrop {
+    display: block;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Slide-in drawer */
+  .site-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(280px, 85vw);
+    z-index: 99;
+    margin-top: 0;
+    background: var(--page-bg-subtle);
+    border: none;
+    border-right: 1px solid var(--card-border);
+    border-radius: 0;
+    box-shadow: 4px 0 32px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.125rem;
+    padding: 4.5rem 0.75rem 2rem;
+    font-size: 0.9375rem;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+    overflow-y: auto;
+  }
+
+  .site-nav-wrapper.is-open .site-nav {
+    transform: translateX(0);
+  }
+
+  /* Section label at top of drawer */
+  .site-nav::before {
+    content: "Navigation";
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--page-text-muted);
+    padding: 0 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--card-border);
+    margin-bottom: 0.5rem;
+  }
+
+  /* Drawer link styles */
+  .site-nav a {
+    display: block;
+    padding: 0.7em 0.875em;
+    border-radius: 8px;
+    text-align: left;
+    width: auto;
+  }
+
+  .site-nav a.active {
+    color: var(--page-bg);
+    background: var(--accent);
+  }
 }
 
 /* Disclaimer banner */
