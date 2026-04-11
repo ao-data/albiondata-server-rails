@@ -1,10 +1,26 @@
-<nav class="site-nav">
-  <%= link_to "Home", root_path, class: ("active" if current == :root) %>
-  <%= link_to "Client", client_path, class: ("active" if current == :client) %>
-  <%= link_to "Client FAQ", client_faq_path, class: ("active" if current == :client_faq) %>
-  <%= link_to "Identifier", identifier_path, class: ("active" if current == :identifier) %>
-  <%= link_to "API", api_info_path, class: ("active" if current == :api) %>
-  <%= link_to "3rd Party Tools", third_party_tools_path, class: ("active" if current == :third_party_tools) %>
-  <%= link_to "Items", items_path, class: ("active" if current == :items) %>
-  <%= link_to "Developer", developer_path, class: ("active" if current == :developer) %>
-</nav>
+<div class="site-nav-wrapper" data-controller="nav">
+  <button class="nav-hamburger"
+          data-action="click->nav#toggle"
+          data-nav-target="button"
+          aria-label="Open navigation"
+          aria-expanded="false">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
+  <div class="nav-backdrop"
+       data-nav-target="backdrop"
+       data-action="click->nav#close"></div>
+
+  <nav class="site-nav" data-nav-target="menu">
+    <%= link_to "Home", root_path, class: ("active" if current == :root), data: { action: "click->nav#close" } %>
+    <%= link_to "Client", client_path, class: ("active" if current == :client), data: { action: "click->nav#close" } %>
+    <%= link_to "Client FAQ", client_faq_path, class: ("active" if current == :client_faq), data: { action: "click->nav#close" } %>
+    <%= link_to "Identifier", identifier_path, class: ("active" if current == :identifier), data: { action: "click->nav#close" } %>
+    <%= link_to "API", api_info_path, class: ("active" if current == :api), data: { action: "click->nav#close" } %>
+    <%= link_to "3rd Party Tools", third_party_tools_path, class: ("active" if current == :third_party_tools), data: { action: "click->nav#close" } %>
+    <%= link_to "Items", items_path, class: ("active" if current == :items), data: { action: "click->nav#close" } %>
+    <%= link_to "Developer", developer_path, class: ("active" if current == :developer), data: { action: "click->nav#close" } %>
+  </nav>
+</div>
