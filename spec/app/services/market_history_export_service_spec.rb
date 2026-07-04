@@ -45,6 +45,7 @@ RSpec.describe MarketHistoryExportService, type: :service do
         allow(described_class).to receive(:count_month).and_return(1)
         allow(described_class).to receive(:count_sql_records).and_return(1)
         allow(described_class).to receive(:count_gz_records).and_return(1)
+        allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with('/tmp/west/market_history_2024_01.sql').and_return(false, true)
         allow(File).to receive(:exist?).with('/tmp/west/market_history_2024_01.sql.gz').and_return(false, true)
       end
@@ -79,6 +80,7 @@ RSpec.describe MarketHistoryExportService, type: :service do
         allow(described_class).to receive(:count_month).and_return(1)
         allow(described_class).to receive(:count_sql_records).and_return(1)
         allow(described_class).to receive(:count_gz_records).and_return(1)
+        allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with('/tmp/west/market_history_2023_12.sql').and_return(false, true)
         allow(File).to receive(:exist?).with('/tmp/west/market_history_2023_12.sql.gz').and_return(false, true)
       end
@@ -113,6 +115,7 @@ RSpec.describe MarketHistoryExportService, type: :service do
         allow(described_class).to receive(:count_month).and_return(1)
         allow(described_class).to receive(:count_sql_records).and_return(1)
         allow(described_class).to receive(:count_gz_records).and_return(1)
+        allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with('/tmp/west/market_history_2024_01.sql').and_return(false, true)
         allow(File).to receive(:exist?).with('/tmp/west/market_history_2024_01.sql.gz').and_return(false, true)
       end
@@ -129,6 +132,7 @@ RSpec.describe MarketHistoryExportService, type: :service do
         allow(described_class).to receive(:count_month).and_return(100)
         allow(described_class).to receive(:count_sql_records).and_return(100)
         allow(described_class).to receive(:count_gz_records).and_return(100)
+        allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with('/tmp/west/market_history_2024_01.sql').and_return(false, true)
         allow(File).to receive(:exist?).with('/tmp/west/market_history_2024_01.sql.gz').and_return(false, true)
       end
@@ -211,6 +215,7 @@ RSpec.describe MarketHistoryExportService, type: :service do
           allow(described_class).to receive(:count_month).and_return(1)
           allow(described_class).to receive(:count_sql_records).and_return(1)
           allow(described_class).to receive(:count_gz_records).and_return(1)
+          allow(File).to receive(:exist?).and_call_original
           allow(File).to receive(:exist?).with('/tmp/west_path/market_history_2024_01.sql').and_return(false, true)
           allow(File).to receive(:exist?).with('/tmp/west_path/market_history_2024_01.sql.gz').and_return(false, true)
         end
@@ -242,8 +247,8 @@ RSpec.describe MarketHistoryExportService, type: :service do
 
         it 'creates the export directory if it does not exist' do
           FileUtils.remove_dir('/tmp/west_path', true) if File.exist?('/tmp/west_path')
-          expect(FileUtils).to receive(:mkdir_p).with('/tmp/west_path')
           described_class.export('west')
+          expect(File.directory?('/tmp/west_path')).to be true
         end
 
         it 'deletes the export file if it exists' do
