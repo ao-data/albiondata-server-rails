@@ -1,3 +1,5 @@
+name: albiondata-server-rails-gha
+
 services:
   mysql:
     image: mariadb:11.3
@@ -15,7 +17,6 @@ services:
       context: .
       dockerfile: Dockerfile
     platform: linux/amd64
-    container_name: web
     restart: no
     environment:
       RUN_MODE: ${RUN_MODE}
@@ -83,8 +84,10 @@ services:
     ports:
       - 3000:3000
     depends_on:
-      - redis
-      - mysql
+      redis:
+        condition: service_healthy
+      mysql:
+        condition: service_started
     networks:
       - albiondata
     logging:
@@ -92,11 +95,15 @@ services:
         tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
   redis:
     image: redis
-    container_name: redis
     restart: on-failure
     ports:
       - 6379:6379
     command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     networks:
       - albiondata
 networks:
