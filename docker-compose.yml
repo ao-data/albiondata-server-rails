@@ -15,7 +15,7 @@ services:
   web:
     build:
       context: .
-#    platform: linux/amd64
+    platform: linux/amd64
     container_name: web
     restart: no
     volumes:
