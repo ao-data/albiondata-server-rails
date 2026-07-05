@@ -1,3 +1,5 @@
+name: albiondata-server-rails-gha
+
 services:
   mysql:
     image: mariadb:11.3
@@ -15,7 +17,6 @@ services:
       context: .
       dockerfile: Dockerfile
     platform: linux/amd64
-    container_name: web
     restart: no
     environment:
       RUN_MODE: ${RUN_MODE}
@@ -94,7 +95,6 @@ services:
         tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
   redis:
     image: redis
-    container_name: redis
     restart: on-failure
     ports:
       - 6379:6379
