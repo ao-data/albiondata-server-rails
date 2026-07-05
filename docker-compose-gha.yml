@@ -83,8 +83,10 @@ services:
     ports:
       - 3000:3000
     depends_on:
-      - redis
-      - mysql
+      redis:
+        condition: service_healthy
+      mysql:
+        condition: service_started
     networks:
       - albiondata
     logging:
@@ -97,6 +99,11 @@ services:
     ports:
       - 6379:6379
     command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     networks:
       - albiondata
 networks:

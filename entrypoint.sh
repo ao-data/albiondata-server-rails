@@ -22,6 +22,42 @@ if [ -z "${RUN_MODE}" ]; then
   exit 1
 fi
 
+function migrate_databases {
+  echo "Attempting to acquire migration lock"
+  LOCK_RESULT=$(bundle exec rails runner "
+    redis = Redis.new(url: ENV.fetch('SIDEKIQ_REDIS_URL'))
+    if redis.set('db_migration_lock', Socket.gethostname, nx: true, ex: 600)
+      puts 'acquired'
+    elsif redis.exists?('db_migration_lock')
+      puts 'in_progress'
+    else
+      puts 'completed'
+    end
+  " 2>&1 | tail -1)
+
+  case "${LOCK_RESULT}" in
+    acquired)
+      echo "Migration lock acquired by this container; running migrations against all databases"
+      bundle exec rails aodp:db:migrate
+      bundle exec rails runner "
+        Redis.new(url: ENV.fetch('SIDEKIQ_REDIS_URL')).del('db_migration_lock')
+      "
+      ;;
+    in_progress)
+      echo "Migrations are still in progress on another container; sleeping 5s before aborting so the orchestrator can retry"
+      sleep 5
+      exit 1
+      ;;
+    completed)
+      echo "Migrations already completed by another container; continuing boot"
+      ;;
+    *)
+      echo "Unexpected migration lock result: '${LOCK_RESULT}'; aborting"
+      exit 1
+      ;;
+  esac
+}
+
 function check_db {
   echo "Checking Database"
   while ! mysqladmin ping -h mysql --silent; do
@@ -31,6 +67,8 @@ function check_db {
   if [[ ${RUN_MODE} == 'rspec' ]]; then
     echo "Creating test databases"
     ./scripts/setup_databases.sh
+  else
+    migrate_databases
   fi
 }
 
