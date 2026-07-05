@@ -24,38 +24,17 @@ fi
 
 function migrate_databases {
   echo "Attempting to acquire migration lock"
-  LOCK_RESULT=$(bundle exec rails runner "
-    redis = Redis.new(url: ENV.fetch('SIDEKIQ_REDIS_URL'))
-    if redis.set('db_migration_lock', Socket.gethostname, nx: true, ex: 600)
-      puts 'acquired'
-    elsif redis.exists?('db_migration_lock')
-      puts 'in_progress'
-    else
-      puts 'completed'
-    end
-  " 2>&1 | tail -1)
+  SET_RESULT=$(redis-cli -u "${SIDEKIQ_REDIS_URL}" SET db_migration_lock "$(hostname)" NX EX 600)
 
-  case "${LOCK_RESULT}" in
-    acquired)
-      echo "Migration lock acquired by this container; running migrations against all databases"
-      bundle exec rails aodp:db:migrate
-      bundle exec rails runner "
-        Redis.new(url: ENV.fetch('SIDEKIQ_REDIS_URL')).del('db_migration_lock')
-      "
-      ;;
-    in_progress)
-      echo "Migrations are still in progress on another container; sleeping 5s before aborting so the orchestrator can retry"
-      sleep 5
-      exit 1
-      ;;
-    completed)
-      echo "Migrations already completed by another container; continuing boot"
-      ;;
-    *)
-      echo "Unexpected migration lock result: '${LOCK_RESULT}'; aborting"
-      exit 1
-      ;;
-  esac
+  if [ "${SET_RESULT}" = "OK" ]; then
+    echo "Migration lock acquired by this container; running migrations against all databases"
+    bundle exec rails aodp:db:migrate
+    redis-cli -u "${SIDEKIQ_REDIS_URL}" DEL db_migration_lock > /dev/null
+  else
+    echo "Migrations are still in progress on another container; sleeping 5s before aborting so the orchestrator can retry"
+    sleep 5
+    exit 1
+  fi
 }
 
 function check_db {
