@@ -23,12 +23,18 @@ if [ -z "${RUN_MODE}" ]; then
 fi
 
 function migrate_databases {
+  if [ "$(redis-cli -u "${SIDEKIQ_REDIS_URL}" EXISTS db_migration_done)" = "1" ]; then
+    echo "Migrations were completed recently by another container; skipping"
+    return
+  fi
+
   echo "Attempting to acquire migration lock"
   SET_RESULT=$(redis-cli -u "${SIDEKIQ_REDIS_URL}" SET db_migration_lock "$(hostname)" NX EX 600)
 
   if [ "${SET_RESULT}" = "OK" ]; then
     echo "Migration lock acquired by this container; running migrations against all databases"
     bundle exec rails aodp:db:migrate
+    redis-cli -u "${SIDEKIQ_REDIS_URL}" SET db_migration_done "$(hostname)" EX 300 > /dev/null
     redis-cli -u "${SIDEKIQ_REDIS_URL}" DEL db_migration_lock > /dev/null
   else
     echo "Migrations are still in progress on another container; sleeping 5s before aborting so the orchestrator can retry"
