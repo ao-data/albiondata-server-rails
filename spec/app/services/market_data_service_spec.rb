@@ -190,6 +190,36 @@ RSpec.describe MarketDataService, :type => :service do
         expect(result.length).to eq(Location::SMUGGLERS_NETWORK_LOCATIONS.length)
       end
     end
+
+    context 'multiple items across multiple bins' do
+      it 'returns only the latest bin data for each item independently' do
+        # T4_BAG: two bins — new (9:04 → bin 9:00) and old (8:32 → bin 8:30)
+        # Only the 9:00 bin should be returned for T4_BAG
+        create(:market_order_new_offer_low)             # T4_BAG, bin 9:00, price 10
+        create(:market_order_new_offer_high, price: 200) # T4_BAG, bin 9:00, price 200
+        create(:market_order_old_offer_low,  price: 1)   # T4_BAG, bin 8:30, ignored
+        create(:market_order_old_offer_high, price: 999) # T4_BAG, bin 8:30, ignored
+
+        # T5_BAG: two bins — old (8:32 → bin 8:30) and oldest (8:11 → bin 8:10)
+        # Only the 8:30 bin should be returned for T5_BAG
+        create(:market_order_old_offer_low,    item_id: 'T5_BAG', price: 50)  # T5_BAG, bin 8:30
+        create(:market_order_old_offer_high,   item_id: 'T5_BAG', price: 75)  # T5_BAG, bin 8:30
+        create(:market_order_oldest_offer_low, item_id: 'T5_BAG', price: 5)   # T5_BAG, bin 8:10, ignored
+
+        result = subject.get_stats({id: 'T4_BAG,T5_BAG', locations: '3005', qualities: '1'})
+        t4 = result.find { |r| r[:item_id] == 'T4_BAG' }
+        t5 = result.find { |r| r[:item_id] == 'T5_BAG' }
+
+        expect(t4[:sell_price_min]).to eq(10)
+        expect(t4[:sell_price_max]).to eq(200)
+        expect(t4[:sell_price_min_date]).to eq('2024-03-09T09:00:00')
+
+        expect(t5[:sell_price_min]).to eq(50)
+        expect(t5[:sell_price_max]).to eq(75)
+        expect(t5[:sell_price_min_date]).to eq('2024-03-09T08:30:00')
+      end
+    end
+
     it 'doesnt return 2 of the same item_id for thetford and a T7 item' do
       # it was replacing "7" with "Thetford" so the key ended up being "TThetford_item!!Thetford!!1" instead of "T7_item!!Thetford!!1"
       create(:market_order_new_offer_low, item_id: 'T7_BAG', location: 7)

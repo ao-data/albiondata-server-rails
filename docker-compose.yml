@@ -15,7 +15,7 @@ services:
   web:
     build:
       context: .
-#    platform: linux/amd64
+    platform: linux/amd64
     container_name: web
     restart: no
     volumes:
@@ -90,9 +90,12 @@ services:
     ports:
       - 3000:3000
     depends_on:
-      - redis
-      - mysql
-      - influxdb
+      redis:
+        condition: service_healthy
+      mysql:
+        condition: service_started
+      influxdb:
+        condition: service_started
     networks:
       - albiondata
     logging:
@@ -107,6 +110,11 @@ services:
     volumes:
       - ./redisdata:/data
     command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     networks:
       - albiondata
 
