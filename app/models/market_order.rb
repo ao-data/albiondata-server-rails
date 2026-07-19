@@ -12,6 +12,7 @@
 #  location          :integer          unsigned, not null
 #  price             :bigint           unsigned
 #  quality_level     :integer          unsigned
+#  updated_at_bin    :integer          unsigned
 #  created_at        :datetime
 #  updated_at        :datetime
 #  albion_id         :bigint           unsigned, not null
@@ -21,6 +22,7 @@
 #
 #  expired                      (deleted_at,expires,updated_at)
 #  main                         (item_id,location,updated_at,deleted_at)
+#  stats_bin                    (item_id,location,quality_level,auction_type,updated_at_bin)
 #  uix_market_orders_albion_id  (albion_id) UNIQUE
 #
 class MarketOrder < ApplicationRecord

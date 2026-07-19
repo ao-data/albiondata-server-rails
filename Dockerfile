@@ -15,7 +15,7 @@ ENV RAILS_ENV="production" \
 
 # Install packages needed to build gems
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git libvips pkg-config curl libsqlite3-0 libvips default-mysql-client default-libmysqlclient-dev
+    apt-get install --no-install-recommends -y build-essential git libvips pkg-config curl libsqlite3-0 libvips default-mysql-client default-libmysqlclient-dev redis-tools
 
 # Install application gems
 COPY Gemfile Gemfile.lock ./
