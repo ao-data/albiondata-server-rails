@@ -24,6 +24,13 @@ RSpec.describe PagesController, type: :controller do
     end
   end
 
+  describe "GET #donate" do
+    it "returns a success response" do
+      get :donate
+      expect(response).to be_successful
+    end
+  end
+
   describe "GET #client" do
     let(:stats_result) do
       GithubReleaseStatsService::Result.new(

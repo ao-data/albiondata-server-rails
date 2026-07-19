@@ -1,0 +1,56 @@
+<div class="page donate-page">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <h1 class="site-title"><%= link_to "The Albion Online Data Project", root_path %></h1>
+      <p class="site-tagline">Realtime market and gold data for Albion Online</p>
+      <%= render "nav", current: :donate %>
+    </div>
+  </header>
+
+  <div class="disclaimer banner">
+    <p><strong>These tools are not affiliated with Albion Online or Sandbox Interactive GmbH.</strong></p>
+  </div>
+
+  <main class="main-content">
+    <section class="content-section hero" id="support">
+      <h2><a href="#support">Support the Albion Data Project</a></h2>
+      <p class="lead">The Albion Data Project is free to use and run entirely on donations and Stanx/Paul's personal credit card 😅. If you find the data, API, or client useful, consider chipping in to help keep the servers running.</p>
+      <p class="hero__cta">
+        <a href="https://ko-fi.com/aodp2024" class="btn btn--primary" target="_blank" rel="noopener">Donate on Ko-fi</a>
+      </p>
+    </section>
+
+    <section class="content-section" id="costs">
+      <h2><a href="#costs">Where Your Donation Goes</a></h2>
+      <p>Every donation goes directly toward keeping the project online. The main recurring costs are:</p>
+      <ul>
+        <li><strong>Server</strong> — a Hetzner EX44 dedicated server, which runs the API, database, and data ingestion, costs <strong>€49/month</strong> (roughly €588/year).</li>
+        <li><strong>Domain</strong> — the <code>.com</code> domain registration is renewed yearly, at roughly <strong>$12/year</strong>.</li>
+      </ul>
+      <p>Donations of any size help cover these costs and keep the project sustainable for the whole community.</p>
+    </section>
+
+    <section class="content-section" id="how">
+      <h2><a href="#how">How to Donate</a></h2>
+      <p>Donations are handled through Ko-fi, which supports one-time tips as well as recurring monthly support:</p>
+      <ul>
+        <li><a href="https://ko-fi.com/aodp2024" target="_blank" rel="noopener">ko-fi.com/aodp2024</a> — one-time tip or monthly subscription, whichever works best for you.</li>
+      </ul>
+      <p>Every tip and subscription is announced (amount only, no personal details) in our Discord, so you can see the support rolling in in real time.</p>
+    </section>
+
+    <section class="content-section" id="privacy">
+      <h2><a href="#privacy">Privacy &amp; the Supporter Role</a></h2>
+      <ul>
+        <li>Donations are <strong>public by default</strong> — but you can mark yours as private when submitting on Ko-fi if you'd rather not have it shown.</li>
+        <li>Your <strong>name is never made public</strong>, regardless of your privacy setting. Only the amount and donation type are ever shared.</li>
+        <li>Want the Discord <strong>"Supporter" role</strong>? Include your Discord username in the message when you donate, and we'll add it for you.</li>
+        <li>The Supporter role only changes the color of your username in Discord — there are <strong>no other perks</strong> tied to donating.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p><%= link_to "The Albion Online Data Project", root_path %></p>
+  </footer>
+</div>
