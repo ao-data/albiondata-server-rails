@@ -20,6 +20,7 @@ Rails.application.routes.draw do
   get "api", to: "pages#api", as: :api_info
   get "3rd-party-tools", to: "pages#third_party_tools", as: :third_party_tools
   get "developer", to: "pages#developer", as: :developer
+  get "donate", to: "pages#donate", as: :donate
   get "identifier", to: "pages#identifier", as: :identifier
   get "items", to: "pages#items", as: :items
 
@@ -29,6 +30,10 @@ Rails.application.routes.draw do
 
   match "/pow", controller: "pow", action: "index", via: :get, :defaults => { :format => 'json' }
   match "/pow/:topic", controller: "pow", action: "reply", via: :post, constraints: { topic: /.*/ }, :defaults => { :format => 'json' }
+
+  namespace :webhooks, defaults: { format: 'json' } do
+    post 'kofi', to: 'kofi#create'
+  end
 
   namespace :api, defaults: {format: 'json'} do
     namespace :v2, defaults: {format: 'json'} do
