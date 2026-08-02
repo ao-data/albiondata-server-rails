@@ -33,6 +33,7 @@
         <li><code>goldprices.deduped</code> — deduped gold prices</li>
         <li><code>marketorders.deduped</code> — deduped market orders</li>
         <li><code>markethistories.deduped</code> — deduped market histories</li>
+        <li><code>festivities.deduped</code> — activity schedules confirmed by multiple clients</li>
       </ul>
       <p>Data message structure: <a href="https://github.com/ao-data/albiondata-client/tree/master/lib" target="_blank" rel="noopener">albiondata-client/lib</a></p>
 
@@ -44,6 +45,12 @@
           <li>For market orders: track the last time an order was seen; after not seeing it for X hours, remove it as probably completed.</li>
         </ul>
       </aside>
+    </section>
+
+    <section class="content-section">
+      <h2>Festivities</h2>
+      <p>Confirmed activity schedules are available from <code>/api/v2/stats/festivities</code> on each regional API host.</p>
+      <p>StartTime and EndTime are in C# ticks (see <a href="#timestamps">Timestamps</a> above).</p>
     </section>
 
     <section class="content-section" id="timestamps">
