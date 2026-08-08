@@ -58,8 +58,11 @@ RSpec.describe FestivitiesService, type: :service do
     expect(snapshot).to include(
       'Server' => server_id,
       'ConfirmedAt' => now.iso8601,
+      'ExpiresAt' => (now + 22.hours).iso8601,
       'Events' => expected_events
     )
+    expect(redis.ttl(FestivitiesService::CURRENT_SNAPSHOT_KEY)).to be_between(22.hours.to_i - 1, 22.hours.to_i)
+    expect(redis.ttl(FestivitiesService::CURRENT_DIGEST_KEY)).to be_between(22.hours.to_i - 1, 22.hours.to_i)
   end
 
   it 'does not count repeated submissions from one ip more than once' do
@@ -105,6 +108,17 @@ RSpec.describe FestivitiesService, type: :service do
       event['StartTime'] = ticks(now - 3.days)
       event['EndTime'] = ticks(now - 2.days)
     end
+
+    subject.process(stale_data, server_id, opts('1.1.1.1'))
+
+    expect(NatsService).not_to have_received(:new)
+    expect(redis.scan_each(match: 'festivities:candidate:*').to_a).to be_empty
+  end
+
+  it 'rejects a snapshot containing an event that already ended' do
+    stale_data = Marshal.load(Marshal.dump(data))
+    stale_data['Events'][0]['StartTime'] = ticks(now - 1.hour)
+    stale_data['Events'][0]['EndTime'] = ticks(now - 1.second)
 
     subject.process(stale_data, server_id, opts('1.1.1.1'))
 

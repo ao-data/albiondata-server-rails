@@ -6,6 +6,7 @@ RSpec.describe API::V2::Stats::FestivitiesController, type: :controller do
     {
       'Server' => 'west',
       'ConfirmedAt' => '2026-08-02T12:00:00Z',
+      'ExpiresAt' => '2026-08-03T10:00:00Z',
       'Events' => [
         {
           'Kind' => 2,

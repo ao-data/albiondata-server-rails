@@ -38,13 +38,16 @@ class FestivitiesService
       return
     end
 
+    expires_at = snapshot_expiry(events)
+    expires_in = (expires_at - now).ceil
     snapshot = payload.merge(
       'Server' => server_id,
-      'ConfirmedAt' => now.iso8601
+      'ConfirmedAt' => now.iso8601,
+      'ExpiresAt' => expires_at.iso8601
     )
 
     if redis.get(CURRENT_DIGEST_KEY) == digest
-      redis.set(CURRENT_SNAPSHOT_KEY, snapshot.to_json)
+      store_snapshot(redis, snapshot, digest, expires_in)
       IdentifierService.add_identifier_event(opts, server_id, "Received on FestivitiesService, distinct ips #{distinct_ips}, current snapshot refreshed")
       return
     end
@@ -55,7 +58,7 @@ class FestivitiesService
       return
     end
 
-    publish_snapshot(redis, payload_json, snapshot, digest, publish_lock_key)
+    publish_snapshot(redis, payload_json, snapshot, digest, expires_in, publish_lock_key)
     IdentifierService.add_identifier_event(opts, server_id, "Received on FestivitiesService, distinct ips #{distinct_ips}, sent to NATS")
   end
 
@@ -96,6 +99,7 @@ class FestivitiesService
 
     starts_at = ticks_to_time(start_time)
     ends_at = ticks_to_time(end_time)
+    return nil if ends_at <= now
     return nil if starts_at < now - MAX_TIME_DISTANCE || ends_at > now + MAX_TIME_DISTANCE
 
     {
@@ -126,6 +130,10 @@ class FestivitiesService
     ticks_to_time(event['StartTime']) <= now && ticks_to_time(event['EndTime']) >= now
   end
 
+  def snapshot_expiry(events)
+    events.map { |event| ticks_to_time(event['EndTime']) }.min
+  end
+
   def register_vote(redis, digest, client_ip, now)
     voter_id = Digest::SHA256.hexdigest(client_ip)
     voter_key = "festivities:voter:#{voter_id}"
@@ -150,19 +158,23 @@ class FestivitiesService
     "festivities:candidate:#{digest}:voters"
   end
 
-  def publish_snapshot(redis, payload_json, snapshot, digest, publish_lock_key)
+  def publish_snapshot(redis, payload_json, snapshot, digest, expires_in, publish_lock_key)
     nats = NatsService.new(snapshot['Server'])
     nats.send(DEDUPED_TOPIC, payload_json)
 
-    redis.multi do |transaction|
-      transaction.set(CURRENT_SNAPSHOT_KEY, snapshot.to_json)
-      transaction.set(CURRENT_DIGEST_KEY, digest)
-      transaction.del(publish_lock_key)
-    end
+    store_snapshot(redis, snapshot, digest, expires_in, publish_lock_key)
   rescue StandardError
     redis.del(publish_lock_key)
     raise
   ensure
     nats&.close
+  end
+
+  def store_snapshot(redis, snapshot, digest, expires_in, publish_lock_key = nil)
+    redis.multi do |transaction|
+      transaction.set(CURRENT_SNAPSHOT_KEY, snapshot.to_json, ex: expires_in)
+      transaction.set(CURRENT_DIGEST_KEY, digest, ex: expires_in)
+      transaction.del(publish_lock_key) if publish_lock_key
+    end
   end
 end

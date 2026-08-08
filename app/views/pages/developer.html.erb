@@ -51,6 +51,7 @@
       <h2>Festivities</h2>
       <p>Confirmed activity schedules are available from <code>/api/v2/stats/festivities</code> on each regional API host.</p>
       <p>StartTime and EndTime are in C# ticks (see <a href="#timestamps">Timestamps</a> above).</p>
+      <p>The snapshot expires at the earliest EndTime in its event list. Until another snapshot is confirmed, the endpoint returns 404.</p>
     </section>
 
     <section class="content-section" id="timestamps">
