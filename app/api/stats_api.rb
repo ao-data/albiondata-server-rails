@@ -116,6 +116,17 @@ class StatsAPI < Grape::API
         env['api.format'] == :xml ? XmlPayload.new(:charts, results) : results
       end
     end
+
+    desc 'Get the latest confirmed festivities snapshot for the current server'
+    get 'festivities' do
+      with_database do
+        snapshot = REDIS[server_id].get(FestivitiesService::CURRENT_SNAPSHOT_KEY)
+        error!({ error: 'No confirmed festivities snapshot' }, 404) if snapshot.nil?
+
+        header 'Cache-Control', 'public, max-age=60, stale-while-revalidate=300'
+        JSON.parse(snapshot)
+      end
+    end
   end
 
   add_swagger_documentation

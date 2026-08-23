@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe API::V2::Stats::FestivitiesController, type: :controller do
+RSpec.describe 'GET /api/v2/stats/festivities', type: :request do
   let(:redis) { REDIS['west'] }
   let(:snapshot) do
     {
@@ -20,7 +20,7 @@ RSpec.describe API::V2::Stats::FestivitiesController, type: :controller do
   end
 
   before do
-    @request.host = 'west.example.com'
+    host! 'west.example.com'
     redis.del(FestivitiesService::CURRENT_SNAPSHOT_KEY)
   end
 
@@ -31,7 +31,7 @@ RSpec.describe API::V2::Stats::FestivitiesController, type: :controller do
   it 'returns the latest confirmed regional snapshot' do
     redis.set(FestivitiesService::CURRENT_SNAPSHOT_KEY, snapshot.to_json)
 
-    get :index
+    get '/api/v2/stats/festivities'
 
     expect(response).to be_successful
     expect(JSON.parse(response.body)).to eq(snapshot)
@@ -43,7 +43,7 @@ RSpec.describe API::V2::Stats::FestivitiesController, type: :controller do
   end
 
   it 'returns not found when no snapshot has been confirmed' do
-    get :index
+    get '/api/v2/stats/festivities'
 
     expect(response).to have_http_status(:not_found)
     expect(JSON.parse(response.body)).to eq('error' => 'No confirmed festivities snapshot')
