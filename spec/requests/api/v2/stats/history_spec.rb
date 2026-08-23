@@ -52,6 +52,12 @@ RSpec.describe 'GET /api/v2/stats/history and /api/v2/stats/charts', type: :requ
         EOD
         expect(response.body).to eq(expected_result)
       end
+
+      it 'returns a Content-Type header with an explicit charset' do
+        get '/api/v2/stats/history/T4_BAG.xml'
+
+        expect(response.headers['Content-Type']).to eq('application/xml; charset=utf-8')
+      end
     end
 
     context 'when service raises an error' do

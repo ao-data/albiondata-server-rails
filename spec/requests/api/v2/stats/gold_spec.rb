@@ -108,4 +108,18 @@ RSpec.describe 'GET /api/v2/stats/gold', type: :request do
 
     expect(JSON.parse(response.body).count).to eq(1)
   end
+
+  it 'returns a Content-Type header with an explicit charset' do
+    get '/api/v2/stats/gold'
+
+    expect(response.headers['Content-Type']).to eq('application/json; charset=utf-8')
+  end
+
+  context 'when an unsupported HTTP method is used' do
+    it 'returns 405 Method Not Allowed instead of 500' do
+      post '/api/v2/stats/gold'
+
+      expect(response).to have_http_status(:method_not_allowed)
+    end
+  end
 end

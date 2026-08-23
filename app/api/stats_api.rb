@@ -1,8 +1,9 @@
 class StatsAPI < Grape::API
   XmlPayload = Struct.new(:kind, :data)
 
+  content_type :json, 'application/json; charset=utf-8'
   format :json
-  content_type :xml, 'application/xml'
+  content_type :xml, 'application/xml; charset=utf-8'
   content_type :html, 'text/html'
 
   formatter :xml, lambda { |object, _env|
@@ -19,6 +20,10 @@ class StatsAPI < Grape::API
     end
   }
 
+  formatter :html, lambda { |object, env|
+    object.is_a?(String) ? object : Grape::Formatter::Json.call(object, env)
+  }
+
   helpers do
     def server_id
       ActionDispatch::Http::URL.extract_subdomains(request.host, 1).last
@@ -33,6 +38,10 @@ class StatsAPI < Grape::API
 
   prefix 'api'
   version 'v2', using: :path
+
+  rescue_from Grape::Exceptions::Base do |e|
+    error!({ error: e.message }, e.status || 500)
+  end
 
   rescue_from StandardError do |e|
     env['api.format'] = :json
@@ -69,6 +78,8 @@ class StatsAPI < Grape::API
     desc 'Get current market prices for an item'
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG'
+      optional :locations, type: String, desc: 'Comma-separated list of locations/cities to filter by'
+      optional :qualities, type: String, desc: 'Comma-separated list of quality levels (1-5) to filter by'
     end
     get 'prices/:id' do
       with_database do
@@ -82,6 +93,8 @@ class StatsAPI < Grape::API
     desc 'Get current market prices for an item as an HTML table'
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG'
+      optional :locations, type: String, desc: 'Comma-separated list of locations/cities to filter by'
+      optional :qualities, type: String, desc: 'Comma-separated list of quality levels (1-5) to filter by'
     end
     get 'view/:id' do
       with_database do
@@ -95,6 +108,11 @@ class StatsAPI < Grape::API
     desc 'Get historical market prices for an item'
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG'
+      optional :locations, type: String, desc: 'Comma-separated list of locations/cities to filter by'
+      optional :qualities, type: String, desc: 'Comma-separated list of quality levels (1-5) to filter by'
+      optional :date, type: String, desc: 'Start date, format MM-DD-YYYY or YYYY-MM-DD'
+      optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY or YYYY-MM-DD'
+      optional :'time-scale', type: String, desc: 'Aggregation timescale in hours: 1, 6, or 24'
     end
     get 'history/:id' do
       with_database do
@@ -108,6 +126,11 @@ class StatsAPI < Grape::API
     desc 'Get historical market price chart data for an item'
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG'
+      optional :locations, type: String, desc: 'Comma-separated list of locations/cities to filter by'
+      optional :qualities, type: String, desc: 'Comma-separated list of quality levels (1-5) to filter by'
+      optional :date, type: String, desc: 'Start date, format MM-DD-YYYY or YYYY-MM-DD'
+      optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY or YYYY-MM-DD'
+      optional :'time-scale', type: String, desc: 'Aggregation timescale in hours: 1, 6, or 24'
     end
     get 'charts/:id' do
       with_database do
@@ -120,6 +143,7 @@ class StatsAPI < Grape::API
     desc 'Get the latest confirmed festivities snapshot for the current server'
     get 'festivities' do
       with_database do
+        env['api.format'] = :json
         snapshot = REDIS[server_id].get(FestivitiesService::CURRENT_SNAPSHOT_KEY)
         error!({ error: 'No confirmed festivities snapshot' }, 404) if snapshot.nil?
 
@@ -134,6 +158,7 @@ class StatsAPI < Grape::API
     end
     get 'identifier/:identifier' do
       with_database do
+        env['api.format'] = :json
         error!({ error: 'Identifier is required' }, 400) if params[:identifier].nil? || params[:identifier].empty?
 
         IdentifierService.get_identifier_events(params[:identifier], server_id)

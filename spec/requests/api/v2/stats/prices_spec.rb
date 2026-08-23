@@ -54,4 +54,12 @@ RSpec.describe 'GET /api/v2/stats/prices/:id', type: :request do
       expect(response).to have_http_status(:internal_server_error)
     end
   end
+
+  context 'when format is html' do
+    it 'does not raise and returns a non-500 response' do
+      get '/api/v2/stats/prices/T4_BAG.html'
+
+      expect(response).not_to have_http_status(:internal_server_error)
+    end
+  end
 end

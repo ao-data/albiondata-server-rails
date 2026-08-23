@@ -48,4 +48,14 @@ RSpec.describe 'GET /api/v2/stats/festivities', type: :request do
     expect(response).to have_http_status(:not_found)
     expect(JSON.parse(response.body)).to eq('error' => 'No confirmed festivities snapshot')
   end
+
+  it 'returns valid JSON, not a mangled body, when .xml format is requested' do
+    redis.set(FestivitiesService::CURRENT_SNAPSHOT_KEY, snapshot.to_json)
+
+    get '/api/v2/stats/festivities.xml'
+
+    expect(response).to be_successful
+    expect { JSON.parse(response.body) }.not_to raise_error
+    expect(JSON.parse(response.body)).to eq(snapshot)
+  end
 end
