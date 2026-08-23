@@ -35,5 +35,6 @@ Rails.application.routes.draw do
     post 'kofi', to: 'kofi#create'
   end
 
+  mount GrapeSwaggerRails::Engine => '/api-docs'
   mount StatsAPI => '/'
 end

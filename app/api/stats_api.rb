@@ -141,5 +141,5 @@ class StatsAPI < Grape::API
     end
   end
 
-  add_swagger_documentation
+  add_swagger_documentation info: { title: 'Albion Online Data Project API', description: 'Market price, history, gold, festivities, and identifier stats for Albion Online.' }
 end
