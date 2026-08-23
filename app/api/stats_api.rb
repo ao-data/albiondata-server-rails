@@ -127,6 +127,18 @@ class StatsAPI < Grape::API
         JSON.parse(snapshot)
       end
     end
+
+    desc 'Get identifier events recorded for the current server'
+    params do
+      requires :identifier, type: String, desc: 'Client-generated identifier to look up events for'
+    end
+    get 'identifier/:identifier' do
+      with_database do
+        error!({ error: 'Identifier is required' }, 400) if params[:identifier].nil? || params[:identifier].empty?
+
+        IdentifierService.get_identifier_events(params[:identifier], server_id)
+      end
+    end
   end
 
   add_swagger_documentation
