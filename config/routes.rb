@@ -39,9 +39,6 @@ Rails.application.routes.draw do
     namespace :v2, defaults: {format: 'json'} do
       namespace :stats, defaults: {format: 'json'} do
         match "orderbook/:id", controller: "orderbook", action: "show", via: :get, :defaults => { :format => 'json' }
-        match "history/:id", controller: "history", action: "show", via: :get, :defaults => { :format => 'json' }
-        match "charts/:id", controller: "history", action: "charts", via: :get, :defaults => { :format => 'json' }
-
         match "festivities", controller: "festivities", action: "index", via: :get, :defaults => { :format => 'json' }
 
         match "identifier/:identifier", controller: "identifier", action: "index", via: :get, :defaults => { :format => 'json' }
