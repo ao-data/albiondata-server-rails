@@ -1,7 +1,7 @@
 class PowController < ApplicationController
   skip_before_action :verify_authenticity_token
 
-  TOPICS = %w(goldprices.ingest marketorders.ingest markethistories.ingest mapdata.ingest banditevent.ingest)
+  TOPICS = %w(goldprices.ingest marketorders.ingest markethistories.ingest mapdata.ingest banditevent.ingest festivities.ingest)
   NATS_URI = ENV['NATS_URI']
 
   # Each ingestion takes 2 REQUEST
@@ -102,6 +102,7 @@ class PowController < ApplicationController
       data = JSON.parse(params[:natsmsg])
       metrics[:order_count] = data['Orders']&.size
       metrics[:history_count] = data['MarketHistories']&.size
+      metrics[:festivities_count] = data['Events']&.size
     rescue
       IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller, ignored cause Invalid JSON data')
 
@@ -150,6 +151,16 @@ class PowController < ApplicationController
       end
     end
 
+    if params[:topic] == "festivities.ingest" && (!data['Events'].is_a?(Array) || data['Events'].empty? || data['Events'].count > FestivitiesService::MAX_EVENTS)
+      logger.warn("Error 904, Too Much Data. ip: #{request.ip}, topic: festivities.ingest")
+      IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller, ignored cause Error 904 Invalid Festivities count')
+
+      metrics[:action] = 'data_too_large'
+      ActiveSupport::Notifications.instrument(metric_name, metrics)
+
+      return render plain: "Too much data", status: 904
+    end
+
     if ip_good?
       enqueue_worker(params[:topic], params[:natsmsg], server_id, opts.to_json)
       metrics[:action] = 'data_accepted'
@@ -179,6 +190,9 @@ class PowController < ApplicationController
     when "banditevent.ingest"
       IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller and enqueued for BanditEventWorker', params[:natsmsg])
       BanditEventWorker.perform_async(data, server_id, opts)
+    when "festivities.ingest"
+      IdentifierService.add_identifier_event(opts, server_id, 'Received on Pow Controller and enqueued for FestivitiesWorker', params[:natsmsg])
+      FestivitiesWorker.perform_async(data, server_id, opts)
     # when "mapdata.ingest"
     #   MapDataDedupeWorker.perform_async(data)
     end

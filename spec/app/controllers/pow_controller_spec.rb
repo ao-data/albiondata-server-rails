@@ -244,6 +244,42 @@ RSpec.describe PowController, :type => :controller do
       end
     end
 
+    context 'when the topic is festivities.ingest' do
+      let(:event) do
+        {
+          Kind: 2,
+          Category: 'GENERAL',
+          UniqueName: 'COMMON_BOW',
+          StartTime: 639211752000000000,
+          EndTime: 639212616000000000
+        }
+      end
+      let(:params) do
+        {
+          topic: 'festivities.ingest',
+          key: 'pow_key',
+          solution: '0011',
+          natsmsg: { Events: [event] }.to_json
+        }
+      end
+
+      it 'accepts a bounded festivities payload' do
+        expect(FestivitiesWorker).to receive(:perform_async)
+        post :reply, params: params
+        expect(response).to be_successful
+      end
+
+      it 'rejects more than the maximum number of events' do
+        post :reply, params: params.merge(natsmsg: { Events: [event] * (FestivitiesService::MAX_EVENTS + 1) }.to_json)
+        expect(response.status).to eq(904)
+      end
+
+      it 'rejects a missing events array' do
+        post :reply, params: params.merge(natsmsg: {}.to_json)
+        expect(response.status).to eq(904)
+      end
+    end
+
     it 'does process data if the ip is good' do
       allow(ActiveSupport::Notifications).to receive(:instrument).and_call_original
       allow(controller).to receive(:ip_good?).and_return(true)
@@ -316,6 +352,11 @@ RSpec.describe PowController, :type => :controller do
       @request.host = 'east.example.com'
       expect(MarketHistoryDedupeWorker).to receive(:perform_async).with({}, 'east', opts)
       controller.enqueue_worker('markethistories.ingest', {}, 'east', opts)
+    end
+
+    it 'enqueues a FestivitiesWorker if the topic is festivities.ingest' do
+      expect(FestivitiesWorker).to receive(:perform_async).with({}, 'west', opts)
+      controller.enqueue_worker('festivities.ingest', {}, 'west', opts)
     end
 
     # xit 'enqueues a MapDataDedupeWorker if the topic is mapdata.ingest' do
