@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe API::V2::Stats::PricesController, :type => :controller do
+RSpec.describe 'GET /api/v2/stats/prices/:id', type: :request do
   let(:market_data_service) { instance_double(MarketDataService) }
   let(:sorted_results) { [{ item_id: 1, city: 'Thetford', quality: 'high', sell_price_min: 100, sell_price_min_date: '2022-01-01', sell_price_max: 200, sell_price_max_date: '2022-01-02', buy_price_min: 50, buy_price_min_date: '2022-01-03', buy_price_max: 150, buy_price_max_date: '2022-01-04' }] }
 
@@ -9,23 +9,21 @@ RSpec.describe API::V2::Stats::PricesController, :type => :controller do
     allow(market_data_service).to receive(:get_stats).and_return(sorted_results)
   end
 
-  describe "GET #show" do
-    context "when format is json" do
-      it "returns market data as json" do
-        get :show, format: :json, params: {id: 'T4_BAG'}
+  context 'when format is json' do
+    it 'returns market data as json' do
+      get '/api/v2/stats/prices/T4_BAG'
 
-        expect(response).to have_http_status(:success)
-
-        expect(JSON.parse(response.body)).to eq(sorted_results.map(&:deep_stringify_keys))
-      end
+      expect(response).to have_http_status(:success)
+      expect(JSON.parse(response.body)).to eq(sorted_results.map(&:deep_stringify_keys))
     end
+  end
 
-    context "when format is xml" do
-      it "returns market data as xml" do
-        get :show, format: :xml, params: {id: 'T4_BAG'}
+  context 'when format is xml' do
+    it 'returns market data as xml' do
+      get '/api/v2/stats/prices/T4_BAG.xml'
 
-        expect(response).to have_http_status(:success)
-        expected_result = <<-EOD
+      expect(response).to have_http_status(:success)
+      expected_result = <<-EOD
 <?xml version="1.0"?>
 <ArrayOfMarketResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <MarketResponse>
@@ -42,19 +40,18 @@ RSpec.describe API::V2::Stats::PricesController, :type => :controller do
     <BuyPriceMaxDate>2022-01-04</BuyPriceMaxDate>
   </MarketResponse>
 </ArrayOfMarketResponse>
-EOD
-        expect(response.body).to eq(expected_result)
-      end
+      EOD
+      expect(response.body).to eq(expected_result)
     end
+  end
 
-    context "when service raises an error" do
-      it "returns a 500 status code" do
-        allow(market_data_service).to receive(:get_stats).and_raise(StandardError)
+  context 'when service raises an error' do
+    it 'returns a 500 status code' do
+      allow(market_data_service).to receive(:get_stats).and_raise(StandardError)
 
-        get :show, format: :json, params: {id: 'T4_BAG'}
+      get '/api/v2/stats/prices/T4_BAG'
 
-        expect(response).to have_http_status(:internal_server_error)
-      end
+      expect(response).to have_http_status(:internal_server_error)
     end
   end
 end

@@ -10,6 +10,7 @@ class StatsAPI < Grape::API
     when XmlPayload
       case object.kind
       when :gold then Stats::GoldXmlSerializer.call(object.data)
+      when :prices then Stats::PricesXmlSerializer.call(object.data)
       end
     else
       object.to_s
@@ -60,6 +61,32 @@ class StatsAPI < Grape::API
         end
 
         env['api.format'] == :xml ? XmlPayload.new(:gold, results) : results
+      end
+    end
+
+    desc 'Get current market prices for an item'
+    params do
+      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG'
+    end
+    get 'prices/:id' do
+      with_database do
+        Rails.logger.info("multidb_info: server_id: #{server_id}, database: #{Multidb.balancer.current_connection.raw_connection.connection_options[:database]}")
+        sorted_results = MarketDataService.new.get_stats(params.merge(query_string: request.query_string))
+
+        env['api.format'] == :xml ? XmlPayload.new(:prices, sorted_results) : sorted_results
+      end
+    end
+
+    desc 'Get current market prices for an item as an HTML table'
+    params do
+      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG'
+    end
+    get 'view/:id' do
+      with_database do
+        sorted_results = MarketDataService.new.get_stats(params.merge(query_string: request.query_string))
+        env['api.format'] = :html
+        content_type 'text/html; charset=utf-8'
+        body Stats::PricesHtmlTableSerializer.call(sorted_results)
       end
     end
   end
