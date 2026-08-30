@@ -40,6 +40,15 @@
         <dd><code>/api/v2/stats/prices/{item_ids}.json?locations=Caerleon,Bridgewatch&qualities=2</code></dd>
       </dl>
 
+      <h3>Order book (current depth)</h3>
+      <p class="api-endpoint-note">Returns the current order book: sell orders cheapest-first and buy orders richest-first, aggregated to one entry per price level. Accepts the same <code>locations</code> and <code>qualities</code> parameters as <code>prices</code>.</p>
+      <dl class="api-endpoint-list">
+        <dt>JSON</dt>
+        <dd><code>/api/v2/stats/orderbook/{item_ids}.json?locations=Caerleon,Bridgewatch&qualities=2</code></dd>
+        <dt>XML</dt>
+        <dd><code>/api/v2/stats/orderbook/{item_ids}.xml?locations=Caerleon,Bridgewatch&qualities=2</code></dd>
+      </dl>
+
       <h3>Historical prices (sell orders only)</h3>
       <p class="api-endpoint-note">Use <code>time-scale</code> to choose aggregation: <code>1</code> = hourly, <code>6</code> = 6-hour, <code>24</code> = daily.</p>
       <dl class="api-endpoint-list">
