@@ -27,6 +27,7 @@ class API::V2::Stats::OrderbookController < API::V2::APIController
                 xml.OrderLevel {
                   xml.Price level[:price]
                   xml.Amount level[:amount]
+                  xml.UpdatedAt level[:updated_at]
                 }
               end
             }
@@ -35,6 +36,7 @@ class API::V2::Stats::OrderbookController < API::V2::APIController
                 xml.OrderLevel {
                   xml.Price level[:price]
                   xml.Amount level[:amount]
+                  xml.UpdatedAt level[:updated_at]
                 }
               end
             }

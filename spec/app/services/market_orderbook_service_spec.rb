@@ -1,6 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe MarketOrderbookService, :type => :service do
+  TIMESTAMP_FORMAT = /\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\z/
+
   describe '#get_orderbook' do
     it 'aggregates orders at the same price into a single level' do
       create(:market_order, item_id: 'T4_BAG', location: 3005, quality_level: 1, auction_type: 'offer', price: 10, amount: 5, expires: 1.week.from_now)
@@ -9,8 +11,17 @@ RSpec.describe MarketOrderbookService, :type => :service do
       result = subject.get_orderbook({id: 'T4_BAG', locations: '3005', qualities: '1'})
 
       expect(result.length).to eq(1)
-      expect(result[0][:sell]).to eq([{ price: 10, amount: 12 }])
+      expect(result[0][:sell]).to contain_exactly(include(price: 10, amount: 12, updated_at: match(TIMESTAMP_FORMAT)))
       expect(result[0][:buy]).to eq([])
+    end
+
+    it 'sets each level updated_at to the most recent order at that price' do
+      create(:market_order, item_id: 'T4_BAG', location: 3005, quality_level: 1, auction_type: 'offer', price: 10, amount: 1, expires: 1.week.from_now, updated_at: DateTime.parse('2024-03-09 09:04:00'))
+      create(:market_order, item_id: 'T4_BAG', location: 3005, quality_level: 1, auction_type: 'offer', price: 10, amount: 2, expires: 1.week.from_now, updated_at: DateTime.parse('2024-03-09 09:06:00'))
+
+      result = subject.get_orderbook({id: 'T4_BAG', locations: '3005', qualities: '1'})
+
+      expect(result[0][:sell]).to contain_exactly(include(price: 10, amount: 3, updated_at: '2024-03-09T09:06:00'))
     end
 
     it 'splits offers into sell levels and requests into buy levels' do
@@ -19,8 +30,8 @@ RSpec.describe MarketOrderbookService, :type => :service do
 
       result = subject.get_orderbook({id: 'T4_BAG', locations: '3005', qualities: '1'})
 
-      expect(result[0][:sell]).to eq([{ price: 100, amount: 2 }])
-      expect(result[0][:buy]).to eq([{ price: 90, amount: 3 }])
+      expect(result[0][:sell]).to contain_exactly(include(price: 100, amount: 2, updated_at: match(TIMESTAMP_FORMAT)))
+      expect(result[0][:buy]).to contain_exactly(include(price: 90, amount: 3, updated_at: match(TIMESTAMP_FORMAT)))
     end
 
     it 'sorts sell levels cheapest first and buy levels richest first' do
@@ -44,7 +55,7 @@ RSpec.describe MarketOrderbookService, :type => :service do
 
       result = subject.get_orderbook({id: 'T4_BAG', locations: '3005', qualities: '1'})
 
-      expect(result[0][:sell]).to eq([{ price: 10, amount: 1 }])
+      expect(result[0][:sell]).to contain_exactly(include(price: 10, amount: 1, updated_at: match(TIMESTAMP_FORMAT)))
     end
 
     it 'returns empty books for unobserved city/quality combinations' do
@@ -64,8 +75,8 @@ RSpec.describe MarketOrderbookService, :type => :service do
       t5_q2 = result.find { |r| r[:item_id] == 'T5_BAG' && r[:quality] == 2 }
 
       expect(result.length).to eq(4)
-      expect(t4_q1[:sell]).to eq([{ price: 10, amount: 1 }])
-      expect(t5_q2[:buy]).to eq([{ price: 20, amount: 2 }])
+      expect(t4_q1[:sell]).to contain_exactly(include(price: 10, amount: 1, updated_at: match(TIMESTAMP_FORMAT)))
+      expect(t5_q2[:buy]).to contain_exactly(include(price: 20, amount: 2, updated_at: match(TIMESTAMP_FORMAT)))
     end
   end
 end
