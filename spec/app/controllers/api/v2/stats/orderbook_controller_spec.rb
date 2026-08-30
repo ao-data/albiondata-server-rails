@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe API::V2::Stats::OrderbookController, :type => :controller do
   let(:market_orderbook_service) { instance_double(MarketOrderbookService) }
-  let(:sorted_results) { [{ item_id: 'T4_BAG', city: 'Caerleon', quality: 1, sell: [{ price: 5928, amount: 40 }, { price: 6100, amount: 12 }], buy: [{ price: 5000, amount: 5 }] }] }
+  let(:sorted_results) { [{ item_id: 'T4_BAG', city: 'Caerleon', quality: 1, sell: [{ price: 5928, amount: 40, updated_at: '2024-03-09T09:04:00' }, { price: 6100, amount: 12, updated_at: '2024-03-09T09:02:00' }], buy: [{ price: 5000, amount: 5, updated_at: '2024-03-09T08:59:00' }] }] }
 
   before do
     allow(MarketOrderbookService).to receive(:new).and_return(market_orderbook_service)
@@ -35,16 +35,19 @@ RSpec.describe API::V2::Stats::OrderbookController, :type => :controller do
       <OrderLevel>
         <Price>5928</Price>
         <Amount>40</Amount>
+        <UpdatedAt>2024-03-09T09:04:00</UpdatedAt>
       </OrderLevel>
       <OrderLevel>
         <Price>6100</Price>
         <Amount>12</Amount>
+        <UpdatedAt>2024-03-09T09:02:00</UpdatedAt>
       </OrderLevel>
     </Sell>
     <Buy>
       <OrderLevel>
         <Price>5000</Price>
         <Amount>5</Amount>
+        <UpdatedAt>2024-03-09T08:59:00</UpdatedAt>
       </OrderLevel>
     </Buy>
   </OrderbookResponse>
