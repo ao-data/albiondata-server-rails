@@ -38,10 +38,12 @@ Rack::Attack.throttle('apiv2/5m', limit: ENV['THROTTLE_API_5MIN'].to_i, period: 
   end
 end
 
-Rack::Attack.throttle('apiv2-non-gzip/1m', limit: 6, period: 1.minute) do |req|
-  if req.path.start_with?('/api/v2/')
-    if !req.env.include?('HTTP_ACCEPT_ENCODING') || (req.env['HTTP_ACCEPT_ENCODING'].split(',') & ['gzip', 'deflate', 'br', 'zstd']).size == 0
-      req.ip
+unless Rails.env.test?
+  Rack::Attack.throttle('apiv2-non-gzip/1m', limit: 6, period: 1.minute) do |req|
+    if req.path.start_with?('/api/v2/')
+      if !req.env.include?('HTTP_ACCEPT_ENCODING') || (req.env['HTTP_ACCEPT_ENCODING'].split(',') & ['gzip', 'deflate', 'br', 'zstd']).size == 0
+        req.ip
+      end
     end
   end
 end
