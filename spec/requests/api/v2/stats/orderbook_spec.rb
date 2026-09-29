@@ -73,4 +73,13 @@ RSpec.describe 'GET /api/v2/stats/orderbook/:id', type: :request do
       expect(response).to have_http_status(:not_found).or have_http_status(:bad_request)
     end
   end
+
+  context 'when qualities is passed as an array-style query param' do
+    it 'returns order books as json' do
+      get '/api/v2/stats/orderbook/T4_BAG', params: { qualities: %w[1 2] }
+
+      expect(response).to have_http_status(:success)
+      expect(JSON.parse(response.body)).to eq(sorted_results.map(&:deep_stringify_keys))
+    end
+  end
 end

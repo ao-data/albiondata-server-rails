@@ -79,8 +79,8 @@ class StatsAPI < Grape::API
     desc 'Get current market prices for an item'
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG'
-      optional :locations, type: String, desc: 'Comma-separated list of locations/cities to filter by'
-      optional :qualities, type: String, desc: 'Comma-separated list of quality levels (1-5) to filter by'
+      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by'
+      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by'
     end
     get 'prices/:id' do
       with_database do
@@ -94,8 +94,8 @@ class StatsAPI < Grape::API
     desc 'Get the live order book (price levels and depth) for an item'
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG'
-      optional :locations, type: String, desc: 'Comma-separated list of locations/cities to filter by'
-      optional :qualities, type: String, desc: 'Comma-separated list of quality levels (1-5) to filter by'
+      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by'
+      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by'
     end
     get 'orderbook/:id' do
       with_database do
@@ -109,8 +109,8 @@ class StatsAPI < Grape::API
     desc 'Get current market prices for an item as an HTML table'
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG'
-      optional :locations, type: String, desc: 'Comma-separated list of locations/cities to filter by'
-      optional :qualities, type: String, desc: 'Comma-separated list of quality levels (1-5) to filter by'
+      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by'
+      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by'
     end
     get 'view/:id' do
       with_database do
@@ -124,8 +124,8 @@ class StatsAPI < Grape::API
     desc 'Get historical market prices for an item'
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG'
-      optional :locations, type: String, desc: 'Comma-separated list of locations/cities to filter by'
-      optional :qualities, type: String, desc: 'Comma-separated list of quality levels (1-5) to filter by'
+      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by'
+      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by'
       optional :date, type: String, desc: 'Start date, format MM-DD-YYYY or YYYY-MM-DD'
       optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY or YYYY-MM-DD'
       optional :'time-scale', type: String, desc: 'Aggregation timescale in hours: 1, 6, or 24'
@@ -142,8 +142,8 @@ class StatsAPI < Grape::API
     desc 'Get historical market price chart data for an item'
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG'
-      optional :locations, type: String, desc: 'Comma-separated list of locations/cities to filter by'
-      optional :qualities, type: String, desc: 'Comma-separated list of quality levels (1-5) to filter by'
+      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by'
+      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by'
       optional :date, type: String, desc: 'Start date, format MM-DD-YYYY or YYYY-MM-DD'
       optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY or YYYY-MM-DD'
       optional :'time-scale', type: String, desc: 'Aggregation timescale in hours: 1, 6, or 24'

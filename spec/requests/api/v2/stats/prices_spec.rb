@@ -62,4 +62,13 @@ RSpec.describe 'GET /api/v2/stats/prices/:id', type: :request do
       expect(response).not_to have_http_status(:internal_server_error)
     end
   end
+
+  context 'when locations is passed as an array-style query param' do
+    it 'returns market data as json' do
+      get '/api/v2/stats/prices/T4_BAG', params: { locations: ['Caerleon', 'Martlock'] }
+
+      expect(response).to have_http_status(:success)
+      expect(JSON.parse(response.body)).to eq(sorted_results.map(&:deep_stringify_keys))
+    end
+  end
 end

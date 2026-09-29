@@ -69,6 +69,15 @@ RSpec.describe 'GET /api/v2/stats/history and /api/v2/stats/charts', type: :requ
         expect(response).to have_http_status(:internal_server_error)
       end
     end
+
+    context 'when locations is passed as an array-style query param' do
+      it 'returns market history as json' do
+        get '/api/v2/stats/history/T4_BAG', params: { locations: ['Caerleon', 'Martlock'] }
+
+        expect(response).to have_http_status(:success)
+        expect(JSON.parse(response.body)).to eq(results.map(&:deep_stringify_keys))
+      end
+    end
   end
 
   describe 'GET /api/v2/stats/charts/:id' do
@@ -138,6 +147,15 @@ RSpec.describe 'GET /api/v2/stats/history and /api/v2/stats/charts', type: :requ
         EOD
 
         expect(response.body).to eq(expected_result)
+      end
+    end
+
+    context 'when qualities is passed as an array-style query param' do
+      it 'returns market history as json' do
+        get '/api/v2/stats/charts/T4_BAG', params: { qualities: %w[1 2] }
+
+        expect(response).to have_http_status(:success)
+        expect(JSON.parse(response.body)).to eq(results.map(&:deep_stringify_keys))
       end
     end
   end

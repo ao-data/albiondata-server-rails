@@ -44,4 +44,15 @@ RSpec.describe 'GET /api/v2/stats/view/:id', type: :request do
     expect(response.body).to include('<table')
     expect(response.body).not_to include('<td>')
   end
+
+  context 'when locations is passed as an array-style query param' do
+    it 'renders an HTML table with a row per result' do
+      get '/api/v2/stats/view/T4_BAG', params: { locations: ['Caerleon', 'Martlock'] }
+
+      expect(response).to have_http_status(:success)
+      expect(response.content_type).to eq('text/html; charset=utf-8')
+      expect(response.body).to include('<table')
+      expect(response.body).to include('<td>T4_BAG</td>')
+    end
+  end
 end
