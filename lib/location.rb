@@ -165,4 +165,10 @@ module Location
     city
   end
 
+  def humanized_cities_for(locations)
+    locations.each_with_object({}) do |location, humanized_cities|
+      humanized_cities[location] = humanize_city(location_to_city(location).to_s)
+    end
+  end
+
 end

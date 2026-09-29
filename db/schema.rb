@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_07_04_000001) do
+ActiveRecord::Schema[7.1].define(version: 2026_09_29_050149) do
   create_table "gold_prices", id: { type: :bigint, unsigned: true }, charset: "latin1", force: :cascade do |t|
     t.timestamp "timestamp"
     t.integer "price", unsigned: true
@@ -47,6 +47,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_04_000001) do
     t.virtual "updated_at_bin", type: :integer, unsigned: true, as: "unix_timestamp(`updated_at`) DIV 300 * 300", stored: true
     t.index ["albion_id"], name: "uix_market_orders_albion_id", unique: true
     t.index ["deleted_at", "expires", "updated_at"], name: "expired"
+    t.index ["item_id", "location", "quality_level", "auction_type", "price"], name: "orderbook"
     t.index ["item_id", "location", "quality_level", "auction_type", "updated_at_bin"], name: "stats_bin"
     t.index ["item_id", "location", "updated_at", "deleted_at"], name: "main"
   end

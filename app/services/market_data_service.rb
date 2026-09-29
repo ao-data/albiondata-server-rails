@@ -38,10 +38,7 @@ class MarketDataService
               "FROM_UNIXTIME(lb.max_bin, '%Y-%m-%dT%H:%i:%s') AS updated_at_binned")
 
     # build a hash of humanized cities for this call
-    humanized_cities = {}
-    locations.each do |location|
-      humanized_cities[location] = humanize_city(location_to_city(location).to_s)
-    end
+    humanized_cities = humanized_cities_for(locations)
 
     rows = []
     execution_time = Benchmark.measure do

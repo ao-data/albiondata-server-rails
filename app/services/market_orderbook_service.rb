@@ -5,10 +5,7 @@ class MarketOrderbookService
   def get_orderbook(params)
     ids, locations, qualities = params[:id].upcase.split(',').map(&:strip).uniq, get_locations(params), get_qualities(params)
 
-    humanized_cities = {}
-    locations.each do |location|
-      humanized_cities[location] = humanize_city(location_to_city(location).to_s)
-    end
+    humanized_cities = humanized_cities_for(locations)
 
     data = MarketOrder
       .where(item_id: ids, deleted_at: nil)
