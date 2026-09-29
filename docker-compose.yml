@@ -1,12 +1,11 @@
 services:
   mysql:
     image: mariadb:10.5.10
-    container_name: mysql
     restart: on-failure
     environment:
       MARIADB_ROOT_PASSWORD: ${MYSQL_ROOT_PWD}
     ports:
-      - 3306:3306
+      - ${MYSQL_HOST_PORT:-3306}:3306
     volumes:
       - ./mysqldata:/var/lib/mysql
       - ./mysqlbackup:/mysqlbackup
@@ -16,7 +15,6 @@ services:
     build:
       context: .
     platform: linux/amd64
-    container_name: web
     restart: no
     volumes:
       - ./:/rails
@@ -90,7 +88,7 @@ services:
 #    command: './entrypoint.sh web'
 #    entrypoint: ./entrypoint.sh sleep
     ports:
-      - 3000:3000
+      - ${WEB_HOST_PORT:-3000}:3000
     depends_on:
       redis:
         condition: service_healthy
@@ -105,10 +103,9 @@ services:
         tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
   redis:
     image: redis
-    container_name: redis
     restart: on-failure
     ports:
-      - 6379:6379
+      - ${REDIS_HOST_PORT:-6379}:6379
     volumes:
       - ./redisdata:/data
     command: redis-server --appendonly yes
@@ -122,14 +119,13 @@ services:
 
   influxdb:
     image: influxdb:latest
-    container_name: influxdb2
     volumes:
       - ./influxdbdata:/var/lib/influxdb2:rw
     #    env_file:
     #      - .env
     #    entrypoint: ["./entrypoint.sh"]
     ports:
-      - 8086:8086
+      - ${INFLUXDB_HOST_PORT:-8086}:8086
     restart: unless-stopped
     networks:
       - albiondata
