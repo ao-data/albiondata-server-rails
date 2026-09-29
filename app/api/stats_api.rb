@@ -12,6 +12,7 @@ class StatsAPI < Grape::API
       case object.kind
       when :gold then Stats::GoldXmlSerializer.call(object.data)
       when :prices then Stats::PricesXmlSerializer.call(object.data)
+      when :orderbook then Stats::OrderbookXmlSerializer.call(object.data)
       when :history then Stats::HistoryXmlSerializer.call(object.data)
       when :charts then Stats::ChartsXmlSerializer.call(object.data)
       end
@@ -87,6 +88,21 @@ class StatsAPI < Grape::API
         sorted_results = MarketDataService.new.get_stats(params.merge(query_string: request.query_string))
 
         env['api.format'] == :xml ? XmlPayload.new(:prices, sorted_results) : sorted_results
+      end
+    end
+
+    desc 'Get the live order book (price levels and depth) for an item'
+    params do
+      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG'
+      optional :locations, type: String, desc: 'Comma-separated list of locations/cities to filter by'
+      optional :qualities, type: String, desc: 'Comma-separated list of quality levels (1-5) to filter by'
+    end
+    get 'orderbook/:id' do
+      with_database do
+        Rails.logger.info("multidb_info: server_id: #{server_id}, database: #{Multidb.balancer.current_connection.raw_connection.connection_options[:database]}")
+        sorted_results = MarketOrderbookService.new.get_orderbook(params.merge(query_string: request.query_string))
+
+        env['api.format'] == :xml ? XmlPayload.new(:orderbook, sorted_results) : sorted_results
       end
     end
 
