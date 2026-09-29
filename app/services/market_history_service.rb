@@ -31,10 +31,7 @@ class MarketHistoryService
     histories = {}
 
     # build a hash of humanized cities for this call
-    humanized_cities = {}
-    locations.each do |location|
-      humanized_cities[location] = humanize_city(location_to_city(location).to_s)
-    end
+    humanized_cities = humanized_cities_for(locations)
 
     # create empty results that are presorted by item_id, city string, and quality
     cities = locations.map { |location| humanized_cities[location] }
