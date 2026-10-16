@@ -18,7 +18,7 @@ if [[ ! -z $1 ]]; then
 fi
 
 if [ -z "${RUN_MODE}" ]; then
-  echo "RUN_MODE environment variable or first argument can be: console, web, sidekiq, nats, rspec, sleep"
+  echo "RUN_MODE environment variable or first argument can be: console, web, sidekiq, sidekiq_gameinfo, nats, rspec, sleep"
   exit 1
 fi
 
@@ -82,6 +82,13 @@ case ${RUN_MODE} in
     check_db
     echo "Run mode is sidekiq"
     RUBY_YJIT_ENABLE=1 bundle exec sidekiq -c ${SIDEKIQ_THREADS:-5} -q critical -q default -q low
+    child=$!
+    wait "$child"
+    ;;
+
+  sidekiq_gameinfo)
+    echo "Run mode is sidekiq_gameinfo"
+    RUBY_YJIT_ENABLE=1 bundle exec sidekiq -c ${SIDEKIQ_GAMEINFO_THREADS:-6} -q gameinfo
     child=$!
     wait "$child"
     ;;

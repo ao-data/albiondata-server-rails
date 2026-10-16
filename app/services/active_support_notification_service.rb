@@ -20,6 +20,8 @@ class ActiveSupportNotificationService
       market_history_dedupe_service(payload)
     when 'metrics.gold_dedupe_service'
       gold_dedupe_service(payload)
+    when 'metrics.gameinfo_service'
+      gameinfo_service(payload)
     when 'metrics.pow_request'
       pow_request(payload)
     when 'metrics.pow_response'
@@ -139,6 +141,13 @@ class ActiveSupportNotificationService
     measurement = 'gold_market'
     tags = { server_id: payload['server_id'] }
     fields = { duplicate: payload['duplicate'], non_duplicate: payload['non_duplicate'] }
+    write_data(measurement, tags, fields)
+  end
+
+  def self.gameinfo_service(payload)
+    measurement = 'gameinfo'
+    tags = { server_id: payload['server_id'], job: payload['job'] }
+    fields = payload.slice('published', 'backfilled', 'timed_out', 'skipped', 'lag_seconds', 'cooldown_seconds')
     write_data(measurement, tags, fields)
   end
 
