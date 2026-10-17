@@ -40,6 +40,22 @@ RSpec.describe ActiveSupportNotificationService, :type => :worker do
     end
   end
 
+  context 'name is metrics.gameinfo_service' do
+    it 'calls gameinfo_service' do
+      name = "metrics.gameinfo_service"
+      expect(described_class).to receive(:gameinfo_service).with(payload)
+      described_class.process(name, payload)
+    end
+
+    it 'writes the run fields tagged by server and job' do
+      payload = { 'server_id' => 'west', 'job' => 'events', 'published' => 3, 'timed_out' => 0, 'lag_seconds' => 300 }
+      expect(described_class).to receive(:write_data).with(
+        'gameinfo', { server_id: 'west', job: 'events' }, { 'published' => 3, 'timed_out' => 0, 'lag_seconds' => 300 }
+      )
+      described_class.gameinfo_service(payload)
+    end
+  end
+
   context 'name is unhandled' do
     it 'logs a warning' do
       name = "unhandled"
