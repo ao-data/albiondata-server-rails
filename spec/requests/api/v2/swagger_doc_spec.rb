@@ -36,4 +36,19 @@ RSpec.describe 'GET /api/v2/swagger_doc', type: :request do
       expect(format_param.call(path)).to be_nil
     end
   end
+
+  it 'computes date examples relative to the day of each request' do
+    examples_on = lambda do |time|
+      Timecop.freeze(time) { get '/api/v2/swagger_doc' }
+      paths = JSON.parse(response.body)['paths']
+      %w[/api/v2/stats/gold /api/v2/stats/history/{id}].flat_map do |path|
+        paths[path]['get']['parameters'].select { |p| p['name'].end_with?('date') }.map { |p| p['x-example'] }
+      end
+    end
+
+    expect(examples_on.call(Time.zone.parse('2024-03-10 12:00'))).to eq(%w[03-03-2024 03-10-2024 2024-03-03 2024-03-10])
+    expect(examples_on.call(Time.zone.parse('2025-01-05 12:00'))).to eq(%w[12-29-2024 01-05-2025 2024-12-29 2025-01-05])
+  ensure
+    Timecop.return
+  end
 end

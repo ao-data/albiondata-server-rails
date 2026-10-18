@@ -2,6 +2,13 @@ class StatsAPI < Grape::API
   XmlPayload = Struct.new(:kind, :data)
   JSON_OR_XML = ['application/json', 'application/xml'].freeze
 
+  # Doc example rendered relative to the request: grape-swagger rebuilds swagger_doc per request but copies param
+  # examples through as-is, so the date is only formatted when the doc is serialized to JSON.
+  RelativeDateExample = Struct.new(:days_ago, :format) do
+    def as_json(*) = (Date.current - days_ago).strftime(format)
+    def to_s = as_json
+  end
+
   content_type :json, 'application/json; charset=utf-8'
   format :json
   content_type :xml, 'application/xml; charset=utf-8'
@@ -61,8 +68,8 @@ class StatsAPI < Grape::API
   namespace 'stats' do
     desc 'List gold prices for a date range', produces: JSON_OR_XML
     params do
-      optional :date, type: String, desc: 'Start date, format MM-DD-YYYY. Defaults to one month ago.', documentation: { example: '10-01-2026' }
-      optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY. Defaults to now.', documentation: { example: '10-18-2026' }
+      optional :date, type: String, desc: 'Start date, format MM-DD-YYYY. Defaults to one month ago.', documentation: { example: RelativeDateExample.new(7, '%m-%d-%Y') }
+      optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY. Defaults to now.', documentation: { example: RelativeDateExample.new(0, '%m-%d-%Y') }
       optional :count, type: String, desc: 'Limit results to this many, ordered most-recent-first.', documentation: { example: '10' }
       use :response_format
     end
@@ -137,8 +144,8 @@ class StatsAPI < Grape::API
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
       optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by', documentation: { example: 'caerleon,bridgewatch' }
       optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '0,1,2,3,4' }
-      optional :date, type: String, desc: 'Start date, format MM-DD-YYYY or YYYY-MM-DD', documentation: { example: '2026-10-01' }
-      optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY or YYYY-MM-DD', documentation: { example: '2026-10-18' }
+      optional :date, type: String, desc: 'Start date, format MM-DD-YYYY or YYYY-MM-DD', documentation: { example: RelativeDateExample.new(7, '%Y-%m-%d') }
+      optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY or YYYY-MM-DD', documentation: { example: RelativeDateExample.new(0, '%Y-%m-%d') }
       optional :'time-scale', type: String, desc: 'Aggregation timescale in hours: 1, 6, or 24', documentation: { example: '24' }
       use :response_format
     end
@@ -156,8 +163,8 @@ class StatsAPI < Grape::API
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
       optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by', documentation: { example: 'caerleon,bridgewatch' }
       optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '0,1,2,3,4' }
-      optional :date, type: String, desc: 'Start date, format MM-DD-YYYY or YYYY-MM-DD', documentation: { example: '2026-10-01' }
-      optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY or YYYY-MM-DD', documentation: { example: '2026-10-18' }
+      optional :date, type: String, desc: 'Start date, format MM-DD-YYYY or YYYY-MM-DD', documentation: { example: RelativeDateExample.new(7, '%Y-%m-%d') }
+      optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY or YYYY-MM-DD', documentation: { example: RelativeDateExample.new(0, '%Y-%m-%d') }
       optional :'time-scale', type: String, desc: 'Aggregation timescale in hours: 1, 6, or 24', documentation: { example: '24' }
       use :response_format
     end
