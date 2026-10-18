@@ -39,7 +39,7 @@ Rack::Attack.throttle('apiv2/5m', limit: ENV['THROTTLE_API_5MIN'].to_i, period: 
 end
 
 unless Rails.env.test?
-  Rack::Attack.throttle('apiv2-non-gzip/1m', limit: 6, period: 1.minute) do |req|
+  Rack::Attack.throttle('apiv2-non-gzip/5m', limit: 1, period: 5.minutes) do |req|
     if req.path.start_with?('/api/v2/')
       if !req.env.include?('HTTP_ACCEPT_ENCODING') || (req.env['HTTP_ACCEPT_ENCODING'].split(',') & ['gzip', 'deflate', 'br', 'zstd']).size == 0
         req.ip
@@ -59,7 +59,7 @@ Rack::Attack.throttled_responder = lambda do |request|
     'RateLimit-Reset' => (now + (match_data[:period] - now % match_data[:period])).to_s
   }
 
-  if matched == 'apiv2-non-gzip/1m'
+  if matched == 'apiv2-non-gzip/5m'
     [ 429, headers, ["Throttled, be nice to the server, use compression (gzip, deflate, etc)! Throttle resets at #{Time.at(now + (match_data[:period] - now % match_data[:period]))}!\n"]]
   else
     [ 429, headers, ["Throttled, slow down! You exceeded the throttle #{matched} that limits requests to #{match_data[:limit]} per #{match_data[:period]} seconds! Throttle resets at #{Time.at(now + (match_data[:period] - now % match_data[:period]))}!\n"]]
