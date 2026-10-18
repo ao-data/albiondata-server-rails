@@ -17,4 +17,38 @@ RSpec.describe 'GET /api/v2/swagger_doc', type: :request do
       '/api/v2/stats/identifier/{identifier}',
     ])
   end
+
+  it 'documents json/xml output via the format query param on the endpoints that support xml' do
+    get '/api/v2/swagger_doc'
+
+    paths = JSON.parse(response.body)['paths']
+    format_param = ->(path) { paths[path]['get']['parameters'].to_a.find { |p| p['name'] == 'format' } }
+
+    xml_paths = ['/api/v2/stats/gold', '/api/v2/stats/prices/{id}', '/api/v2/stats/orderbook/{id}',
+                 '/api/v2/stats/history/{id}', '/api/v2/stats/charts/{id}']
+    xml_paths.each do |path|
+      expect(paths[path]['get']['produces']).to eq(['application/json', 'application/xml'])
+      expect(format_param.call(path)).to include('in' => 'query', 'enum' => %w[json xml], 'default' => 'json')
+    end
+
+    (paths.keys - xml_paths).each do |path|
+      expect(paths[path]['get']['produces']).to eq(['application/json'])
+      expect(format_param.call(path)).to be_nil
+    end
+  end
+
+  it 'computes date examples relative to the day of each request' do
+    examples_on = lambda do |time|
+      Timecop.freeze(time) { get '/api/v2/swagger_doc' }
+      paths = JSON.parse(response.body)['paths']
+      %w[/api/v2/stats/gold /api/v2/stats/history/{id}].flat_map do |path|
+        paths[path]['get']['parameters'].select { |p| p['name'].end_with?('date') }.map { |p| p['x-example'] }
+      end
+    end
+
+    expect(examples_on.call(Time.zone.parse('2024-03-10 12:00'))).to eq(%w[2024-03-03 2024-03-10 2024-03-03 2024-03-10])
+    expect(examples_on.call(Time.zone.parse('2025-01-05 12:00'))).to eq(%w[2024-12-29 2025-01-05 2024-12-29 2025-01-05])
+  ensure
+    Timecop.return
+  end
 end

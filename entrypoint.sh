@@ -23,6 +23,11 @@ if [ -z "${RUN_MODE}" ]; then
 fi
 
 function migrate_databases {
+  if [[ "${ALLOWED_HOSTS}" == *".local"* ]]; then
+    echo "ALLOWED_HOSTS contains .local; skipping migrations"
+    return
+  fi
+
   if [ "$(redis-cli -u "${SIDEKIQ_REDIS_URL}" EXISTS db_migration_done)" = "1" ]; then
     echo "Migrations were completed recently by another container; skipping"
     return
