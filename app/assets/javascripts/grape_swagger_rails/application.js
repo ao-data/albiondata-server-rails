@@ -1,5 +1,5 @@
 // Shadows grape-swagger-rails' own grape_swagger_rails/application.js (app asset paths win over the gem's), so the
-// Swagger UI page can load curl_compressed below. The require list is copied from grape-swagger-rails 0.7.0; keep it
+// Swagger UI page can load request_snippets below. The require list is copied from grape-swagger-rails 0.7.0; keep it
 // in sync if that gem is upgraded.
 //
 //= require grape_swagger_rails/jquery-1.8.0.min
@@ -17,4 +17,4 @@
 //= require grape_swagger_rails/object-assign-pollyfill
 //= require grape_swagger_rails/swagger-oauth
 //= require grape_swagger_rails/base64
-//= require grape_swagger_rails/curl_compressed
+//= require grape_swagger_rails/request_snippets
