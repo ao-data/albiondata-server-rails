@@ -61,9 +61,9 @@ class StatsAPI < Grape::API
   namespace 'stats' do
     desc 'List gold prices for a date range', produces: JSON_OR_XML
     params do
-      optional :date, type: String, desc: 'Start date, format MM-DD-YYYY. Defaults to one month ago.'
-      optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY. Defaults to now.'
-      optional :count, type: String, desc: 'Limit results to this many, ordered most-recent-first.'
+      optional :date, type: String, desc: 'Start date, format MM-DD-YYYY. Defaults to one month ago.', documentation: { example: '10-01-2026' }
+      optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY. Defaults to now.', documentation: { example: '10-18-2026' }
+      optional :count, type: String, desc: 'Limit results to this many, ordered most-recent-first.', documentation: { example: '10' }
       use :response_format
     end
     get 'gold' do
@@ -87,9 +87,9 @@ class StatsAPI < Grape::API
 
     desc 'Get current market prices for an item', produces: JSON_OR_XML
     params do
-      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG'
-      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by'
-      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by'
+      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
+      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by', documentation: { example: 'caerleon,bridgewatch' }
+      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '0,1,2,3,4' }
       use :response_format
     end
     get 'prices/:id' do
@@ -103,9 +103,9 @@ class StatsAPI < Grape::API
 
     desc 'Get the live order book (price levels and depth) for an item', produces: JSON_OR_XML
     params do
-      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG'
-      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by'
-      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by'
+      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
+      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by', documentation: { example: 'caerleon,bridgewatch' }
+      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '0,1,2,3,4' }
       use :response_format
     end
     get 'orderbook/:id' do
@@ -119,9 +119,9 @@ class StatsAPI < Grape::API
 
     desc 'Get current market prices for an item as an HTML table'
     params do
-      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG'
-      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by'
-      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by'
+      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
+      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by', documentation: { example: 'caerleon,bridgewatch' }
+      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '0,1,2,3,4' }
     end
     get 'view/:id' do
       with_database do
@@ -134,12 +134,12 @@ class StatsAPI < Grape::API
 
     desc 'Get historical market prices for an item', produces: JSON_OR_XML
     params do
-      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG'
-      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by'
-      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by'
-      optional :date, type: String, desc: 'Start date, format MM-DD-YYYY or YYYY-MM-DD'
-      optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY or YYYY-MM-DD'
-      optional :'time-scale', type: String, desc: 'Aggregation timescale in hours: 1, 6, or 24'
+      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
+      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by', documentation: { example: 'caerleon,bridgewatch' }
+      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '0,1,2,3,4' }
+      optional :date, type: String, desc: 'Start date, format MM-DD-YYYY or YYYY-MM-DD', documentation: { example: '2026-10-01' }
+      optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY or YYYY-MM-DD', documentation: { example: '2026-10-18' }
+      optional :'time-scale', type: String, desc: 'Aggregation timescale in hours: 1, 6, or 24', documentation: { example: '24' }
       use :response_format
     end
     get 'history/:id' do
@@ -153,12 +153,12 @@ class StatsAPI < Grape::API
 
     desc 'Get historical market price chart data for an item', produces: JSON_OR_XML
     params do
-      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG'
-      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by'
-      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by'
-      optional :date, type: String, desc: 'Start date, format MM-DD-YYYY or YYYY-MM-DD'
-      optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY or YYYY-MM-DD'
-      optional :'time-scale', type: String, desc: 'Aggregation timescale in hours: 1, 6, or 24'
+      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
+      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by', documentation: { example: 'caerleon,bridgewatch' }
+      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '0,1,2,3,4' }
+      optional :date, type: String, desc: 'Start date, format MM-DD-YYYY or YYYY-MM-DD', documentation: { example: '2026-10-01' }
+      optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY or YYYY-MM-DD', documentation: { example: '2026-10-18' }
+      optional :'time-scale', type: String, desc: 'Aggregation timescale in hours: 1, 6, or 24', documentation: { example: '24' }
       use :response_format
     end
     get 'charts/:id' do
@@ -183,7 +183,7 @@ class StatsAPI < Grape::API
 
     desc 'Get identifier events recorded for the current server'
     params do
-      requires :identifier, type: String, desc: 'Client-generated identifier to look up events for'
+      requires :identifier, type: String, desc: 'Client-generated identifier to look up events for', documentation: { example: '3f2b8c1e-7a4d-4e9b-9c1a-2d5e6f7a8b9c' }
     end
     get 'identifier/:identifier' do
       with_database do
