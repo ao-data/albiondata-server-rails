@@ -2,55 +2,115 @@
 //
 // - curl gets --compressed. The API throttles clients that don't accept gzip/deflate/br/zstd to 6 requests a minute,
 //   and --compressed (unlike a bare Accept-Encoding header) also makes curl decompress the body.
-// - A Python (requests) snippet is added under the curl one, sending Accept-Encoding: gzip, deflate for the same
-//   throttle; requests decompresses those responses automatically.
+// - Python (requests), Node (fetch) and Ruby (Net::HTTP) snippets are added under the curl one, each requesting a
+//   gzip/deflate response in whatever way that client still decompresses automatically.
 //
-// Swagger UI renders the curl block right after calling Operation#asCurl, so wrapping asCurl is the one hook for both.
-// asCurl lives on swagger-js' Operation prototype, which is only reachable through an operation once the spec loads.
+// Swagger UI renders the curl block right after calling Operation#asCurl, so wrapping asCurl is the one hook for all of
+// them. asCurl lives on swagger-js' Operation prototype, which is only reachable through an operation once the spec loads.
 (function () {
-  function pythonSnippet(method, request) {
-    var headerValues = {};
+  // Only gzip and deflate: requests decodes br/zstd only when the brotli/zstandard packages happen to be installed.
+  var ACCEPT_ENCODING = 'gzip, deflate';
+
+  function stringHeaders(request) {
+    var headers = {};
     Object.keys(request.headers || {}).forEach(function (name) {
-      if (typeof request.headers[name] === 'string') headerValues[name] = request.headers[name];
+      if (typeof request.headers[name] === 'string') headers[name] = request.headers[name];
     });
-    // Explicit so the snippet stays compressed even if pasted into code with other session defaults. Only gzip and
-    // deflate: requests decodes br/zstd only when the brotli/zstandard packages happen to be installed.
-    headerValues['Accept-Encoding'] = 'gzip, deflate';
-    var headers = Object.keys(headerValues).map(function (name) {
-      return JSON.stringify(name) + ': ' + JSON.stringify(headerValues[name]);
+    return headers;
+  }
+
+  function isXml(request) {
+    return /([?&]format=xml\b|\.xml(\?|$))/.test(request.url);
+  }
+
+  function python(method, request) {
+    var headers = stringHeaders(request);
+    headers['Accept-Encoding'] = ACCEPT_ENCODING; // explicit, in case it's pasted into code with other session defaults
+    var pairs = Object.keys(headers).map(function (name) {
+      return JSON.stringify(name) + ': ' + JSON.stringify(headers[name]);
     });
-    var xml = /([?&]format=xml\b|\.xml(\?|$))/.test(request.url);
 
     return [
       'import requests',
       '',
       'response = requests.' + method.toLowerCase() + '(',
-      '    ' + JSON.stringify(request.url) + ','
-    ].concat(headers.length ? ['    headers={' + headers.join(', ') + '},'] : []).concat([
+      '    ' + JSON.stringify(request.url) + ',',
+      '    headers={' + pairs.join(', ') + '},',
       ')',
       'response.raise_for_status()',
-      xml ? 'print(response.text)' : 'print(response.json())'
+      isXml(request) ? 'print(response.text)' : 'print(response.json())'
+    ].join('\n');
+  }
+
+  function node(method, request) {
+    var headers = stringHeaders(request);
+    headers['Accept-Encoding'] = ACCEPT_ENCODING; // fetch still decompresses from the response's Content-Encoding
+    var pairs = Object.keys(headers).map(function (name) {
+      return JSON.stringify(name) + ': ' + JSON.stringify(headers[name]);
+    });
+    var options = (method.toUpperCase() === 'GET' ? [] : ['  method: ' + JSON.stringify(method.toUpperCase()) + ','])
+      .concat(['  headers: { ' + pairs.join(', ') + ' },']);
+
+    return [
+      '// Node 18+, as an ES module (e.g. a .mjs file) for top-level await',
+      'const response = await fetch(' + JSON.stringify(request.url) + ', {'
+    ].concat(options).concat([
+      '});',
+      'if (!response.ok) throw new Error(`HTTP ${response.status}`);',
+      isXml(request) ? 'console.log(await response.text());' : 'console.log(await response.json());'
     ]).join('\n');
   }
 
+  function ruby(method, request) {
+    var rubyString = function (value) { return JSON.stringify(value).replace(/#/g, '\\#'); };
+    var headers = stringHeaders(request);
+    var verb = method.charAt(0).toUpperCase() + method.slice(1).toLowerCase();
+
+    return [
+      'require "net/http"'
+    ].concat(isXml(request) ? [] : ['require "json"']).concat([
+      '',
+      'uri = URI(' + rubyString(request.url) + ')',
+      'request = Net::HTTP::' + verb + '.new(uri)'
+    ]).concat(Object.keys(headers).map(function (name) {
+      return 'request[' + rubyString(name) + '] = ' + rubyString(headers[name]);
+    })).concat([
+      '# Net::HTTP sends Accept-Encoding: gzip, deflate and decompresses the response by default.',
+      '# Setting Accept-Encoding yourself turns the decompression off, so leave it unset.',
+      'response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") { |http| http.request(request) }',
+      'response.value # raises unless 2xx',
+      isXml(request) ? 'puts response.body' : 'pp JSON.parse(response.body)'
+    ]).join('\n');
+  }
+
+  var SNIPPETS = [
+    { key: 'python', label: 'Python', build: python },
+    { key: 'node', label: 'Node', build: node },
+    { key: 'ruby', label: 'Ruby', build: ruby }
+  ];
+
   // Swagger UI writes the curl block synchronously after asCurl returns, so by the next microtask it's in the DOM;
-  // find it by its text and put the Python block after it (or refresh the one already there).
-  function showPython(curl, python) {
+  // find it by its text and put the snippet blocks after it (or refresh the ones already there).
+  function showSnippets(curl, snippets) {
     Promise.resolve().then(function () {
-      document.querySelectorAll('div.block.curl:not(.python)').forEach(function (curlBlock) {
+      document.querySelectorAll('div.block.curl:not(.snippet)').forEach(function (curlBlock) {
         if (curlBlock.textContent !== curl) return;
 
-        var pythonBlock = curlBlock.nextElementSibling && curlBlock.nextElementSibling.nextElementSibling;
-        if (!pythonBlock || !pythonBlock.classList.contains('python')) {
-          var heading = document.createElement('h4');
-          heading.className = 'curl python';
-          heading.textContent = 'Python';
-          pythonBlock = document.createElement('div');
-          pythonBlock.className = 'block curl python';
-          pythonBlock.appendChild(document.createElement('pre'));
-          curlBlock.after(heading, pythonBlock);
-        }
-        pythonBlock.firstChild.textContent = python;
+        var previous = curlBlock;
+        snippets.forEach(function (snippet) {
+          var block = curlBlock.parentNode.querySelector('div.block.snippet-' + snippet.key);
+          if (!block) {
+            var heading = document.createElement('h4');
+            heading.className = 'curl snippet';
+            heading.textContent = snippet.label;
+            block = document.createElement('div');
+            block.className = 'block curl snippet snippet-' + snippet.key;
+            block.appendChild(document.createElement('pre'));
+            previous.after(heading, block);
+          }
+          block.firstChild.textContent = snippet.code;
+          previous = block;
+        });
       });
     });
   }
@@ -66,12 +126,16 @@
       proto.asCurl = function (args, opts) {
         var curl = asCurl.apply(this, arguments).replace(/^curl /, 'curl --compressed ');
 
-        // Build the same mock request asCurl does internally, for the Python snippet.
+        // Build the same mock request asCurl does internally, for the other snippets.
         var mockOpts = { mock: true };
         for (var key in opts) mockOpts[key] = opts[key];
         var request = this.execute(args, mockOpts);
         if (this.clientAuthorizations) this.clientAuthorizations.apply(request, this.operation.security);
-        showPython(curl, pythonSnippet(this.method, request));
+
+        var method = this.method;
+        showSnippets(curl, SNIPPETS.map(function (snippet) {
+          return { key: snippet.key, label: snippet.label, code: snippet.build(method, request) };
+        }));
 
         return curl;
       };
