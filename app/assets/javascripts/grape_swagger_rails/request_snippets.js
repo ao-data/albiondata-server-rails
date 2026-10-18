@@ -2,16 +2,23 @@
 //
 // - curl gets --compressed. The API throttles clients that don't accept gzip/deflate/br/zstd to 6 requests a minute,
 //   and --compressed (unlike a bare Accept-Encoding header) also makes curl decompress the body.
-// - A Python (requests) snippet is added under the curl one. requests sends Accept-Encoding: gzip, deflate and
-//   decompresses by default, so it needs nothing extra for the throttle.
+// - A Python (requests) snippet is added under the curl one, sending Accept-Encoding: gzip, deflate for the same
+//   throttle; requests decompresses those responses automatically.
 //
 // Swagger UI renders the curl block right after calling Operation#asCurl, so wrapping asCurl is the one hook for both.
 // asCurl lives on swagger-js' Operation prototype, which is only reachable through an operation once the spec loads.
 (function () {
   function pythonSnippet(method, request) {
-    var headers = Object.keys(request.headers || {})
-      .filter(function (name) { return typeof request.headers[name] === 'string'; })
-      .map(function (name) { return JSON.stringify(name) + ': ' + JSON.stringify(request.headers[name]); });
+    var headerValues = {};
+    Object.keys(request.headers || {}).forEach(function (name) {
+      if (typeof request.headers[name] === 'string') headerValues[name] = request.headers[name];
+    });
+    // Explicit so the snippet stays compressed even if pasted into code with other session defaults. Only gzip and
+    // deflate: requests decodes br/zstd only when the brotli/zstandard packages happen to be installed.
+    headerValues['Accept-Encoding'] = 'gzip, deflate';
+    var headers = Object.keys(headerValues).map(function (name) {
+      return JSON.stringify(name) + ': ' + JSON.stringify(headerValues[name]);
+    });
     var xml = /([?&]format=xml\b|\.xml(\?|$))/.test(request.url);
 
     return [
