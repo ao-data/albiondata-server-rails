@@ -46,8 +46,8 @@ RSpec.describe 'GET /api/v2/swagger_doc', type: :request do
       end
     end
 
-    expect(examples_on.call(Time.zone.parse('2024-03-10 12:00'))).to eq(%w[03-03-2024 03-10-2024 2024-03-03 2024-03-10])
-    expect(examples_on.call(Time.zone.parse('2025-01-05 12:00'))).to eq(%w[12-29-2024 01-05-2025 2024-12-29 2025-01-05])
+    expect(examples_on.call(Time.zone.parse('2024-03-10 12:00'))).to eq(%w[2024-03-03 2024-03-10 2024-03-03 2024-03-10])
+    expect(examples_on.call(Time.zone.parse('2025-01-05 12:00'))).to eq(%w[2024-12-29 2025-01-05 2024-12-29 2025-01-05])
   ensure
     Timecop.return
   end

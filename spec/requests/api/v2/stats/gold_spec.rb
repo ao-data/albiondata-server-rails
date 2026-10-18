@@ -33,6 +33,27 @@ RSpec.describe 'GET /api/v2/stats/gold', type: :request do
     end
   end
 
+  context 'when date and end_date are given as YYYY-MM-DD' do
+    let(:date) { Date.today - 1.month }
+    let(:end_date) { Date.today }
+
+    it 'returns gold prices for the specified date range' do
+      get '/api/v2/stats/gold', params: { date: date.strftime('%Y-%m-%d'), end_date: end_date.strftime('%Y-%m-%d') }
+
+      expect(response).to have_http_status(:success)
+      expect(JSON.parse(response.body)).to eq([
+        { 'price' => gold_price.price / 10000, 'timestamp' => gold_price.timestamp.strftime('%Y-%m-%dT%H:%M:%S') }
+      ])
+    end
+
+    it 'excludes gold prices outside the range' do
+      get '/api/v2/stats/gold', params: { date: (date - 1.month).strftime('%Y-%m-%d'), end_date: (date - 2.days).strftime('%Y-%m-%d') }
+
+      expect(response).to have_http_status(:success)
+      expect(JSON.parse(response.body)).to eq([])
+    end
+  end
+
   context 'when date is provided but end_date is not' do
     let(:date) { Date.today - 1.month }
 
