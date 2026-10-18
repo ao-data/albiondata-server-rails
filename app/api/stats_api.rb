@@ -267,6 +267,8 @@ class StatsAPI < Grape::API
           "are limited to #{NON_GZIP_RATE}. The curl, Python, Node, and Ruby snippets shown after \"Try it out\" already request compression.</li>"
         end}
       <li>Throttled requests get HTTP <code>429</code> with <code>RateLimit-Limit</code>, <code>RateLimit-Remaining</code>, and <code>RateLimit-Reset</code> (epoch seconds) headers.</li>
+      <li><strong>Back off on 429s.</strong> Clients that ignore 429 responses and keep hitting the server get a temporary 5-minute firewall ban, applied again for each repeat offense.
+      Wait until <code>RateLimit-Reset</code> before retrying.</li>
     </ul>
 
     <h4>Getting a lot of data</h4>
