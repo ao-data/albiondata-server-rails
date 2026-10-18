@@ -252,11 +252,12 @@ class StatsAPI < Grape::API
     <p>Market price, history, order book, gold, festivities, and identifier stats for Albion Online.</p>
 
     <h4>API docs by game server</h4>
-    <p>Each game server has its own data, and these docs query the server they were opened on. Endpoint paths below go after that server's host.</p>
+    <p>Each game server has its own data, and these docs query the server they were opened on. Requests go to that server's host plus an
+    endpoint path below, e.g. <code>https://west.albion-online-data.com/api/v2/stats/prices/T4_BAG</code>.</p>
     <ul>
-      <li>Americas (West): <a href="https://west.albion-online-data.com/api-docs">west.albion-online-data.com/api-docs</a> (host <code>https://west.albion-online-data.com</code>)</li>
-      <li>Asia (East): <a href="https://east.albion-online-data.com/api-docs">east.albion-online-data.com/api-docs</a> (host <code>https://east.albion-online-data.com</code>)</li>
-      <li>Europe: <a href="https://europe.albion-online-data.com/api-docs">europe.albion-online-data.com/api-docs</a> (host <code>https://europe.albion-online-data.com</code>)</li>
+      <li>Americas (West): <a href="https://west.albion-online-data.com/api-docs">west.albion-online-data.com/api-docs</a></li>
+      <li>Asia (East): <a href="https://east.albion-online-data.com/api-docs">east.albion-online-data.com/api-docs</a></li>
+      <li>Europe: <a href="https://europe.albion-online-data.com/api-docs">europe.albion-online-data.com/api-docs</a></li>
     </ul>
 
     <h4>Rate limits</h4>
