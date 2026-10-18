@@ -22,6 +22,7 @@
 #
 #  expired                      (deleted_at,expires,updated_at)
 #  main                         (item_id,location,updated_at,deleted_at)
+#  orderbook                    (item_id,location,quality_level,auction_type,price)
 #  stats_bin                    (item_id,location,quality_level,auction_type,updated_at_bin)
 #  uix_market_orders_albion_id  (albion_id) UNIQUE
 #

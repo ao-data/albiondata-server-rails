@@ -16,7 +16,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    platform: linux/amd64
     restart: no
     environment:
       RUN_MODE: ${RUN_MODE}

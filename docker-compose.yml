@@ -14,7 +14,6 @@ services:
   web:
     build:
       context: .
-    platform: linux/amd64
     restart: no
     volumes:
       - ./:/rails
