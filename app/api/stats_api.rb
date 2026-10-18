@@ -68,16 +68,20 @@ class StatsAPI < Grape::API
 
   rescue_from StandardError do |e|
     env['api.format'] = :json
-    Rails.logger.error({ location: "StatsAPI #{request.request_method} #{request.path}", message: e.message, backtrace: e.backtrace, params: params, query_string: request.query_string })
+    Rails.logger.error({ location: "StatsAPI #{request.request_method} #{request.path}", message: e.message,
+                         backtrace: e.backtrace, params:, query_string: request.query_string })
     error!({ error: 'Internal Server Error' }, 500)
   end
 
   namespace 'stats' do
     desc 'List gold prices for a date range', produces: JSON_OR_XML
     params do
-      optional :date, type: String, desc: 'Start date. Supported formats: YYYY-MM-DD (preferred) or MM-DD-YYYY. Defaults to one month ago.', documentation: { example: RelativeDateExample.new(7, '%Y-%m-%d') }
-      optional :end_date, type: String, desc: 'End date. Supported formats: YYYY-MM-DD (preferred) or MM-DD-YYYY. Defaults to now.', documentation: { example: RelativeDateExample.new(0, '%Y-%m-%d') }
-      optional :count, type: String, desc: 'Limit results to this many, ordered most-recent-first.', documentation: { example: '10' }
+      optional :date, type: String,
+                      desc: 'Start date. Supported formats: YYYY-MM-DD (preferred) or MM-DD-YYYY. Defaults to one month ago.', documentation: { example: RelativeDateExample.new(7, '%Y-%m-%d') }
+      optional :end_date, type: String,
+                          desc: 'End date. Supported formats: YYYY-MM-DD (preferred) or MM-DD-YYYY. Defaults to now.', documentation: { example: RelativeDateExample.new(0, '%Y-%m-%d') }
+      optional :count, type: String, desc: 'Limit results to this many, ordered most-recent-first.',
+                       documentation: { example: '10' }
       use :response_format
     end
     get 'gold' do
@@ -90,7 +94,7 @@ class StatsAPI < Grape::API
         relation = relation.order(timestamp: :desc).limit(params[:count].to_i) if params.key?(:count)
 
         results = relation.map do |row|
-          entry = { price: row[:price] / 10000, timestamp: row[:timestamp].strftime('%Y-%m-%dT%H:%M:%S') }
+          entry = { price: row[:price] / 10_000, timestamp: row[:timestamp].strftime('%Y-%m-%dT%H:%M:%S') }
           entry[:id] = row[:id] if env['api.format'] == :xml
           entry
         end
@@ -101,9 +105,12 @@ class StatsAPI < Grape::API
 
     desc 'Get current market prices for an item', produces: JSON_OR_XML
     params do
-      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
-      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by. Cities with multiple words, e.g. Fort Sterling, can be given as fortsterling, Fort Sterling, or URL-encoded (Fort%20Sterling).', documentation: { example: 'caerleon,bridgewatch' }
-      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '1,2,3,4,5' }
+      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG',
+                    documentation: { example: 't4_bag,t5_bag' }
+      optional :locations, types: [String, Array[String]],
+                           desc: 'Comma-separated list of locations/cities to filter by. Cities with multiple words, e.g. Fort Sterling, can be given as fortsterling, Fort Sterling, or URL-encoded (Fort%20Sterling).', documentation: { example: 'caerleon,bridgewatch' }
+      optional :qualities, types: [String, Array[String]],
+                           desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '1,2,3,4,5' }
       use :response_format
     end
     get 'prices/:id' do
@@ -117,9 +124,12 @@ class StatsAPI < Grape::API
 
     desc 'Get the live order book (price levels and depth) for an item', produces: JSON_OR_XML
     params do
-      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
-      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by. Cities with multiple words, e.g. Fort Sterling, can be given as fortsterling, Fort Sterling, or URL-encoded (Fort%20Sterling).', documentation: { example: 'caerleon,bridgewatch' }
-      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '1,2,3,4,5' }
+      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG',
+                    documentation: { example: 't4_bag,t5_bag' }
+      optional :locations, types: [String, Array[String]],
+                           desc: 'Comma-separated list of locations/cities to filter by. Cities with multiple words, e.g. Fort Sterling, can be given as fortsterling, Fort Sterling, or URL-encoded (Fort%20Sterling).', documentation: { example: 'caerleon,bridgewatch' }
+      optional :qualities, types: [String, Array[String]],
+                           desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '1,2,3,4,5' }
       use :response_format
     end
     get 'orderbook/:id' do
@@ -133,9 +143,12 @@ class StatsAPI < Grape::API
 
     desc 'Get current market prices for an item as an HTML table'
     params do
-      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
-      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by. Cities with multiple words, e.g. Fort Sterling, can be given as fortsterling, Fort Sterling, or URL-encoded (Fort%20Sterling).', documentation: { example: 'caerleon,bridgewatch' }
-      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '1,2,3,4,5' }
+      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG',
+                    documentation: { example: 't4_bag,t5_bag' }
+      optional :locations, types: [String, Array[String]],
+                           desc: 'Comma-separated list of locations/cities to filter by. Cities with multiple words, e.g. Fort Sterling, can be given as fortsterling, Fort Sterling, or URL-encoded (Fort%20Sterling).', documentation: { example: 'caerleon,bridgewatch' }
+      optional :qualities, types: [String, Array[String]],
+                           desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '1,2,3,4,5' }
     end
     get 'view/:id' do
       with_database do
@@ -148,12 +161,18 @@ class StatsAPI < Grape::API
 
     desc 'Get historical market prices for an item', produces: JSON_OR_XML
     params do
-      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
-      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by. Cities with multiple words, e.g. Fort Sterling, can be given as fortsterling, Fort Sterling, or URL-encoded (Fort%20Sterling).', documentation: { example: 'caerleon,bridgewatch' }
-      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '1,2,3,4,5' }
-      optional :date, type: String, desc: 'Start date. Supported formats: YYYY-MM-DD (preferred) or MM-DD-YYYY. Defaults to 30 days ago.', documentation: { example: RelativeDateExample.new(7, '%Y-%m-%d') }
-      optional :end_date, type: String, desc: 'End date. Supported formats: YYYY-MM-DD (preferred) or MM-DD-YYYY. Defaults to 30 days after the start date.', documentation: { example: RelativeDateExample.new(0, '%Y-%m-%d') }
-      optional :'time-scale', type: String, desc: 'Aggregation timescale in hours: 1, 6, or 24', documentation: { example: '24' }
+      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG',
+                    documentation: { example: 't4_bag,t5_bag' }
+      optional :locations, types: [String, Array[String]],
+                           desc: 'Comma-separated list of locations/cities to filter by. Cities with multiple words, e.g. Fort Sterling, can be given as fortsterling, Fort Sterling, or URL-encoded (Fort%20Sterling).', documentation: { example: 'caerleon,bridgewatch' }
+      optional :qualities, types: [String, Array[String]],
+                           desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '1,2,3,4,5' }
+      optional :date, type: String,
+                      desc: 'Start date. Supported formats: YYYY-MM-DD (preferred) or MM-DD-YYYY. Defaults to 30 days ago.', documentation: { example: RelativeDateExample.new(7, '%Y-%m-%d') }
+      optional :end_date, type: String,
+                          desc: 'End date. Supported formats: YYYY-MM-DD (preferred) or MM-DD-YYYY. Defaults to 30 days after the start date.', documentation: { example: RelativeDateExample.new(0, '%Y-%m-%d') }
+      optional :'time-scale', type: String, desc: 'Aggregation timescale in hours: 1, 6, or 24',
+                              documentation: { example: '24' }
       use :response_format
     end
     get 'history/:id' do
@@ -167,12 +186,18 @@ class StatsAPI < Grape::API
 
     desc 'Get historical market price chart data for an item', produces: JSON_OR_XML
     params do
-      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
-      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by. Cities with multiple words, e.g. Fort Sterling, can be given as fortsterling, Fort Sterling, or URL-encoded (Fort%20Sterling).', documentation: { example: 'caerleon,bridgewatch' }
-      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '1,2,3,4,5' }
-      optional :date, type: String, desc: 'Start date. Supported formats: YYYY-MM-DD (preferred) or MM-DD-YYYY. Defaults to 30 days ago.', documentation: { example: RelativeDateExample.new(7, '%Y-%m-%d') }
-      optional :end_date, type: String, desc: 'End date. Supported formats: YYYY-MM-DD (preferred) or MM-DD-YYYY. Defaults to 30 days after the start date.', documentation: { example: RelativeDateExample.new(0, '%Y-%m-%d') }
-      optional :'time-scale', type: String, desc: 'Aggregation timescale in hours: 1, 6, or 24', documentation: { example: '24' }
+      requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG',
+                    documentation: { example: 't4_bag,t5_bag' }
+      optional :locations, types: [String, Array[String]],
+                           desc: 'Comma-separated list of locations/cities to filter by. Cities with multiple words, e.g. Fort Sterling, can be given as fortsterling, Fort Sterling, or URL-encoded (Fort%20Sterling).', documentation: { example: 'caerleon,bridgewatch' }
+      optional :qualities, types: [String, Array[String]],
+                           desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '1,2,3,4,5' }
+      optional :date, type: String,
+                      desc: 'Start date. Supported formats: YYYY-MM-DD (preferred) or MM-DD-YYYY. Defaults to 30 days ago.', documentation: { example: RelativeDateExample.new(7, '%Y-%m-%d') }
+      optional :end_date, type: String,
+                          desc: 'End date. Supported formats: YYYY-MM-DD (preferred) or MM-DD-YYYY. Defaults to 30 days after the start date.', documentation: { example: RelativeDateExample.new(0, '%Y-%m-%d') }
+      optional :'time-scale', type: String, desc: 'Aggregation timescale in hours: 1, 6, or 24',
+                              documentation: { example: '24' }
       use :response_format
     end
     get 'charts/:id' do
@@ -197,7 +222,8 @@ class StatsAPI < Grape::API
 
     desc 'Get identifier events recorded for the current server'
     params do
-      requires :identifier, type: String, desc: 'Client-generated identifier to look up events for', documentation: { example: '3f2b8c1e-7a4d-4e9b-9c1a-2d5e6f7a8b9c' }
+      requires :identifier, type: String, desc: 'Client-generated identifier to look up events for',
+                            documentation: { example: '3f2b8c1e-7a4d-4e9b-9c1a-2d5e6f7a8b9c' }
     end
     get 'identifier/:identifier' do
       with_database do
@@ -209,50 +235,43 @@ class StatsAPI < Grape::API
     end
   end
 
-  # Shown at the top of the Swagger UI page. Swagger UI 2.x inserts it as HTML. Rate limits come from the same env vars
-  # config/initializers/rack_attack.rb reads; the fallbacks are the values the API page has always listed.
+  # "N requests per <period>" for a throttle registered in config/initializers/rack_attack.rb (which runs before this
+  # class loads), so the doc can't drift from the configured limits. nil when the throttle isn't registered, e.g.
+  # apiv2-non-gzip/5m in the test env.
+  def self.throttle_rate(name)
+    throttle = Rack::Attack.throttles[name] or return nil
+    limit, period = throttle.limit, throttle.period
+    per = period == 60 ? 'minute' : (period % 60).zero? ? "#{period / 60} minutes" : "#{period} seconds"
+    "#{limit} #{'request'.pluralize(limit)} per #{per}"
+  end
+
+  NON_GZIP_RATE = throttle_rate('apiv2-non-gzip/5m')
+
+  # Shown at the top of the Swagger UI page. Swagger UI 2.x inserts it as HTML.
   API_DESCRIPTION = <<~HTML.freeze
     <p>Market price, history, order book, gold, festivities, and identifier stats for Albion Online.</p>
 
-    <h4>Hosts</h4>
-    <p>Pick the host for the game server you want, then append an endpoint path below. This page queries the server it was opened on.</p>
+    <h4>API docs by game server</h4>
+    <p>Each game server has its own data, and these docs query the server they were opened on. Endpoint paths below go after that server's host.</p>
     <ul>
-      <li>Americas (West): <code>https://west.albion-online-data.com</code></li>
-      <li>Asia (East): <code>https://east.albion-online-data.com</code></li>
-      <li>Europe: <code>https://europe.albion-online-data.com</code></li>
+      <li>Americas (West): <a href="https://west.albion-online-data.com/api-docs">west.albion-online-data.com/api-docs</a> (host <code>https://west.albion-online-data.com</code>)</li>
+      <li>Asia (East): <a href="https://east.albion-online-data.com/api-docs">east.albion-online-data.com/api-docs</a> (host <code>https://east.albion-online-data.com</code>)</li>
+      <li>Europe: <a href="https://europe.albion-online-data.com/api-docs">europe.albion-online-data.com/api-docs</a> (host <code>https://europe.albion-online-data.com</code>)</li>
     </ul>
-
-    <h4>Item and location IDs</h4>
-    <p>Item IDs are in <a href="https://github.com/ao-data/ao-bin-dumps/blob/master/formatted/items.txt" target="_blank" rel="noopener">items.txt</a> /
-    <a href="https://github.com/ao-data/ao-bin-dumps/blob/master/formatted/items.json" target="_blank" rel="noopener">items.json</a>.
-    Location IDs and names are in <a href="https://github.com/ao-data/ao-bin-dumps/blob/master/formatted/world.txt" target="_blank" rel="noopener">world.txt</a> /
-    <a href="https://github.com/ao-data/ao-bin-dumps/blob/master/formatted/world.json" target="_blank" rel="noopener">world.json</a>.</p>
-
-    <h4>Formats and dates</h4>
-    <p>JSON is the default. For XML, add <code>.xml</code> to the path (e.g. <code>/api/v2/stats/prices/T4_BAG.xml</code>) or pass <code>format=xml</code>.
-    Dates accept <code>YYYY-MM-DD</code> (preferred) or <code>MM-DD-YYYY</code>.</p>
 
     <h4>Rate limits</h4>
     <ul>
-      <li>#{ENV.fetch('THROTTLE_API_1MIN', '180')} requests per minute and #{ENV.fetch('THROTTLE_API_5MIN', '300')} requests per 5 minutes, per IP.</li>
-      <li><strong>Use compression.</strong> Requests that don't accept gzip, deflate, br, or zstd (via <code>Accept-Encoding</code>) are limited to 6 per minute.
-      The curl, Python, Node, and Ruby snippets shown after "Try it out" already request compression.</li>
+      <li>#{throttle_rate('apiv2/1m')} and #{throttle_rate('apiv2/5m')}, per IP.</li>
+      #{if NON_GZIP_RATE
+          "<li><strong>Use compression.</strong> Requests that don't accept gzip, deflate, br, or zstd (via <code>Accept-Encoding</code>) " \
+          "are limited to #{NON_GZIP_RATE}. The curl, Python, Node, and Ruby snippets shown after \"Try it out\" already request compression.</li>"
+        end}
       <li>Throttled requests get HTTP <code>429</code> with <code>RateLimit-Limit</code>, <code>RateLimit-Remaining</code>, and <code>RateLimit-Reset</code> (epoch seconds) headers.</li>
     </ul>
 
     <h4>Getting a lot of data</h4>
     <p>Combine many items and locations in one request rather than making many small ones; just keep the URL under <strong>4096 characters</strong>.
     If you run a service that hits the API continually, compression keeps the project sustainable: server and bandwidth are not free.</p>
-
-    <h4>Spreadsheets</h4>
-    <ul>
-      <li><strong>Excel:</strong> use Power Query to connect to the API URLs.</li>
-      <li><strong>Google Sheets (XML):</strong> <a href="https://support.google.com/docs/answer/3093342?hl=en" target="_blank" rel="noopener">IMPORTXML</a>, e.g.
-      <code>=IMPORTXML("https://west.albion-online-data.com/api/v2/stats/prices/T4_BAG.xml?locations=Caerleon&amp;qualities=2","//ArrayOfMarketResponse/MarketResponse")</code></li>
-      <li><strong>Google Sheets (JSON):</strong> the third-party <a href="https://github.com/bradjasper/ImportJSON" target="_blank" rel="noopener">ImportJSON</a> script, e.g.
-      <code>=ImportJSON("https://west.albion-online-data.com/api/v2/stats/prices/T4_BAG.json?locations=Caerleon&amp;qualities=2", "", "noHeaders")</code>
-      (some people have seen repeating rows with it).</li>
-    </ul>
   HTML
 
   add_swagger_documentation info: { title: 'Albion Online Data Project API', description: API_DESCRIPTION }
