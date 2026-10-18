@@ -96,7 +96,7 @@ class StatsAPI < Grape::API
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
       optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by. Cities with multiple words, e.g. Fort Sterling, can be given as fortsterling, Fort Sterling, or URL-encoded (Fort%20Sterling).', documentation: { example: 'caerleon,bridgewatch' }
-      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '0,1,2,3,4' }
+      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '1,2,3,4,5' }
       use :response_format
     end
     get 'prices/:id' do
@@ -112,7 +112,7 @@ class StatsAPI < Grape::API
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
       optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by. Cities with multiple words, e.g. Fort Sterling, can be given as fortsterling, Fort Sterling, or URL-encoded (Fort%20Sterling).', documentation: { example: 'caerleon,bridgewatch' }
-      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '0,1,2,3,4' }
+      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '1,2,3,4,5' }
       use :response_format
     end
     get 'orderbook/:id' do
@@ -128,7 +128,7 @@ class StatsAPI < Grape::API
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
       optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by. Cities with multiple words, e.g. Fort Sterling, can be given as fortsterling, Fort Sterling, or URL-encoded (Fort%20Sterling).', documentation: { example: 'caerleon,bridgewatch' }
-      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '0,1,2,3,4' }
+      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '1,2,3,4,5' }
     end
     get 'view/:id' do
       with_database do
@@ -143,7 +143,7 @@ class StatsAPI < Grape::API
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
       optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by. Cities with multiple words, e.g. Fort Sterling, can be given as fortsterling, Fort Sterling, or URL-encoded (Fort%20Sterling).', documentation: { example: 'caerleon,bridgewatch' }
-      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '0,1,2,3,4' }
+      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '1,2,3,4,5' }
       optional :date, type: String, desc: 'Start date, format MM-DD-YYYY or YYYY-MM-DD', documentation: { example: RelativeDateExample.new(7, '%Y-%m-%d') }
       optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY or YYYY-MM-DD', documentation: { example: RelativeDateExample.new(0, '%Y-%m-%d') }
       optional :'time-scale', type: String, desc: 'Aggregation timescale in hours: 1, 6, or 24', documentation: { example: '24' }
@@ -162,7 +162,7 @@ class StatsAPI < Grape::API
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
       optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by. Cities with multiple words, e.g. Fort Sterling, can be given as fortsterling, Fort Sterling, or URL-encoded (Fort%20Sterling).', documentation: { example: 'caerleon,bridgewatch' }
-      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '0,1,2,3,4' }
+      optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '1,2,3,4,5' }
       optional :date, type: String, desc: 'Start date, format MM-DD-YYYY or YYYY-MM-DD', documentation: { example: RelativeDateExample.new(7, '%Y-%m-%d') }
       optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY or YYYY-MM-DD', documentation: { example: RelativeDateExample.new(0, '%Y-%m-%d') }
       optional :'time-scale', type: String, desc: 'Aggregation timescale in hours: 1, 6, or 24', documentation: { example: '24' }
