@@ -45,6 +45,16 @@ RSpec.describe 'GET /api/v2/stats/prices/:id', type: :request do
     end
   end
 
+  context 'when format is requested via the documented format query param' do
+    it 'returns market data as xml' do
+      get '/api/v2/stats/prices/T4_BAG', params: { format: 'xml' }
+
+      expect(response).to have_http_status(:success)
+      expect(response.media_type).to eq('application/xml')
+      expect(response.body).to start_with('<?xml version="1.0"?>')
+    end
+  end
+
   context 'when service raises an error' do
     it 'returns a 500 status code' do
       allow(market_data_service).to receive(:get_stats).and_raise(StandardError)

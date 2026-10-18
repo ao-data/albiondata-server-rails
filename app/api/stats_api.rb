@@ -1,5 +1,6 @@
 class StatsAPI < Grape::API
   XmlPayload = Struct.new(:kind, :data)
+  JSON_OR_XML = ['application/json', 'application/xml'].freeze
 
   content_type :json, 'application/json; charset=utf-8'
   format :json
@@ -35,6 +36,13 @@ class StatsAPI < Grape::API
       Rails.logger.info("using database #{subdomain}")
       Multidb.use(server_id, &block)
     end
+
+    # Documentation only: the format is picked from the .xml extension or ?format= (Accept is ignored), and
+    # a real `values:` validator would start rejecting formats like .html that are accepted today.
+    params :response_format do
+      optional :format, type: String, desc: 'Response format; a .xml path extension works too',
+                        documentation: { values: %w[json xml], default: 'json', param_type: 'query' }
+    end
   end
 
   prefix 'api'
@@ -51,11 +59,12 @@ class StatsAPI < Grape::API
   end
 
   namespace 'stats' do
-    desc 'List gold prices for a date range'
+    desc 'List gold prices for a date range', produces: JSON_OR_XML
     params do
       optional :date, type: String, desc: 'Start date, format MM-DD-YYYY. Defaults to one month ago.'
       optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY. Defaults to now.'
       optional :count, type: String, desc: 'Limit results to this many, ordered most-recent-first.'
+      use :response_format
     end
     get 'gold' do
       with_database do
@@ -76,11 +85,12 @@ class StatsAPI < Grape::API
       end
     end
 
-    desc 'Get current market prices for an item'
+    desc 'Get current market prices for an item', produces: JSON_OR_XML
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG'
       optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by'
       optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by'
+      use :response_format
     end
     get 'prices/:id' do
       with_database do
@@ -91,11 +101,12 @@ class StatsAPI < Grape::API
       end
     end
 
-    desc 'Get the live order book (price levels and depth) for an item'
+    desc 'Get the live order book (price levels and depth) for an item', produces: JSON_OR_XML
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG'
       optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by'
       optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by'
+      use :response_format
     end
     get 'orderbook/:id' do
       with_database do
@@ -121,7 +132,7 @@ class StatsAPI < Grape::API
       end
     end
 
-    desc 'Get historical market prices for an item'
+    desc 'Get historical market prices for an item', produces: JSON_OR_XML
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG'
       optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by'
@@ -129,6 +140,7 @@ class StatsAPI < Grape::API
       optional :date, type: String, desc: 'Start date, format MM-DD-YYYY or YYYY-MM-DD'
       optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY or YYYY-MM-DD'
       optional :'time-scale', type: String, desc: 'Aggregation timescale in hours: 1, 6, or 24'
+      use :response_format
     end
     get 'history/:id' do
       with_database do
@@ -139,7 +151,7 @@ class StatsAPI < Grape::API
       end
     end
 
-    desc 'Get historical market price chart data for an item'
+    desc 'Get historical market price chart data for an item', produces: JSON_OR_XML
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG'
       optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by'
@@ -147,6 +159,7 @@ class StatsAPI < Grape::API
       optional :date, type: String, desc: 'Start date, format MM-DD-YYYY or YYYY-MM-DD'
       optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY or YYYY-MM-DD'
       optional :'time-scale', type: String, desc: 'Aggregation timescale in hours: 1, 6, or 24'
+      use :response_format
     end
     get 'charts/:id' do
       with_database do
