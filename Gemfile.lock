@@ -140,6 +140,26 @@ GEM
     diff-lcs (1.6.2)
     docile (1.4.1)
     drb (2.2.3)
+    dry-configurable (1.4.0)
+      dry-core (~> 1.0)
+      zeitwerk (~> 2.6)
+    dry-core (1.2.0)
+      concurrent-ruby (~> 1.0)
+      logger
+      zeitwerk (~> 2.6)
+    dry-inflector (1.3.1)
+    dry-logic (1.6.0)
+      bigdecimal
+      concurrent-ruby (~> 1.0)
+      dry-core (~> 1.1)
+      zeitwerk (~> 2.6)
+    dry-types (1.9.1)
+      bigdecimal (>= 3.0)
+      concurrent-ruby (~> 1.0)
+      dry-core (~> 1.0)
+      dry-inflector (~> 1.0)
+      dry-logic (~> 1.4)
+      zeitwerk (~> 2.6)
     erb (6.0.1)
     erubi (1.13.1)
     et-orbi (1.4.0)
@@ -159,6 +179,18 @@ GEM
       raabro (~> 1.4)
     globalid (1.3.0)
       activesupport (>= 6.1)
+    grape (3.1.1)
+      activesupport (>= 7.1)
+      dry-configurable
+      dry-types (>= 1.1)
+      mustermann-grape (~> 1.1.0)
+      rack (>= 2)
+      zeitwerk
+    grape-swagger (2.2.0)
+      grape (>= 2.1, < 5.0)
+    grape-swagger-rails (0.7.0)
+      ostruct
+      railties (>= 6.0.6.1)
     httparty (0.21.0)
       mini_mime (>= 1.0.0)
       multi_xml (>= 0.5.2)
@@ -199,6 +231,9 @@ GEM
     multi_xml (0.8.1)
       bigdecimal (>= 3.1, < 5)
     multipart-post (2.4.1)
+    mustermann (4.0.0)
+    mustermann-grape (1.1.0)
+      mustermann (>= 1.0.0)
     mutex_m (0.3.0)
     nats-pure (2.5.0)
       base64
@@ -229,6 +264,7 @@ GEM
       racc (~> 1.4)
     nokogiri (1.19.0-x86_64-linux-gnu)
       racc (~> 1.4)
+    ostruct (0.6.3)
     pp (0.6.3)
       prettyprint
     prettyprint (0.2.0)
@@ -407,12 +443,16 @@ DEPENDENCIES
   annotate (~> 3.2)
   ar-multidb!
   bootsnap
+  builder
   capybara
   connection_pool (< 3)
   database_cleaner (~> 2.0, >= 2.0.2)
   debug
   factory_bot_rails (~> 6.4, >= 6.4.3)
   ffaker (~> 2.21)
+  grape
+  grape-swagger
+  grape-swagger-rails
   httparty (~> 0.21.0)
   importmap-rails
   influxdb-client (~> 3.2)

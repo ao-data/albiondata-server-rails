@@ -12,5 +12,8 @@
 
 # These inflection rules are supported but not enabled by default:
 ActiveSupport::Inflector.inflections(:en) do |inflect|
+  # app/api/stats_api.rb (the StatsAPI Grape class, mounted in config/routes.rb) depends on this
+  # acronym resolving "API" correctly at boot — do not remove even though the legacy
+  # API::V2::*Controller tree this was originally added for is gone.
   inflect.acronym "API"
 end

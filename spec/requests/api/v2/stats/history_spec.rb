@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe API::V2::Stats::HistoryController, :type => :controller do
+RSpec.describe 'GET /api/v2/stats/history and /api/v2/stats/charts', type: :request do
   let(:market_history_service) { instance_double(MarketHistoryService) }
 
   before do
@@ -11,7 +11,7 @@ RSpec.describe API::V2::Stats::HistoryController, :type => :controller do
     Timecop.return
   end
 
-  describe "GET #show" do
+  describe 'GET /api/v2/stats/history/:id' do
     let(:results) { [{ location: 'location', item_id: 1, quality: 'high', data: [{ item_count: 10, avg_price: 100, timestamp: '2022-01-01' }] }] }
 
     before do
@@ -19,19 +19,18 @@ RSpec.describe API::V2::Stats::HistoryController, :type => :controller do
       allow(market_history_service).to receive(:get_stats).and_return(results)
     end
 
-    context "when format is json" do
-      it "returns market history as json" do
-        get :show, format: :json, params: {id: 'T4_BAG'}
+    context 'when format is json' do
+      it 'returns market history as json' do
+        get '/api/v2/stats/history/T4_BAG'
 
         expect(response).to have_http_status(:success)
-
         expect(JSON.parse(response.body)).to eq(results.map(&:deep_stringify_keys))
       end
     end
 
-    context "when format is xml" do
-      it "returns market history as xml" do
-        get :show, format: :xml, params: {id: 'T4_BAG'}
+    context 'when format is xml' do
+      it 'returns market history as xml' do
+        get '/api/v2/stats/history/T4_BAG.xml'
 
         expect(response).to have_http_status(:success)
         expected_result = <<-EOD
@@ -53,26 +52,35 @@ RSpec.describe API::V2::Stats::HistoryController, :type => :controller do
         EOD
         expect(response.body).to eq(expected_result)
       end
+
+      it 'returns a Content-Type header with an explicit charset' do
+        get '/api/v2/stats/history/T4_BAG.xml'
+
+        expect(response.headers['Content-Type']).to eq('application/xml; charset=utf-8')
+      end
     end
 
-    context "when service raises an error" do
-      it "returns a 500 status code" do
+    context 'when service raises an error' do
+      it 'returns a 500 status code' do
         allow(market_history_service).to receive(:get_stats).and_raise(StandardError)
 
-        get :show, format: :json, params: {id: 'T4_BAG'}
+        get '/api/v2/stats/history/T4_BAG'
 
-        # 0) API::V2::Stats::HistoryController GET #show when service raises an error returns a 500 status code
-        # Failure/Error: results = MarketHistoryService.new.get_stats(params.merge({ query_string: request.query_string}))
-        #
-        # StandardError:
-        #   StandardError
-        # # ./app/controllers/api/v2/stats/history_controller.rb:5:in `show'
         expect(response).to have_http_status(:internal_server_error)
+      end
+    end
+
+    context 'when locations is passed as an array-style query param' do
+      it 'returns market history as json' do
+        get '/api/v2/stats/history/T4_BAG', params: { locations: ['Caerleon', 'Martlock'] }
+
+        expect(response).to have_http_status(:success)
+        expect(JSON.parse(response.body)).to eq(results.map(&:deep_stringify_keys))
       end
     end
   end
 
-  describe "GET #charts" do
+  describe 'GET /api/v2/stats/charts/:id' do
     let(:results) { [{"location":"Caerleon","item_id":"T4_BAG","quality":1,"data":{"timestamps":["2024-03-09T00:00:00","2024-03-10T00:00:00"],"prices_avg":[10,10],"item_count":[20,10]}},{"location":"Caerleon","item_id":"T4_BAG","quality":2,"data":{"timestamps":["2024-03-09T00:00:00","2024-03-10T00:00:00"],"prices_avg":[10,10],"item_count":[20,10]}}] }
 
     before do
@@ -80,23 +88,20 @@ RSpec.describe API::V2::Stats::HistoryController, :type => :controller do
       allow(market_history_service).to receive(:get_charts).and_return(results)
     end
 
-    context "when format is json" do
-      it "returns market history as json" do
-        get :charts, format: :json, params: {id: 'T4_BAG'}
+    context 'when format is json' do
+      it 'returns market history as json' do
+        get '/api/v2/stats/charts/T4_BAG'
 
         expect(response).to have_http_status(:success)
-
         expect(JSON.parse(response.body)).to eq(results.map(&:deep_stringify_keys))
       end
-
     end
 
-    context "when format is xml" do
-      it "returns market history as xml" do
-        get :charts, format: :xml, params: {id: 'T4_BAG'}
+    context 'when format is xml' do
+      it 'returns market history as xml' do
+        get '/api/v2/stats/charts/T4_BAG.xml'
 
         expect(response).to have_http_status(:success)
-
         expected_result = <<-EOD
 <?xml version="1.0"?>
 <ArrayOfMarketStatChartResponsev2 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
@@ -143,8 +148,15 @@ RSpec.describe API::V2::Stats::HistoryController, :type => :controller do
 
         expect(response.body).to eq(expected_result)
       end
-
     end
 
+    context 'when qualities is passed as an array-style query param' do
+      it 'returns market history as json' do
+        get '/api/v2/stats/charts/T4_BAG', params: { qualities: %w[1 2] }
+
+        expect(response).to have_http_status(:success)
+        expect(JSON.parse(response.body)).to eq(results.map(&:deep_stringify_keys))
+      end
+    end
   end
 end
