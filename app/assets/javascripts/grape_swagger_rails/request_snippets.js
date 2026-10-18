@@ -2,8 +2,8 @@
 //
 // - curl gets --compressed. The API throttles clients that don't accept gzip/deflate/br/zstd to 6 requests a minute,
 //   and --compressed (unlike a bare Accept-Encoding header) also makes curl decompress the body.
-// - Python (requests), Node (fetch) and Ruby (Net::HTTP) snippets are added under the curl one, each requesting a
-//   gzip/deflate response in whatever way that client still decompresses automatically.
+// - Python (requests), Node (fetch) and Ruby (HTTParty) snippets are added under the curl one, each sending
+//   Accept-Encoding: gzip, deflate explicitly; all three still decompress those responses automatically.
 //
 // Swagger UI renders the curl block right after calling Operation#asCurl, so wrapping asCurl is the one hook for all of
 // them. asCurl lives on swagger-js' Operation prototype, which is only reachable through an operation once the spec loads.
@@ -64,23 +64,22 @@
   function ruby(method, request) {
     var rubyString = function (value) { return JSON.stringify(value).replace(/#/g, '\\#'); };
     var headers = stringHeaders(request);
-    var verb = method.charAt(0).toUpperCase() + method.slice(1).toLowerCase();
+    // Unlike plain Net::HTTP, HTTParty keeps gzip/deflate decompression on even when Accept-Encoding is set explicitly.
+    headers['Accept-Encoding'] = ACCEPT_ENCODING;
+    var pairs = Object.keys(headers).map(function (name) {
+      return rubyString(name) + ' => ' + rubyString(headers[name]);
+    });
 
     return [
-      'require "net/http"'
-    ].concat(isXml(request) ? [] : ['require "json"']).concat([
+      'require "httparty"',
       '',
-      'uri = URI(' + rubyString(request.url) + ')',
-      'request = Net::HTTP::' + verb + '.new(uri)'
-    ]).concat(Object.keys(headers).map(function (name) {
-      return 'request[' + rubyString(name) + '] = ' + rubyString(headers[name]);
-    })).concat([
-      '# Net::HTTP sends Accept-Encoding: gzip, deflate and decompresses the response by default.',
-      '# Setting Accept-Encoding yourself turns the decompression off, so leave it unset.',
-      'response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") { |http| http.request(request) }',
-      'response.value # raises unless 2xx',
-      isXml(request) ? 'puts response.body' : 'pp JSON.parse(response.body)'
-    ]).join('\n');
+      'response = HTTParty.' + method.toLowerCase() + '(',
+      '  ' + rubyString(request.url) + ',',
+      '  headers: { ' + pairs.join(', ') + ' },',
+      ')',
+      'raise "HTTP #{response.code}" unless response.success?',
+      isXml(request) ? 'puts response.body' : 'pp response.parsed_response'
+    ].join('\n');
   }
 
   var SNIPPETS = [
