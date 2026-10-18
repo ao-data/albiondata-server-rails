@@ -122,7 +122,9 @@ class StatsAPI < Grape::API
       end
     end
 
-    desc 'Get the live order book (price levels and depth) for an item', produces: JSON_OR_XML
+    desc 'Get the live order book (price levels and depth) for an item',
+         detail: 'Sell orders are listed cheapest-first and buy orders richest-first, aggregated to one entry per price level.',
+         produces: JSON_OR_XML
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG',
                     documentation: { example: 't4_bag,t5_bag' }
@@ -159,7 +161,7 @@ class StatsAPI < Grape::API
       end
     end
 
-    desc 'Get historical market prices for an item', produces: JSON_OR_XML
+    desc 'Get historical market prices for an item', detail: 'Based on sell orders only.', produces: JSON_OR_XML
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG',
                     documentation: { example: 't4_bag,t5_bag' }
@@ -184,7 +186,7 @@ class StatsAPI < Grape::API
       end
     end
 
-    desc 'Get historical market price chart data for an item', produces: JSON_OR_XML
+    desc 'Get historical market price chart data for an item', detail: 'Based on sell orders only.', produces: JSON_OR_XML
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG',
                     documentation: { example: 't4_bag,t5_bag' }
