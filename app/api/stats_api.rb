@@ -95,7 +95,7 @@ class StatsAPI < Grape::API
     desc 'Get current market prices for an item', produces: JSON_OR_XML
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
-      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by', documentation: { example: 'caerleon,bridgewatch' }
+      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by. Cities with multiple words, e.g. Fort Sterling, can be given as fortsterling, Fort Sterling, or URL-encoded (Fort%20Sterling).', documentation: { example: 'caerleon,bridgewatch' }
       optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '0,1,2,3,4' }
       use :response_format
     end
@@ -111,7 +111,7 @@ class StatsAPI < Grape::API
     desc 'Get the live order book (price levels and depth) for an item', produces: JSON_OR_XML
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
-      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by', documentation: { example: 'caerleon,bridgewatch' }
+      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by. Cities with multiple words, e.g. Fort Sterling, can be given as fortsterling, Fort Sterling, or URL-encoded (Fort%20Sterling).', documentation: { example: 'caerleon,bridgewatch' }
       optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '0,1,2,3,4' }
       use :response_format
     end
@@ -127,7 +127,7 @@ class StatsAPI < Grape::API
     desc 'Get current market prices for an item as an HTML table'
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
-      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by', documentation: { example: 'caerleon,bridgewatch' }
+      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by. Cities with multiple words, e.g. Fort Sterling, can be given as fortsterling, Fort Sterling, or URL-encoded (Fort%20Sterling).', documentation: { example: 'caerleon,bridgewatch' }
       optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '0,1,2,3,4' }
     end
     get 'view/:id' do
@@ -142,7 +142,7 @@ class StatsAPI < Grape::API
     desc 'Get historical market prices for an item', produces: JSON_OR_XML
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
-      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by', documentation: { example: 'caerleon,bridgewatch' }
+      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by. Cities with multiple words, e.g. Fort Sterling, can be given as fortsterling, Fort Sterling, or URL-encoded (Fort%20Sterling).', documentation: { example: 'caerleon,bridgewatch' }
       optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '0,1,2,3,4' }
       optional :date, type: String, desc: 'Start date, format MM-DD-YYYY or YYYY-MM-DD', documentation: { example: RelativeDateExample.new(7, '%Y-%m-%d') }
       optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY or YYYY-MM-DD', documentation: { example: RelativeDateExample.new(0, '%Y-%m-%d') }
@@ -161,7 +161,7 @@ class StatsAPI < Grape::API
     desc 'Get historical market price chart data for an item', produces: JSON_OR_XML
     params do
       requires :id, type: String, desc: 'Comma-separated list of item IDs, e.g. T4_BAG', documentation: { example: 't4_bag,t5_bag' }
-      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by', documentation: { example: 'caerleon,bridgewatch' }
+      optional :locations, types: [String, Array[String]], desc: 'Comma-separated list of locations/cities to filter by. Cities with multiple words, e.g. Fort Sterling, can be given as fortsterling, Fort Sterling, or URL-encoded (Fort%20Sterling).', documentation: { example: 'caerleon,bridgewatch' }
       optional :qualities, types: [String, Array[String]], desc: 'Comma-separated list of quality levels (1-5) to filter by', documentation: { example: '0,1,2,3,4' }
       optional :date, type: String, desc: 'Start date, format MM-DD-YYYY or YYYY-MM-DD', documentation: { example: RelativeDateExample.new(7, '%Y-%m-%d') }
       optional :end_date, type: String, desc: 'End date, format MM-DD-YYYY or YYYY-MM-DD', documentation: { example: RelativeDateExample.new(0, '%Y-%m-%d') }
