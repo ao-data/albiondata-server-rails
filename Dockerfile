@@ -1,8 +1,8 @@
 # syntax = docker/dockerfile:1
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version and Gemfile
-ARG RUBY_VERSION=3.3.1
-FROM registry.docker.com/library/ruby:$RUBY_VERSION-slim as base
+ARG RUBY_VERSION=3.3.14
+FROM registry.docker.com/library/ruby:$RUBY_VERSION-slim-bookworm as base
 
 # Rails app lives here
 WORKDIR /rails
@@ -15,7 +15,7 @@ ENV RAILS_ENV="production" \
 
 # Install packages needed to build gems
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git libvips pkg-config curl libsqlite3-0 libvips default-mysql-client default-libmysqlclient-dev redis-tools
+    apt-get install --no-install-recommends -y build-essential git libvips pkg-config curl libsqlite3-0 libvips default-mysql-client default-libmysqlclient-dev libyaml-dev redis-tools
 
 # Install application gems
 COPY Gemfile Gemfile.lock ./
