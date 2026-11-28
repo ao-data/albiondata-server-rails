@@ -3,7 +3,10 @@ require 'redis'
 
 class Ipdb
   API_RATE_LIMIT_REMAINING_KEY = 'apidb-rate-limit-remaining'
-  BAD_IPS_KEY = 'bad_ips'
+  # Sorted set of bad IPs, scored by the unix time they were flagged. A sorted set rather than a plain set
+  # so entries can expire individually; this is a new key because the old 'bad_ips' key is a plain set.
+  BAD_IPS_KEY = 'bad_ips_by_time'
+  BAD_IP_TTL = 86400 * 3
   CHECKED_IPS_KEY_PREFIX = 'checked_ip_'
 
   def api_key
@@ -14,9 +17,9 @@ class Ipdb
     # Always assume IP is okay if we have no API key defined
     return true if api_key.blank?
 
-    # return false if the ip is in the bad list
-    is_bad = ABUSEIPDB_REDIS.sismember(BAD_IPS_KEY, ip)
-    return false if is_bad
+    # return false if the ip was added to the bad list within BAD_IP_TTL; once older than that, it gets rechecked
+    flagged_at = ABUSEIPDB_REDIS.zscore(BAD_IPS_KEY, ip)
+    return false if flagged_at && flagged_at > Time.now.to_i - BAD_IP_TTL
 
     # return true if the ip was checked and came back clean
     recently_checked = ABUSEIPDB_REDIS.get("#{CHECKED_IPS_KEY_PREFIX}#{ip}")
@@ -51,8 +54,10 @@ class Ipdb
     ABUSEIPDB_REDIS.set(API_RATE_LIMIT_REMAINING_KEY, rate_limit_remaining, ex: 1800)
 
     if score > ENV['ABUSEIPDB_SCORE_THRESHOLD'].to_i
-      # add ip to bad list
-      ABUSEIPDB_REDIS.sadd(BAD_IPS_KEY, ip)
+      # add ip to bad list (re-adding an expired ip refreshes its timestamp), and drop entries older than the TTL
+      now = Time.now.to_i
+      ABUSEIPDB_REDIS.zadd(BAD_IPS_KEY, now, ip)
+      ABUSEIPDB_REDIS.zremrangebyscore(BAD_IPS_KEY, '-inf', now - BAD_IP_TTL)
 
       return false
     else

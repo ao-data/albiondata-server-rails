@@ -6,7 +6,9 @@ RSpec.describe Ipdb, :type => :class do
 
   describe '#check_ip' do
     before do
-      allow(ABUSEIPDB_REDIS).to receive(:sismember).with('bad_ips', ip).and_return(false)
+      allow(ABUSEIPDB_REDIS).to receive(:zscore).with('bad_ips_by_time', ip).and_return(nil)
+      allow(ABUSEIPDB_REDIS).to receive(:zadd)
+      allow(ABUSEIPDB_REDIS).to receive(:zremrangebyscore)
       allow(ABUSEIPDB_REDIS).to receive(:get).with('checked_ip_1.1.1.1').and_return(false)
       allow(ABUSEIPDB_REDIS).to receive(:get).with('apidb-rate-limit-remaining').and_return(9999)
       allow(ABUSEIPDB_REDIS).to receive(:set).with('checked_ip_1.1.1.1', 1, ex: 604800)
@@ -14,9 +16,15 @@ RSpec.describe Ipdb, :type => :class do
       ENV['ABUSEIPDB_SCORE_THRESHOLD'] = '10'
     end
 
-    it 'returns false if the ip is in the bad list' do
-      allow(ABUSEIPDB_REDIS).to receive(:sismember).with('bad_ips', ip).and_return(true)
+    it 'returns false if the ip was added to the bad list less than 3 days ago' do
+      allow(ABUSEIPDB_REDIS).to receive(:zscore).with('bad_ips_by_time', ip).and_return((Time.now.to_i - 86400 * 3 + 60).to_f)
       expect(ipdb.check_ip(ip)).to eq(false)
+    end
+
+    it 'rechecks the ip if it was added to the bad list more than 3 days ago' do
+      allow(ABUSEIPDB_REDIS).to receive(:zscore).with('bad_ips_by_time', ip).and_return((Time.now.to_i - 86400 * 3 - 60).to_f)
+      allow(ABUSEIPDB_REDIS).to receive(:get).with('checked_ip_1.1.1.1').and_return(true)
+      expect(ipdb.check_ip(ip)).to eq(true)
     end
 
     it 'returns true if the ip was checked and came back clean' do
@@ -132,9 +140,13 @@ RSpec.describe Ipdb, :type => :class do
       allow(client).to receive(:check).and_return(check)
       allow(Abuseipdb).to receive(:client).and_return(client)
 
-      expect(ABUSEIPDB_REDIS).to receive(:sadd).with('bad_ips', ip)
+      Timecop.freeze do
+        now = Time.now.to_i
+        expect(ABUSEIPDB_REDIS).to receive(:zadd).with('bad_ips_by_time', now, ip)
+        expect(ABUSEIPDB_REDIS).to receive(:zremrangebyscore).with('bad_ips_by_time', '-inf', now - 86400 * 3)
 
-      ipdb.check_ip(ip)
+        ipdb.check_ip(ip)
+      end
     end
 
     it 'does not add the ip to the bad list if the score is less than or equal to 10' do
@@ -149,7 +161,7 @@ RSpec.describe Ipdb, :type => :class do
       allow(client).to receive(:check).and_return(check)
       allow(Abuseipdb).to receive(:client).and_return(client)
 
-      expect(ABUSEIPDB_REDIS).not_to receive(:sadd)
+      expect(ABUSEIPDB_REDIS).not_to receive(:zadd)
 
       ipdb.check_ip(ip)
     end
